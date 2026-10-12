@@ -1,513 +1,243 @@
-import os
-import shutil
-import time
-import json
-import pygetwindow
+"""Profile selection and one-shot client calibration."""
+from __future__ import annotations
 
-from conf.conf_manager import ConfManager
-from core.GUI import *
-from core.Getters import *
-from modules.Root import root
+from copy import deepcopy
+from contextlib import nullcontext
+from pathlib import Path
+from typing import Any, Mapping
+import tkinter as tk
+from tkinter import messagebox
 
-conf = ConfManager.get('conf.json')
+from conf.conf_manager import ConfManager, ConfigError
+from core.GUI import GUI, rgb
+from core.Getters import CalibrationError, validate_calibration
 
-items_square = 32
-number_of_exceptions = []
 
-RingPositions = [0, 0, 0, 0]
-AmuletPositions = [0, 0, 0, 0]
+ITEM_SQUARE = 32
+RESERVED_PROFILE_NAMES = {
+    "conf.json", "guiloader.json", "json.json", "defaultwalk.json", "void.json",
+}
+
+
+def profile_filename(raw_name: str) -> str:
+    name = raw_name.strip()
+    if name.lower().endswith(".json"):
+        name = name[:-5]
+    if not name or name in {".", ".."} or Path(name).name != name:
+        raise ConfigError("profile name must be a plain filename without folders")
+    filename = f"{name}.json"
+    ConfManager.path(filename)  # strict extension/traversal validation
+    folded = filename.casefold()
+    if folded in RESERVED_PROFILE_NAMES or folded.endswith(".state.json"):
+        raise ConfigError(f"{filename!r} is reserved for application or route data")
+    return filename
+
+
+def is_profile_document(data: Any) -> bool:
+    return (isinstance(data, Mapping)
+            and all(isinstance(data.get(key), Mapping) for key in ("Positions", "Boxes", "SQM")))
+
+
+def _set_point(profile, name, point):
+    x, y = map(int, point)
+    profile["Positions"][name][0].update(x=x, y=y, Stats=True)
+
+
+def _set_box(profile, name, box):
+    x, y, right, bottom = map(int, box)
+    profile["Boxes"][name][0].update(x=x, y=y, w=right, h=bottom, Stats=True)
+
+
+def calibrate_profile(
+    template: Mapping[str, Any], frame_size: tuple[int, int], *, getters=None
+) -> dict[str, Any]:
+    """Build a complete profile in memory and validate it before any write."""
+    profile = deepcopy(template)
+    capture = None
+    if getters is None:
+        from core import Getters as getters
+        from core.HookWindow import frame_scope
+        from tibia_client.capture import CaptureProcess
+
+        capture = CaptureProcess(capture_size=frame_size)
+        try:
+            frame = capture.capture()
+        except Exception:
+            capture.close()
+            raise
+        scope = frame_scope(frame)
+    else:
+        scope = nullcontext()
+
+    try:
+        with scope:
+            health = getters.GetHealthPosition()
+            mana = getters.GetManaPosition()
+            battle = getters.GetBattlePosition()
+            stats = getters.GetStatsPosition()
+            map_box = getters.GetMapPosition()
+            player_result = getters.GetPlayerPosition()
+            player = player_result[:2]
+            game_box = player_result[2:]
+            sqms = getters.SetSQMs(player, game_box)
+    finally:
+        if capture is not None:
+            capture.close()
+
+    _set_point(profile, "LifePosition", health)
+    _set_point(profile, "ManaPosition", mana)
+    _set_point(profile, "BattlePosition", battle[:2])
+    _set_point(profile, "PlayerPosition", player)
+    _set_box(profile, "BattleBox", battle)
+    _set_box(profile, "StatusBarBox", stats)
+    _set_box(profile, "MapBox", map_box)
+    _set_box(profile, "GameWindowBox", game_box)
+
+    ring = (stats[0], stats[1] - 58, stats[0] + ITEM_SQUARE - 1, stats[1] - 27)
+    amulet = (stats[0], stats[1] - 130, stats[0] + ITEM_SQUARE - 1, stats[1] - 99)
+    _set_box(profile, "RingBox", ring)
+    _set_box(profile, "AmuletBox", amulet)
+
+    for number in range(1, 10):
+        item = profile["SQM"][f"SQM{number}"][0]
+        item.update(x=int(sqms[(number - 1) * 2]), y=int(sqms[(number - 1) * 2 + 1]), Stats=True)
+    profile["Stats"] = True
+    profile["calibration_size"] = list(frame_size)
+    validate_calibration(profile, frame_size)
+    return profile
+
+
+def _add_runtime_options(profile: dict[str, Any], mouse_mode: int, items_mode: str) -> None:
+    if type(mouse_mode) is not int or mouse_mode not in (0, 1):
+        raise CalibrationError("input mode must be physical (1) or window messages (0)")
+    if items_mode not in {"Frames", "Corners", "None"}:
+        raise CalibrationError(f"unsupported item image mode: {items_mode!r}")
+    from conf.Constants import (
+        CavebotScriptsPath, ChestsPath, ContainersNamePath, CornersItemsPath,
+        FramesItemsPath, MainPath, NoneItemsPath,
+    )
+    profile["MouseOption"] = mouse_mode
+    profile["ItemsMode"] = items_mode
+    item_paths = {"Frames": FramesItemsPath, "Corners": CornersItemsPath, "None": NoneItemsPath}
+    profile["Paths"].update(
+        MainPath=MainPath,
+        ItemsPath=item_paths[items_mode],
+        ChestsPath=ChestsPath,
+        ContainersNamePath=ContainersNamePath,
+        CavebotScriptsPath=CavebotScriptsPath,
+    )
+
+
+def prepare_profile(filename: str, frame_size: tuple[int, int], mouse_mode: int,
+                    items_mode: str, *, recalibrate: bool = False, getters=None) -> dict[str, Any]:
+    """Prepare a profile fully in memory; callers write only after success."""
+    filename = profile_filename(filename)
+    path = ConfManager.path(filename)
+    if path.exists():
+        existing = ConfManager.get(filename)
+        if not is_profile_document(existing):
+            raise ConfigError(
+                f"{filename!r} already contains route or application data; choose another profile name"
+            )
+        if recalibrate:
+            profile = calibrate_profile(existing, frame_size, getters=getters)
+        else:
+            if existing.get("calibration_size") is None:
+                raise CalibrationError(
+                    "legacy profile has no bound capture size; enable "
+                    "'Recalibrate existing profile' once before activation"
+                )
+            try:
+                validate_calibration(existing, frame_size)
+            except CalibrationError as exc:
+                raise CalibrationError(
+                    [*exc.problems, "enable 'Recalibrate existing profile' to repair it"]
+                ) from exc
+            profile = deepcopy(existing)
+    else:
+        template = ConfManager.get("Json.json")
+        profile = calibrate_profile(template, frame_size, getters=getters)
+    _add_runtime_options(profile, mouse_mode, items_mode)
+    validate_calibration(profile, frame_size)
+    return profile
 
 
 class ChooseConfig:
-    """
-    windows are now created from GUI.py on 'core' folder.
-    """
-
     def __init__(self, selected_window_name):
-        self.window = GUI('ChooseConfig', 'Choose your config')
-        self.window.MainWindow('Config', [414, 202], [2, 2.36])
+        self.selected_window_name = selected_window_name
+        self.window = GUI("ChooseConfig", "Choose your config")
+        self.window.MainWindow("Config", [414, 202], [2, 2.36])
 
-        '''
-            This Is The Main Function If The ChooseConfig...
-            
-            He Is Called When The Player Click On 'Load' Or 'Create' Button.
-        '''
+        name = tk.StringVar(master=self.window.windowID, value="NewConfig")
+        mouse_mode = tk.IntVar(master=self.window.windowID, value=1)
+        items_mode = tk.StringVar(master=self.window.windowID, value="Frames")
+        recalibrate = tk.BooleanVar(master=self.window.windowID, value=False)
+
+        def open_root(filename):
+            self.window.withdraw()
+            from modules.Root import root
+            try:
+                root(self.selected_window_name, filename)
+            except Exception:
+                self.window.deiconify()
+                raise
+            self.window.windowID.destroy()
 
         def bootstrap():
-            """
-            When This Function Is Called, He Takes A Name From EntryBox, 
-            To Do Some Checks In The File.
-            
-            If The File Already Exist, He Just Throws You For Root Window
-            Because You Already Configure Your File.
-            
-            Else He Creates One File With The Name Got And Starts The Configuration
-            """
-
-            preferences_name = f'{NameCreateJson.get()}.json'
-            preferences_path = f'scripts/{preferences_name}'
-
-            if os.path.isfile(preferences_path):
-                preferences = ConfManager.get(preferences_name)
-
-                time.sleep(.5)
-
-                print('')
-                print('Your Configure Stats:', preferences['Stats'])
-
-                if preferences['MouseOption'] != MouseMode.get():
-                    preferences['MouseOption'] = MouseMode.get()
-                    with open(preferences_path, 'w') as wJson:
-                        json.dump(preferences, wJson, indent=4)
-
-                pyautogui.PAUSE = 0.005
-
-                if preferences['Stats']:
-                    print("\nOpening TibiaAuto...")
-                    self.window.destroyWindow()
-                    time.sleep(0.1)
-                    root(selected_window_name, preferences_name)
-                else:
-                    os.remove(preferences_path)
-                    bootstrap()
-                
-                return
-
-            '''
-                Here, He Copy The Base To Default Configuration,
-                
-                After The Copy, He Starts The Search For Configurations,
-                You Can See The Progress On Console,
-                If You Dont Have Any Error, It Takes, Usually Around 4 or 5 seconds
-                For Complete The Configuration
-                
-                I recommended You, If You Dont Have Any Errors In The Configuration,
-                Save Your Configuration File In Other Folder, Because If You
-                Download Another Actualization In The Github, You Can Throw The 
-                Files, To Not Have Configure Again.
-            '''
-
-            print('Coping Default Json')
-            start_configuration = time.time()
-            Directory = os.getcwd()
-
-            shutil.copyfile(Directory + '\\scripts' + '\\Json.json',
-                            os.path.join(Directory + '\\scripts' + '\\' + NameCreateJson.get() + '.json'))
-
-            TibiaAuto = pygetwindow.getWindowsWithTitle("Choose your config")[0]
-            TibiaAuto.minimize()
-
-            with open(preferences_path, 'r') as LoadedJson:
-                preferences = json.load(LoadedJson)
-
             try:
-                HealthLocation = GetHealthPosition()
-                print('')
-                print(f"Health Location [X: {HealthLocation[0]} Y: {HealthLocation[1]}]")
-                preferences['Positions']['LifePosition'][0]['x'] = HealthLocation[0]
-                preferences['Positions']['LifePosition'][0]['y'] = HealthLocation[1]
-                preferences['Positions']['LifePosition'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('Helth Position Error')
-                preferences['Positions']['LifePosition'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("LifePosition")
-
-                pass
-
-            try:
-                ManaLocation = GetManaPosition()
-                print('')
-                print(f"Mana Location [X: {ManaLocation[0]} Y: {ManaLocation[1]}]")
-                print('')
-                preferences['Positions']['ManaPosition'][0]['x'] = ManaLocation[0]
-                preferences['Positions']['ManaPosition'][0]['y'] = ManaLocation[1]
-                preferences['Positions']['ManaPosition'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('Mana Position Error')
-                preferences['Positions']['ManaPosition'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("ManaPosition")
-
-                pass
-
-            try:
-                BattlePositions[0], BattlePositions[1], BattlePositions[2], BattlePositions[3] = GetBattlePosition()
-                if BattlePositions[0] and BattlePositions[1] and BattlePositions[2] and BattlePositions[3] != 0:
-                    print(f"Battle Location [X: {BattlePositions[0]} Y: {BattlePositions[1]}]")
-                    preferences['Positions']['BattlePosition'][0]['x'] = BattlePositions[0]
-                    preferences['Positions']['BattlePosition'][0]['y'] = BattlePositions[1]
-                    preferences['Positions']['BattlePosition'][0]['Stats'] = True
-                    time.sleep(.4)
-                    preferences['Boxes']['BattleBox'][0]['x'] = int(BattlePositions[0])
-                    preferences['Boxes']['BattleBox'][0]['y'] = int(BattlePositions[1])
-                    preferences['Boxes']['BattleBox'][0]['w'] = int(BattlePositions[2])
-                    preferences['Boxes']['BattleBox'][0]['h'] = int(BattlePositions[3])
-                    preferences['Boxes']['BattleBox'][0]['Stats'] = True
-                    with open(preferences_path, 'w') as wJson:
-                        json.dump(preferences, wJson, indent=4)
-                else:
-                    raise Exception
-            except Exception:
-                print('Battle Position Error')
-                preferences['Positions']['BattlePosition'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("BattlePosition")
-
-                pass
-
-            try:
-                StatsPositions[0], StatsPositions[1], StatsPositions[2], StatsPositions[3] = GetStatsPosition()
-                print('')
-                print(f"Status Bar Start [X: {StatsPositions[0]}, Y: {StatsPositions[1]}]")
-                print(f"Status Bar End [X: {StatsPositions[2]}, Y: {StatsPositions[3]}]")
-                print('')
-                time.sleep(.2)
-                preferences['Boxes']['StatusBarBox'][0]['x'] = int(StatsPositions[0])
-                preferences['Boxes']['StatusBarBox'][0]['y'] = int(StatsPositions[1])
-                preferences['Boxes']['StatusBarBox'][0]['w'] = int(StatsPositions[2])
-                preferences['Boxes']['StatusBarBox'][0]['h'] = int(StatsPositions[3])
-                preferences['Boxes']['StatusBarBox'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('Status Bar Error')
-                preferences['Boxes']['StatusBarBox'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("StatusBarBox")
-
-                pass
-
-            try:
-                RingPositions[0], RingPositions[1] = StatsPositions[0], StatsPositions[1] - 58
-                RingPositions[2] = RingPositions[0] + items_square - 1
-                RingPositions[3] = RingPositions[1] + items_square - 1
-                print(f"Ring's Square Start [X: {RingPositions[0]}, Y: {RingPositions[1]}]")
-                print(f"Ring's Square End [X: {RingPositions[2]}, Y: {RingPositions[3]}]")
-                print('')
-                time.sleep(.2)
-                preferences['Boxes']['RingBox'][0]['x'] = int(RingPositions[0])
-                preferences['Boxes']['RingBox'][0]['y'] = int(RingPositions[1])
-                preferences['Boxes']['RingBox'][0]['w'] = int(RingPositions[2])
-                preferences['Boxes']['RingBox'][0]['h'] = int(RingPositions[3])
-                preferences['Boxes']['RingBox'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('RingPosition Error')
-                preferences['Boxes']['RingBox'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("RingBox")
-
-                pass
-
-            try:
-                AmuletPositions[0], AmuletPositions[1] = StatsPositions[0], StatsPositions[1] - 130
-                AmuletPositions[2] = AmuletPositions[0] + items_square - 1
-                AmuletPositions[3] = AmuletPositions[1] + items_square - 1
-                print(f"Amulet's Square Start [X: {AmuletPositions[0]}, Y: {AmuletPositions[1]}]")
-                print(f"Amulet's Square End [X: {AmuletPositions[2]}, Y: {AmuletPositions[3]}]")
-                print('')
-                time.sleep(.2)
-                preferences['Boxes']['AmuletBox'][0]['x'] = int(AmuletPositions[0])
-                preferences['Boxes']['AmuletBox'][0]['y'] = int(AmuletPositions[1])
-                preferences['Boxes']['AmuletBox'][0]['w'] = int(AmuletPositions[2])
-                preferences['Boxes']['AmuletBox'][0]['h'] = int(AmuletPositions[3])
-                preferences['Boxes']['AmuletBox'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('AmuletPosition Error')
-                preferences['Boxes']['AmuletBox'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("AmuletBox")
-
-                pass
-
-            try:
-                MapPositions[0], MapPositions[1], MapPositions[2], MapPositions[3] = GetMapPosition()
-                time.sleep(.2)
-                preferences['Boxes']['MapBox'][0]['x'] = int(MapPositions[0])
-                preferences['Boxes']['MapBox'][0]['y'] = int(MapPositions[1])
-                preferences['Boxes']['MapBox'][0]['w'] = int(MapPositions[2])
-                preferences['Boxes']['MapBox'][0]['h'] = int(MapPositions[3])
-                preferences['Boxes']['MapBox'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('MapPosition Error')
-                preferences['Boxes']['MapBox'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("MapBox")
-
-                pass
-
-            try:
-                Player[0], Player[1], GameWindow[0], GameWindow[1], GameWindow[2], GameWindow[
-                    3] = GetPlayerPosition()
-                print('')
-                print(f"Player Position [X: {Player[0]}, Y: {Player[1]}]")
-                print('')
-                print(f"Game Window Start [X: {GameWindow[0]}, Y: {GameWindow[1]}]")
-                print(f"Game Window End [X: {GameWindow[2]}, Y: {GameWindow[3]}]")
-                print('')
-                time.sleep(.2)
-                preferences['Positions']['PlayerPosition'][0]['x'] = Player[0]
-                preferences['Positions']['PlayerPosition'][0]['y'] = Player[1]
-                preferences['Positions']['PlayerPosition'][0]['Stats'] = True
-                preferences['Boxes']['GameWindowBox'][0]['x'] = int(GameWindow[0])
-                preferences['Boxes']['GameWindowBox'][0]['y'] = int(GameWindow[1])
-                preferences['Boxes']['GameWindowBox'][0]['w'] = int(GameWindow[2])
-                preferences['Boxes']['GameWindowBox'][0]['h'] = int(GameWindow[3])
-                preferences['Boxes']['GameWindowBox'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('Player Position Error')
-                preferences['Positions']['PlayerPosition'][0]['Stats'] = False
-                preferences['Boxes']['GameWindowBox'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("PlayerPosition")
-                number_of_exceptions.append("GameWindowBox")
-
-                pass
-
-            try:
-                SQMs[0], SQMs[1], SQMs[2], SQMs[3], SQMs[4], SQMs[5], SQMs[6], SQMs[7], SQMs[8], SQMs[9], SQMs[10], \
-                SQMs[
-                    11], SQMs[12], SQMs[13], SQMs[14], SQMs[15], SQMs[16], SQMs[17] = SetSQMs()
-                time.sleep(0.1)
-                print(f"1° SQM Location [X: {SQMs[0]}, Y: {SQMs[1]}]")
-                print(f"2° SQM Location [X: {SQMs[2]}, Y: {SQMs[3]}]")
-                print(f"3° SQM Location [X: {SQMs[4]}, Y: {SQMs[5]}]")
-                print(f"4° SQM Location [X: {SQMs[6]}, Y: {SQMs[7]}]")
-                print(f"5° SQM Location [X: {SQMs[8]}, Y: {SQMs[9]}]")
-                print(f"6° SQM Location [X: {SQMs[10]}, Y: {SQMs[11]}]")
-                print(f"7° SQM Location [X: {SQMs[12]}, Y: {SQMs[13]}]")
-                print(f"8° SQM Location [X: {SQMs[14]}, Y: {SQMs[15]}]")
-                print(f"9° SQM Location [X: {SQMs[16]}, Y: {SQMs[17]}]")
-                time.sleep(.4)
-                preferences['SQM']['SQM1'][0]['x'] = int(SQMs[0])
-                preferences['SQM']['SQM1'][0]['y'] = int(SQMs[1])
-                preferences['SQM']['SQM1'][0]['Stats'] = True
-                preferences['SQM']['SQM2'][0]['x'] = int(SQMs[2])
-                preferences['SQM']['SQM2'][0]['y'] = int(SQMs[3])
-                preferences['SQM']['SQM2'][0]['Stats'] = True
-                preferences['SQM']['SQM3'][0]['x'] = int(SQMs[4])
-                preferences['SQM']['SQM3'][0]['y'] = int(SQMs[5])
-                preferences['SQM']['SQM3'][0]['Stats'] = True
-                preferences['SQM']['SQM4'][0]['x'] = int(SQMs[6])
-                preferences['SQM']['SQM4'][0]['y'] = int(SQMs[7])
-                preferences['SQM']['SQM4'][0]['Stats'] = True
-                preferences['SQM']['SQM5'][0]['x'] = int(SQMs[8])
-                preferences['SQM']['SQM5'][0]['y'] = int(SQMs[9])
-                preferences['SQM']['SQM5'][0]['Stats'] = True
-                preferences['SQM']['SQM6'][0]['x'] = int(SQMs[10])
-                preferences['SQM']['SQM6'][0]['y'] = int(SQMs[11])
-                preferences['SQM']['SQM6'][0]['Stats'] = True
-                preferences['SQM']['SQM7'][0]['x'] = int(SQMs[12])
-                preferences['SQM']['SQM7'][0]['y'] = int(SQMs[13])
-                preferences['SQM']['SQM7'][0]['Stats'] = True
-                preferences['SQM']['SQM8'][0]['x'] = int(SQMs[14])
-                preferences['SQM']['SQM8'][0]['y'] = int(SQMs[15])
-                preferences['SQM']['SQM8'][0]['Stats'] = True
-                preferences['SQM']['SQM9'][0]['x'] = int(SQMs[16])
-                preferences['SQM']['SQM9'][0]['y'] = int(SQMs[17])
-                preferences['SQM']['SQM9'][0]['Stats'] = True
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-            except Exception:
-                print('SQMs Error')
-                preferences['SQM']['SQM1'][0]['Stats'] = False
-                preferences['SQM']['SQM2'][0]['Stats'] = False
-                preferences['SQM']['SQM3'][0]['Stats'] = False
-                preferences['SQM']['SQM4'][0]['Stats'] = False
-                preferences['SQM']['SQM5'][0]['Stats'] = False
-                preferences['SQM']['SQM6'][0]['Stats'] = False
-                preferences['SQM']['SQM7'][0]['Stats'] = False
-                preferences['SQM']['SQM8'][0]['Stats'] = False
-                preferences['SQM']['SQM9'][0]['Stats'] = False
-                with open(preferences_path, 'w') as wJson:
-                    json.dump(preferences, wJson, indent=4)
-
-                number_of_exceptions.append("SQM'sPositionError")
-
-                pass
-
-            preferences['MouseOption'] = MouseMode.get()
-            with open(preferences_path, 'w') as wJson:
-                json.dump(preferences, wJson, indent=4)
-
-            preferences['ItemsMode'] = ItemsMode.get()
-            with open(preferences_path, 'w') as wJson:
-                json.dump(preferences, wJson, indent=4)
-
-            # Paths Setter
-            from conf.Constants import MainPath, ChestsPath, CavebotScriptsPath, ContainersNamePath
-
-            preferences['Paths']['MainPath'] = MainPath
-
-            if ItemsMode.get() == "Frames":
-                from conf.Constants import FramesItemsPath
-
-                preferences['Paths']['ItemsPath'] = FramesItemsPath
-            elif ItemsMode.get() == "Corners":
-                from conf.Constants import CornersItemsPath
-
-                preferences['Paths']['ItemsPath'] = CornersItemsPath
-            elif ItemsMode.get() == "None":
-                from conf.Constants import NoneItemsPath
-
-                preferences['Paths']['ItemsPath'] = NoneItemsPath
-
-            preferences['Paths']['ChestsPath'] = ChestsPath
-            preferences['Paths']['ContainersNamePath'] = ContainersNamePath
-            preferences['Paths']['CavebotScriptsPath'] = CavebotScriptsPath
-
-            ConfManager.set(preferences, preferences_name)
-
-            if len(number_of_exceptions) != 0:
-                print("\nSome Errors Occurred... Opening The Manual Config.")
-
-                print("Unfortunately, You Will Have To Manually Configure The Following Errors:\n")
-
-                time.sleep(.3)
-                self.window.destroyWindow()
-                time.sleep(.1)
-
-                def ManualConfig(ErrorName):
-                    ManualConfiguration = GUI('ManualConfiguration', 'Manual Configuration')
-                    ManualConfiguration.MainWindow('Config', [414, 202], [2, 2.36])
-
-                    def Solving():
-                        ManualConfiguration.destroyWindow()
-                        return True
-
-                    '''LabelError = ManualConfiguration.addLabel("Solving Manually: " + ErrorName, [85, 31])
-                    LabelError.configure(font=24)'''
-
-                    ManualConfiguration.addMinimalLabel("One Error Was Occured In: " + ErrorName, [35, 31], 10)
-                    ManualConfiguration.addMinimalLabel("... But This Option Is In Development.", [35, 51])
-
-                    ManualConfiguration.addButton('Ok', Solving, [75, 23], [310, 166])
-
-                    ManualConfiguration.Protocol(Solving)
-                    ManualConfiguration.loop()
-
-                for i in range(len(number_of_exceptions)):
-                    print("Error[" + str(i + 1) + "] =", number_of_exceptions[i])
-
-                for i in range(len(number_of_exceptions)):
-                    ManualConfig(number_of_exceptions[i])
-
-                print("\nExiting Of The Program... Please Solve The Errors")
-
-                exit(1)
-
-            preferences['Stats'] = True
-
-            ConfManager.set(preferences, preferences_name)
-
-            conf['configured'] = True
-            conf['preferences_name'] = preferences_name
-            ConfManager.set(conf, 'conf.json')
-
-            end_configuration = time.time() - start_configuration
-            print('')
-            print(f"Your Setup Time Is: {end_configuration:.2f} Seconds")
-            print('')
-
-            print("Opening TibiaAuto...\n")
-
-            time.sleep(.3)
-            self.window.destroyWindow()
-            time.sleep(.1)
-
-            '''
-                If Dont Have Any Error, He Throw You For The Root Window, In The 'Modules'
-                In the 'Root.py' File.
-            '''
-
-            root(selected_window_name, preferences_name)
-
-        # region Valiables
-
-        NameCreateJson = tk.StringVar()
-        NameCreateJson.set('NewConfig')
-        CheckAuto = tk.BooleanVar()
-        CheckAuto.set(True)
-        MouseMode = tk.IntVar()
-        MouseMode.set(1)
-        HookMode = tk.IntVar()
-        HookMode.set(1)
-        ItemsMode = tk.StringVar()
-        ItemsMode.set("Frames")
-
-        # endregion
-
-        # region Buttons
-
-        self.window.addButton('Create', bootstrap, [75, 23], [310, 166])
-
-        self.window.addEntry([165, 35], NameCreateJson, 28)
-
-        self.window.addLabel('Name Of The Json Conf', [24, 35])
-
-        LabelSelectOP1 = self.window.addLabel('Select Your Mouse And Keyboard Option', [30, 76])
-        LabelSelectOP1.configure(bg=rgb((114, 94, 48)), fg='black')
-
-        RadioMouseMoviment = self.window.addRadio('{Global} Movement Mouse On Focused Window', MouseMode, 1,
-                                                        [10, 95])
-        RadioMouseMoviment.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                     selectcolor=rgb((114, 94, 48)))
-        RadioSenderMouse = self.window.addRadio("{OTServer} Send Mouse Events To Tibia's Window", MouseMode, 0,
-                                                      [10, 114])
-        RadioSenderMouse.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                   selectcolor=rgb((114, 94, 48)))
-
-        LabelSelectOP2 = self.window.addLabel('Select Your Hook Mode', [30, 136])
-        LabelSelectOP2.configure(bg=rgb((114, 94, 48)), fg='black')
-
-        RadioHookWindow = self.window.addRadio("{Global} Hook Directly OBS Screen", HookMode, 1, [10, 155])
-        RadioHookWindow.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                  selectcolor=rgb((114, 94, 48)))
-
-        LabelSelectOP3 = self.window.addLabel('Select The Items Mode', [280, 76])
-        LabelSelectOP3.configure(bg=rgb((114, 94, 48)), fg='black')
-
-        RadioFrames = self.window.addRadio('Frames', ItemsMode, "Frames",
-                                                 [310, 95])
-        RadioFrames.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                              selectcolor=rgb((114, 94, 48)))
-        RadioCorners = self.window.addRadio("Corners", ItemsMode, "Corners",
-                                                  [310, 114])
-        RadioCorners.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                               selectcolor=rgb((114, 94, 48)))
-        RadioNone = self.window.addRadio("None", ItemsMode, "None",
-                                               [310, 133])
-        RadioNone.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
+                filename = profile_filename(name.get())
+                config = ConfManager.get("conf.json")
+                frame_size = tuple(config.get("capture_size", ()))
+                if len(frame_size) != 2:
+                    raise CalibrationError("capture size is unavailable; return to window selection")
+
+                profile = prepare_profile(
+                    filename, frame_size, mouse_mode.get(), items_mode.get(),
+                    recalibrate=recalibrate.get(),
+                )
+                # Failed detection never reaches this atomic replacement, preserving any old profile.
+                ConfManager.set(profile, filename)
+
+                def activate(current):
+                    current["configured"] = True
+                    current["preferences_name"] = filename
+
+                ConfManager.update("conf.json", activate)
+                open_root(filename)
+            except (RuntimeError, KeyError, TypeError, ValueError) as exc:
+                messagebox.showerror("Calibration could not be completed", str(exc), parent=self.window.windowID)
+
+        self.window.addEntry([165, 35], name, 28)
+        self.window.addLabel("Name Of The Json Conf", [24, 35])
+        label = self.window.addLabel("Input mode", [30, 76])
+        label.configure(bg=rgb((114, 94, 48)), fg="black")
+        movement = self.window.addRadio("Physical mouse/keyboard", mouse_mode, 1, [10, 95])
+        movement.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+        messages = self.window.addRadio("Window messages (compatible clients)", mouse_mode, 0, [10, 114])
+        messages.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+
+        items_label = self.window.addLabel("Item images", [290, 76])
+        items_label.configure(bg=rgb((114, 94, 48)), fg="black")
+        for text, y in (("Frames", 95), ("Corners", 114), ("None", 133)):
+            radio = self.window.addRadio(text, items_mode, text, [310, y])
+            radio.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+
+        recapture = self.window.addCheck(
+            recalibrate, [10, 158], False, textOfButton="Recalibrate existing profile"
+        )
+        recapture.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
                             selectcolor=rgb((114, 94, 48)))
 
-        # endregion
+        self.window.addButton("Create / Load", bootstrap, [95, 23], [290, 166])
+        def close():
+            from core.GUI import application_root, shutdown
+            host = application_root()
+            if host is self.window.windowID:
+                shutdown()
+                return
+            self.window.destroyWindow()
+            if host is not None:
+                host.deiconify()
 
+        self.window.Protocol(close)
         self.window.loop()

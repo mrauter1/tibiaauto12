@@ -1,994 +1,402 @@
-import os
-import json
-import time
-import shutil
+"""Cavebot configuration UI backed by one cancellable headless session."""
 
-from conf.MarksConf import *
-from conf.Constants import Monsters, Priority, Hotkeys, AttackModes
+from __future__ import annotations
 
-from core.GUI import *
-from core.GUIManager import *
+import uuid
+from pathlib import Path
+import tkinter as tk
+
+from conf.Constants import Hotkeys, Priority
+from conf.MarksConf import NameMarks
+from core.GUI import GUI
 from core.GUISetter import GUISetter
-from core.ThreadManager import ThreadManager
+from core.paths import project_path
+from engine.CaveBot.routes import (
+    Route,
+    RouteError,
+    Waypoint,
+    WaypointAction,
+    checkpoint_file,
+    import_legacy_active_index,
+    load_checkpoint,
+    load_route,
+    route_file,
+    save_checkpoint,
+    save_route,
+)
+from features.cavebot import CaveBot as CaveBotFeature, SessionConfig, TargetSpec
+from tibia_client.application import get_client, poll_hotkey
+from modules.support_ui import set_enabled, write_loader
 
-from engine.CaveBot.CaveBotController import CaveBotController
 
-GUIChanges = []
-
-EnabledCaveBot = False
-ThreadStarted = False
-LoadedScript = False
+_ACTIVE_CAVEBOT = None
+AVAILABLE_MONSTERS = sorted(
+    path.stem for path in Path(project_path(Path("images") / "Targets" / "Names")).glob("*.png")
+)
 
 
 class CaveBot:
+    """Tk owns configuration only; the worker receives an immutable snapshot."""
+
+    def __new__(cls, *args, **kwargs):
+        del args, kwargs
+        global _ACTIVE_CAVEBOT
+        if _ACTIVE_CAVEBOT is not None and not getattr(_ACTIVE_CAVEBOT, "_closed", True):
+            _ACTIVE_CAVEBOT.window.lift()
+            _ACTIVE_CAVEBOT.window.focus_force()
+            return _ACTIVE_CAVEBOT
+        instance = super().__new__(cls)
+        _ACTIVE_CAVEBOT = instance
+        return instance
+
     def __init__(self, MapPositions, BattlePositions, SQMs, MOUSE_OPTION):
-        self.CaveBot = GUI('CaveBot', 'Module: Cave Bot')
-        self.CaveBot.DefaultWindow('CaveBot', [830, 634], [1.2, 2.29])
+        if getattr(self, "_initialized", False):
+            return
+        self._initialized = True
+        self.CaveBot = GUI("CaveBot", "Module: Cave Bot")
+        self.CaveBot.DefaultWindow("CaveBot", [830, 634], [1.2, 2.29])
+        self.window = self.CaveBot.windowID
         self.Setter = GUISetter("CaveBotLoader")
-        self.ThreadManager = ThreadManager("ThreadCaveBot")
-
-        def SetCaveBot():
-            global EnabledCaveBot
-            if not EnabledCaveBot:
-                EnabledCaveBot = True
-                ButtonEnabled.configure(text='CaveBot: ON', relief=SUNKEN, bg=rgb((158, 46, 34)))
-                CheckingButtons()
-                if not ThreadStarted:
-                    self.ThreadManager.NewThread(ScanCaveBot)
-                    self.ThreadManager.NewThread(ScanForPause)
-                else:
-                    self.ThreadManager.UnPauseThread()
-            else:
-                EnabledCaveBot = False
-                CheckingButtons()
-                ButtonEnabled.configure(text='CaveBot: OFF', relief=RAISED, bg=rgb((127, 17, 8)))
-                self.ThreadManager.PauseThread()
-
-        def ScanCaveBot():
-            ScriptName = Script.get()
-            with open('Scripts/' + ScriptName + '.json', 'r') as rJson:
-                data = json.load(rJson)
-
-            # For Debugging
-            # print("The Script " + ScriptName + ".json Have a", len(data), "Marks")
-
-            Controller = CaveBotController(MOUSE_OPTION, ScriptName, 'right', Stand.get(),
-                                           CheckEnableWalking.get(), True, CheckWalkForDebug.get(), MapPositions,
-                                           BattlePositions, SQMs)
-
-            MonstersToAttack = []
-
-            if CheckAttackOne.get():
-                MonstersToAttack.append(SelectedMonster.get())
-
-            if CheckAttackTwo.get():
-                MonstersToAttack.append(SelectedMonster2.get())
-
-            if CheckAttackThree.get():
-                MonstersToAttack.append(SelectedMonster3.get())
-
-            if CheckAttackFour.get():
-                MonstersToAttack.append(SelectedMonster4.get())
-
-            Controller.StartCaveBot(data, MonstersToAttack)
-
-        def ScanForPause():
-            import keyboard
-            while EnabledCaveBot:
-                if keyboard.is_pressed("page_up"):
-                    SetCaveBot()
-
-        CheckDebugging, InitiatedDebugging = self.Setter.Variables.Bool('Debugging')
-
-        CheckHotkeyPause, InitiatedHotkeyPause = self.Setter.Variables.Bool('HotkeyPause')
-        HotkeyToPause, InitiatedHotkeyToPause = self.Setter.Variables.Str('HotkeyToPause')
-
-        Script, InitiatedScript = self.Setter.Variables.Str('Script')
-
-        global EnabledCaveBot
-        if not EnabledCaveBot:
-            ButtonEnabled = self.CaveBot.addButton('CaveBot: OFF', SetCaveBot, [810, 26], [10, 570])
-        else:
-            ButtonEnabled = self.CaveBot.addButton('CaveBot: ON', SetCaveBot, [810, 26], [10, 570])
-
-        CheckboxDebugging = self.CaveBot.addCheck(CheckDebugging, [22, 511], InitiatedDebugging, "Enable Cavebot Debugging")
-
-        CheckboxHotkeyPause = self.CaveBot.addCheck(CheckHotkeyPause, [22, 542], InitiatedHotkeyPause,
-                                                    'Enable Hotkey To Break a  Cavebot')
-        CheckboxHotkeyPause.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                      selectcolor=rgb((114, 94, 48)))
-
-        ButtonHotkeyPause = self.CaveBot.addOption(HotkeyToPause, Hotkeys, [232, 542], 8)
-
-        # region Functions Walker
-
-        def ValidateStand(*args):
-            s = Stand.get()
-            if len(s) > 1:
-                if not s[-1].isdigit():
-                    Stand.set(s[:-1])
-                else:
-                    Stand.set(s[:1])
-
-        def SetResearchMap():
-            if not ResearchMap.get():
-                ResearchMap.set(True)
-                ButtonResearchMap.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-            else:
-                ResearchMap.set(False)
-                ButtonResearchMap.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-
-        def RemoveWalker():
-            global LoadedScript
-            if not LoadedScript:
-                LoadScript()
-
-            GetScript = Script.get()
-
-            with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                DataMark = json.load(MarksJson)
-
-            MarkedMark = 99999
-
-            for k in range(len(DataMark)):
-                if DataMark[k]['status']:
-                    DataMark[k]['status'] = False
-                    del DataMark[k]
-                    with open('Scripts/' + GetScript + '.json', 'w') as wJson:
-                        json.dump(DataMark, wJson, indent=4)
-                    MarkedMark = k
-                    break
-
-            if MarkedMark != 99999:
-                with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                    DataMark = json.load(MarksJson)
-                if MarkedMark - 1 >= len(DataMark):
-                    DataMark[-1]['status'] = True
-                else:
-                    DataMark[MarkedMark - 1]['status'] = True
-                with open('Scripts/' + GetScript + '.json', 'w') as wJson:
-                    json.dump(DataMark, wJson, indent=4)
-            LoadScript()
-
-        def AddWalker():
-            global LoadedScript
-            if not LoadedScript:
-                LoadScript()
-                time.sleep(.1)
-
-            MarkToAdd = MarkEncoder.get(RadioMarkValue.get())
-            TypeToAdd = RadioTypeValue.get()
-
-            with open('Scripts/' + Script.get() + '.json', 'r') as MarksJson:
-                DataMark = json.load(MarksJson)
-
-            MarkedMark = 99999
-
-            print(len(DataMark))
-
-            if DataMark[0]['status'] == "NotConfigured":
-                DataMark.insert(0, {"mark": MarkToAdd, "type": TypeToAdd, "status": True})
-                del DataMark[1]
-                with open('Scripts/' + Script.get() + '.json', 'w') as wJson:
-                    json.dump(DataMark, wJson, indent=4)
-
-                LoadCurrent(DataMark, 0)
-            else:
-                for j in range(len(DataMark)):
-                    if DataMark[j]['status']:
-
-                        DataMark.insert(j + 1, {"mark": MarkToAdd, "type": TypeToAdd, "status": False})
-                        with open('Scripts/' + Script.get() + '.json', 'w') as wJson:
-                            json.dump(DataMark, wJson, indent=4)
-                        DataMark[j]['status'] = False
-                        MarkedMark = j
-
-                if MarkedMark != 99999:
-                    if MarkedMark + 1 >= len(DataMark):
-                        DataMark[0]['status'] = True
-                    else:
-                        DataMark[MarkedMark + 1]['status'] = True
-                    with open('Scripts/' + Script.get() + '.json', 'w') as wJson:
-                        json.dump(DataMark, wJson, indent=4)
-
-                LoadScript()
-
-                print("\n" + MarkToAdd, "Added With Type:", TypeDecoder.get(TypeToAdd), "On Index Position:", MarkedMark + 2,
-                      "Of Your Script")
-
-        def LoadPrevious(DataMark, index):
-            if DataMark[index] == DataMark[0]:
-                PreviousMarkData = DataMark[-1]['mark']
-            else:
-                PreviousMarkData = DataMark[index - 1]['mark']
-            PreviousWaypoint.configure(text=PreviousMarkData)
-
-            PreviousImage.configure(image=ImageMarks[MarkDecoder.get(PreviousMarkData) - 1])
-
-            if DataMark[index] == DataMark[0]:
-                PreviousTypeData = DataMark[-1]['type']
-            else:
-                PreviousTypeData = DataMark[index - 1]['type']
-            PreviousType.configure(text=TypeDecoder.get(PreviousTypeData))
-
-        def LoadCurrent(DataMark, index):
-            CurrentMarkData = DataMark[index]['mark']
-            CurrentWaypoint.configure(text=CurrentMarkData)
-            CurrentImage.configure(image=ImageMarks[MarkDecoder.get(CurrentMarkData) - 1])
-            CurrentType.configure(text=TypeDecoder.get(DataMark[index]['type']))
-
-        def LoadNext(DataMark, index):
-            if DataMark[index] == DataMark[-1]:
-                NextMarkData = DataMark[0]['mark']
-            else:
-                NextMarkData = DataMark[index + 1]['mark']
-            NextWaypoint.configure(text=NextMarkData)
-
-            NextImage.configure(image=ImageMarks[MarkDecoder.get(NextMarkData) - 1])
-
-            if DataMark[index] == DataMark[-1]:
-                NextTypeData = DataMark[0]['type']
-            else:
-                NextTypeData = DataMark[index + 1]['type']
-            NextType.configure(text=TypeDecoder.get(NextTypeData))
-
-        def LoadScript():
-            GetScript = Script.get()
-
-            if os.path.isfile('Scripts/' + GetScript + '.json'):
-                with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                    DataMark = json.load(MarksJson)
-
-                if DataMark[0]['status'] == "NotConfigured":
-                    pass
-                else:
-                    for j in range(len(DataMark)):
-                        if DataMark[j]['status']:
-                            LoadPrevious(DataMark, j)
-                            LoadCurrent(DataMark, j)
-                            LoadNext(DataMark, j)
-
-                            global LoadedScript
-                            LoadedScript = True
-            else:
-                # print(f"\nThe File {GetScript}.json Not Exist... Please Enter With a Valid Script Name")
-                Directory = os.getcwd()
-
-                shutil.copyfile(Directory + '\\Scripts' + '\\DefaultWalk.json',
-                                os.path.join(Directory + '\\Scripts' + '\\' + Script.get() + '.json'))
-
-                print("Script", Script.get() + ".json Created")
-
-                PreviousWaypoint.configure(text="")
-                PreviousImage.configure(image=Back)
-                PreviousType.configure(text="")
-
-                CurrentWaypoint.configure(text="")
-                CurrentImage.configure(image=Back)
-                CurrentType.configure(text="")
-
-                NextWaypoint.configure(text="")
-                NextImage.configure(image=Back)
-                NextType.configure(text="")
-
-        def SaveScript():
-            print("clicked on savescript")
-
-        def CheckMarkClick():
-            return 0
-
-        def ResetMarks():
-            GetScript = Script.get()
-            if os.path.isfile('Scripts/' + GetScript + '.json'):
-                with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                    DataMark = json.load(MarksJson)
-
-                for j in range(len(DataMark)):
-                    if DataMark[j]['status']:
-                        DataMark[j]['status'] = False
-                DataMark[0]['status'] = True
-                with open('Scripts/' + GetScript + '.json', 'w') as wJson:
-                    json.dump(DataMark, wJson, indent=4)
-                print(f"{GetScript}.json Reseted !!")
-
-                global LoadedScript
-                LoadedScript = False
-                LoadScript()
-
-        def SelectNextWaypoint():
-            global LoadedScript
-            if LoadedScript:
-                GetScript = Script.get()
-                with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                    DataMark = json.load(MarksJson)
-                MarkedMark = 99999
-                for j in range(len(DataMark)):
-                    if DataMark[j]['status']:
-                        DataMark[j]['status'] = False
-                        MarkedMark = j
-                if MarkedMark != 99999:
-                    if MarkedMark + 1 >= len(DataMark):
-                        DataMark[0]['status'] = True
-                    else:
-                        DataMark[MarkedMark + 1]['status'] = True
-                    with open('Scripts/' + GetScript + '.json', 'w') as wJson:
-                        json.dump(DataMark, wJson, indent=4)
-                LoadScript()
-            else:
-                print("Please Load Your Script First...")
-
-        def SelectPreviousWaypoint():
-            global LoadedScript
-            if LoadedScript:
-                GetScript = Script.get()
-                with open('Scripts/' + GetScript + '.json', 'r') as MarksJson:
-                    DataMark = json.load(MarksJson)
-                MarkedMark = 99999
-                for j in range(len(DataMark)):
-                    if DataMark[j]['status']:
-                        DataMark[j]['status'] = False
-                        MarkedMark = j
-                if MarkedMark != 99999:
-                    if MarkedMark - 1 >= len(DataMark):
-                        DataMark[-1]['status'] = True
-                    else:
-                        DataMark[MarkedMark - 1]['status'] = True
-                    with open('Scripts/' + GetScript + '.json', 'w') as wJson:
-                        json.dump(DataMark, wJson, indent=4)
-                LoadScript()
-            else:
-                print("Please Load Your Script First...")
-
-        # endregion
-
-        def ValidateSuspendAfter(*args):
-            s = SuspendAfter.get()
-            if len(s) > 2:
-                if not s[-1].isdigit():
-                    SuspendAfter.set(s[:-1])
-                else:
-                    SuspendAfter.set(s[:2])
-
-        def ValidateMonstersRange(*args):
-            s = MonstersRange.get()
-            if len(s) > 2:
-                if not s[-1].isdigit():
-                    MonstersRange.set(s[:-1])
-                else:
-                    MonstersRange.set(s[:2])
-
-        # region Functions DepotWalker
-
-        def SetLoadAutoSeller():
-            if not LoadAutoSeller.get():
-                LoadAutoSeller.set(True)
-                ButtonAutoSeller.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-            else:
-                LoadAutoSeller.set(False)
-                ButtonAutoSeller.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-
-        def SetLoadAutoBanker():
-            if not LoadAutoBanker.get():
-                LoadAutoBanker.set(True)
-                ButtonAutoBanker.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-            else:
-                LoadAutoBanker.set(False)
-                ButtonAutoBanker.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-
-        def SetLoadSortLoot():
-            if not LoadSortLoot.get():
-                LoadSortLoot.set(True)
-                ButtonSortLoot.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-            else:
-                LoadSortLoot.set(False)
-                ButtonSortLoot.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-
-        # endregion
-
-        def CheckingGUI(Init, Get, Name):
-            if Get != Init:
-                GUIChanges.append((Name, Get))
-
-        def Destroy():
-            CheckingGUI(InitiatedDebugging, CheckDebugging.get(), 'Debugging')
-            CheckingGUI(InitiatedHotkeyPause, CheckHotkeyPause.get(), 'HotkeyPause')
-            CheckingGUI(InitiatedHotkeyToPause, HotkeyToPause.get(), 'HotkeyToPause')
-            CheckingGUI(InitiatedPriorityOne, PriorityOne.get(), 'PriorityOne')
-            CheckingGUI(InitiatedPriorityTwo, PriorityTwo.get(), 'PriorityTwo')
-            CheckingGUI(InitiatedPriorityThree, PriorityThree.get(), 'PriorityThree')
-            CheckingGUI(InitiatedPriorityFour, PriorityFour.get(), 'PriorityFour')
-            CheckingGUI(InitiatedSelectedMonster, SelectedMonster.get(), 'SelectedMonster')
-            CheckingGUI(InitiatedSelectedMonster2, SelectedMonster2.get(), 'SelectedMonster2')
-            CheckingGUI(InitiatedSelectedMonster3, SelectedMonster3.get(), 'SelectedMonster3')
-            CheckingGUI(InitiatedSelectedMonster4, SelectedMonster4.get(), 'SelectedMonster4')
-            CheckingGUI(InitiatedSelectedAttackMode, SelectedAttackMode.get(), 'SelectedAttackMode')
-            CheckingGUI(InitiatedAttackOne, CheckAttackOne.get(), 'AttackOne')
-            CheckingGUI(InitiatedAttackTwo, CheckAttackTwo.get(), 'AttackTwo')
-            CheckingGUI(InitiatedAttackThree, CheckAttackThree.get(), 'AttackThree')
-            CheckingGUI(InitiatedAttackFour, CheckAttackFour.get(), 'AttackFour')
-            CheckingGUI(InitiatedFollow, CheckFollow.get(), 'Follow')
-            CheckingGUI(InitiatedCantAttack, CheckCantAttack.get(), 'CantAttack')
-            CheckingGUI(InitiatedAttackPlayers, CheckAttackPlayers.get(), 'AttackPlayers')
-            CheckingGUI(InitiatedPlayerSeen, CheckPlayerSeen.get(), 'PlayerSeen')
-            CheckingGUI(InitiatedAttackingYou, CheckAttackingYou.get(), 'AttackingYou')
-            CheckingGUI(InitiatedForceAttack, CheckForceAttack.get(), 'ForceAttack')
-            CheckingGUI(InitiatedSuspendAfter, SuspendAfter.get(), 'SuspendAfter')
-            CheckingGUI(InitiatedMonstersRange, MonstersRange.get(), 'MonstersRange')
-            CheckingGUI(InitiatedCavebotMode, RadioCavebotMode.get(), 'CavebotMode')
-            CheckingGUI(InitiatedRadius, Radius.get(), 'Radius')
-            CheckingGUI(InitiatedDelay, Delay.get(), 'Delay')
-            CheckingGUI(InitiatedEnableWalking, CheckEnableWalking.get(), 'EnableWalking')
-            CheckingGUI(InitiatedTypeValue, RadioTypeValue.get(), 'TypeValue')
-            CheckingGUI(InitiatedStand, Stand.get(), 'Stand')
-            CheckingGUI(InitiatedResearchMap, ResearchMap.get(), 'ResearchMap')
-            CheckingGUI(InitiatedMarkValue, RadioMarkValue.get(), 'MarkValue')
-            CheckingGUI(InitiatedDropItems, CheckDropItems.get(), 'DropItems')
-            CheckingGUI(InitiatedLoadAutoSeller, LoadAutoSeller.get(), 'LoadAutoSeller')
-            CheckingGUI(InitiatedLoadAutoBanker, LoadAutoBanker.get(), 'LoadAutoBanker')
-            CheckingGUI(InitiatedLoadSortLoot, LoadSortLoot.get(), 'LoadSortLoot')
-            CheckingGUI(InitiatedCapBelowThan, CapBelowThan.get(), 'CapBelowThan')
-            CheckingGUI(InitiatedScript, Script.get(), 'Script')
-            CheckingGUI(InitiatedWalkForDebug, CheckWalkForDebug.get(), 'WalkForDebug')
-
-            if len(GUIChanges) != 0:
-                for EachChange in range(len(GUIChanges)):
-                    self.Setter.SetVariables.SetVar(GUIChanges[EachChange][0], GUIChanges[EachChange][1])
-
-            self.CaveBot.destroyWindow()
-
-        # region Variables MonsterAttacking
-
-        PriorityOne, InitiatedPriorityOne = self.Setter.Variables.Int('PriorityOne')
-        PriorityTwo, InitiatedPriorityTwo = self.Setter.Variables.Int('PriorityTwo')
-        PriorityThree, InitiatedPriorityThree = self.Setter.Variables.Int('PriorityThree')
-        PriorityFour, InitiatedPriorityFour = self.Setter.Variables.Int('PriorityFour')
-
-        SelectedMonster, InitiatedSelectedMonster = self.Setter.Variables.Str('SelectedMonster')
-        SelectedMonster2, InitiatedSelectedMonster2 = self.Setter.Variables.Str('SelectedMonster2')
-        SelectedMonster3, InitiatedSelectedMonster3 = self.Setter.Variables.Str('SelectedMonster3')
-        SelectedMonster4, InitiatedSelectedMonster4 = self.Setter.Variables.Str('SelectedMonster4')
-
-        SelectedAttackMode, InitiatedSelectedAttackMode = self.Setter.Variables.Str('SelectedAttackMode')
-        CheckAttackOne, InitiatedAttackOne = self.Setter.Variables.Bool('AttackOne')
-        CheckAttackTwo, InitiatedAttackTwo = self.Setter.Variables.Bool('AttackTwo')
-        CheckAttackThree, InitiatedAttackThree = self.Setter.Variables.Bool('AttackThree')
-        CheckAttackFour, InitiatedAttackFour = self.Setter.Variables.Bool('AttackFour')
-
-        CheckFollow, InitiatedFollow = self.Setter.Variables.Bool('Follow')
-        CheckCantAttack, InitiatedCantAttack = self.Setter.Variables.Bool('CantAttack')
-        CheckAttackPlayers, InitiatedAttackPlayers = self.Setter.Variables.Bool('AttackPlayers')
-        CheckPlayerSeen, InitiatedPlayerSeen = self.Setter.Variables.Bool('PlayerSeen')
-        CheckAttackingYou, InitiatedAttackingYou = self.Setter.Variables.Bool('AttackingYou')
-        CheckForceAttack, InitiatedForceAttack = self.Setter.Variables.Bool('ForceAttack')
-        SuspendAfter, InitiatedSuspendAfter = self.Setter.Variables.Str('SuspendAfter')
-        MonstersRange, InitiatedMonstersRange = self.Setter.Variables.Str('MonstersRange')
-
-        # endregion
-
-        # region Variables Walker
-
-        BackImage = 'images/Fundo.png'
-        Back = self.CaveBot.openImage(BackImage, [20, 20])
-
-        RadioCavebotMode, InitiatedCavebotMode = self.Setter.Variables.Int('CavebotMode')
-
-        Radius, InitiatedRadius = self.Setter.Variables.Int('Radius')
-        Delay, InitiatedDelay = self.Setter.Variables.Int('Delay')
-        Stand, InitiatedStand = self.Setter.Variables.Int('Stand')
-
-        ResearchMap, InitiatedResearchMap = self.Setter.Variables.Bool('ResearchMap')
-
-        CheckWalkForDebug, InitiatedWalkForDebug = self.Setter.Variables.Bool('WalkForDebug')
-
-        for i in range(len(NameMarks)):
-            ImageMark = Image.open('images/MapSettings/' + NameMarks[i] + '.png')
-            ImageMark = ImageMark.resize((20, 20), Image.ANTIALIAS)
-            ImageMark = ImageTk.PhotoImage(ImageMark)
-            ImageMarks.append(ImageMark)
-
-        RadioMarkValue, InitiatedMarkValue = self.Setter.Variables.Int('MarkValue')
-        RadioTypeValue, InitiatedTypeValue = self.Setter.Variables.Int('TypeValue')
-
-        CheckEnableWalking, InitiatedEnableWalking = self.Setter.Variables.Bool('EnableWalking')
-
-        # endregion
-
-        # region Variables DepotWalker
-
-        CheckDropItems, InitiatedDropItems = self.Setter.Variables.Bool('DropItems')
-
-        LoadAutoSeller, InitiatedLoadAutoSeller = self.Setter.Variables.Bool('LoadAutoSeller')
-        LoadAutoBanker, InitiatedLoadAutoBanker = self.Setter.Variables.Bool('LoadAutoBanker')
-        LoadSortLoot, InitiatedLoadSortLoot = self.Setter.Variables.Bool('LoadSortLoot')
-
-        CapBelowThan, InitiatedCapBelowThan = self.Setter.Variables.Str('CapBelowThan')
-
-        # endregion
-
-        self.CaveBot.addButton('Ok', Destroy, [74, 22], [378, 601])
-
-        # region GUI MonsterAttacking
-
-        OptionAttackMode = self.CaveBot.addOption(SelectedAttackMode, AttackModes, [103, 328], 10)
-
-        CheckboxAttackOne = self.CaveBot.addCheck(CheckAttackOne, [25, 40], InitiatedAttackOne, 'Monster One')
-        OptionMonstersOne = self.CaveBot.addOption(SelectedMonster, Monsters, [155, 40], 16)
-        PriorityMonstersOne = self.CaveBot.addOption(PriorityOne, Priority, [300, 40])
-
-        CheckboxAttackTwo = self.CaveBot.addCheck(CheckAttackTwo, [25, 80], InitiatedAttackTwo, 'Monster Two')
-        OptionMonstersTwo = self.CaveBot.addOption(SelectedMonster2, Monsters, [155, 80], 16)
-        PriorityMonstersTwo = self.CaveBot.addOption(PriorityTwo, Priority, [300, 80])
-
-        CheckboxAttackThree = self.CaveBot.addCheck(CheckAttackThree, [25, 120], InitiatedAttackThree, 'Monster Three')
-        OptionMonstersThree = self.CaveBot.addOption(SelectedMonster3, Monsters, [155, 120], 16)
-        PriorityMonstersThree = self.CaveBot.addOption(PriorityThree, Priority, [300, 120])
-
-        CheckboxAttackFour = self.CaveBot.addCheck(CheckAttackFour, [25, 160], InitiatedAttackFour, 'Monster Four')
-        OptionMonstersFour = self.CaveBot.addOption(SelectedMonster4, Monsters, [155, 160], 16)
-        PriorityMonstersFour = self.CaveBot.addOption(PriorityFour, Priority, [300, 160])
-
-        CheckBoxFollow = self.CaveBot.addCheck(CheckFollow, [20, 200], InitiatedFollow, 'Auto Follow Mode')
-        CheckBoxCantAttack = self.CaveBot.addCheck(CheckCantAttack, [20, 220], InitiatedCantAttack,
-                                                   "Suspend When Can't Attack")
-        CheckBoxAttackPlayers = self.CaveBot.addCheck(CheckAttackPlayers, [20, 240], InitiatedAttackPlayers,
-                                                      "Don't Attack Players")
-        CheckBoxPlayerSeen = self.CaveBot.addCheck(CheckPlayerSeen, [195, 200], InitiatedPlayerSeen,
-                                                   'Reduced Attack When Player Seen')
-        CheckBoxAttackingYou = self.CaveBot.addCheck(CheckAttackingYou, [183, 240], InitiatedAttackingYou,
-                                                     'Attack Only Monsters Attacking You')
-        CheckBoxForceAttack = self.CaveBot.addCheck(CheckForceAttack, [195, 220], InitiatedForceAttack,
-                                                    'Force Attack When Attacked')
-
-        LabelSuspendAfter = self.CaveBot.addLabel('Suspend After Unreachable:', [100, 280])
-        LabelMonstersRange = self.CaveBot.addLabel('Consider Monsters In Range:', [100, 300])
-        LabelAttackMode = self.CaveBot.addLabel('Attack Mode:', [20, 331])
-
-        EntrySuspendAfter = self.CaveBot.addEntry([270, 280], SuspendAfter, 5)
-        SuspendAfter.trace("w", ValidateSuspendAfter)
-        EntryMonstersRange = self.CaveBot.addEntry([270, 300], MonstersRange, 5)
-        MonstersRange.trace("w", ValidateMonstersRange)
-
-        # endregion
-
-        # region GUI Walker
-        CheckboxEnableWalking = self.CaveBot.addCheck(CheckEnableWalking, [560, 142], InitiatedEnableWalking,
-                                                      'Enable Walking')
-
-        self.CaveBot.addLabel("Script Name:", [430, 160])
-        EntryCurrentScript = self.CaveBot.addEntry([440, 185], Script, 22)
-        ButtonLoadScript = self.CaveBot.addButton('Load Script', LoadScript, [110, 30], [590, 176])
-        ButtonSaveScript = self.CaveBot.addButton('Save Script', SaveScript, [100, 30], [710, 176])
-
-        self.CaveBot.addLabel('Marks:', [431, 210])
-
-        RadioImage1 = self.CaveBot.addRadioImage('', RadioMarkValue, 1, [470, 230], CheckMarkClick, ImageMarks[0])
-        RadioImage2 = self.CaveBot.addRadioImage('', RadioMarkValue, 2, [510, 230], CheckMarkClick, ImageMarks[1])
-        RadioImage3 = self.CaveBot.addRadioImage('', RadioMarkValue, 3, [550, 230], CheckMarkClick, ImageMarks[2])
-        RadioImage4 = self.CaveBot.addRadioImage('', RadioMarkValue, 4, [590, 230], CheckMarkClick, ImageMarks[3])
-        RadioImage5 = self.CaveBot.addRadioImage('', RadioMarkValue, 5, [630, 230], CheckMarkClick, ImageMarks[4])
-        RadioImage6 = self.CaveBot.addRadioImage('', RadioMarkValue, 6, [670, 230], CheckMarkClick, ImageMarks[5])
-        RadioImage7 = self.CaveBot.addRadioImage('', RadioMarkValue, 7, [710, 230], CheckMarkClick, ImageMarks[6])
-        RadioImage8 = self.CaveBot.addRadioImage('', RadioMarkValue, 8, [470, 260], CheckMarkClick, ImageMarks[7])
-        RadioImage9 = self.CaveBot.addRadioImage('', RadioMarkValue, 9, [510, 260], CheckMarkClick, ImageMarks[8])
-        RadioImage10 = self.CaveBot.addRadioImage('', RadioMarkValue, 10, [550, 260], CheckMarkClick, ImageMarks[9])
-        RadioImage11 = self.CaveBot.addRadioImage('', RadioMarkValue, 11, [590, 260], CheckMarkClick, ImageMarks[10])
-        RadioImage12 = self.CaveBot.addRadioImage('', RadioMarkValue, 12, [630, 260], CheckMarkClick, ImageMarks[11])
-        RadioImage13 = self.CaveBot.addRadioImage('', RadioMarkValue, 13, [670, 260], CheckMarkClick, ImageMarks[12])
-        RadioImage14 = self.CaveBot.addRadioImage('', RadioMarkValue, 14, [710, 260], CheckMarkClick, ImageMarks[13])
-        RadioImage15 = self.CaveBot.addRadioImage('', RadioMarkValue, 15, [470, 290], CheckMarkClick, ImageMarks[14])
-        RadioImage16 = self.CaveBot.addRadioImage('', RadioMarkValue, 16, [510, 290], CheckMarkClick, ImageMarks[15])
-        RadioImage17 = self.CaveBot.addRadioImage('', RadioMarkValue, 17, [550, 290], CheckMarkClick, ImageMarks[16])
-        RadioImage18 = self.CaveBot.addRadioImage('', RadioMarkValue, 18, [590, 290], CheckMarkClick, ImageMarks[17])
-        RadioImage19 = self.CaveBot.addRadioImage('', RadioMarkValue, 19, [630, 290], CheckMarkClick, ImageMarks[18])
-        RadioImage20 = self.CaveBot.addRadioImage('', RadioMarkValue, 20, [670, 290], CheckMarkClick, ImageMarks[19])
-
-        self.CaveBot.addLabel('Type Of Waypoint:', [470, 325])
-
-        RadioWalk = self.CaveBot.addRadio('Walk', RadioTypeValue, 1, [580, 324])
-        RadioRope = self.CaveBot.addRadio('Rope', RadioTypeValue, 2, [635, 324])
-        RadioShovel = self.CaveBot.addRadio('Shovel', RadioTypeValue, 3, [690, 324])
-
-        ButtonRemoveWalker = self.CaveBot.addButton("Remove", RemoveWalker, [70, 21], [615, 355])
-        ButtonAddWalker = self.CaveBot.addButton("Add", AddWalker, [50, 21], [555, 355])
-
-        self.CaveBot.addLabel('Waypoints In Current Script:', [431, 385])
-
-        ButtonResetMarks = self.CaveBot.addButton('Reset Marks', ResetMarks, [100, 24], [701, 385])
-
-        self.CaveBot.addLabel("PreviousWaypoint:", [431, 410])
-        self.CaveBot.addLabel("CurrentWaypoint:", [570, 410])
-        self.CaveBot.addLabel("NextWaypoint:", [720, 410])
-
-        PreviousWaypoint = self.CaveBot.addLabel("", [435, 430])
-        CurrentWaypoint = self.CaveBot.addLabel("", [574, 430])
-        NextWaypoint = self.CaveBot.addLabel("", [724, 430])
-
-        PreviousImage = self.CaveBot.addImage(None, [465, 455])
-        CurrentImage = self.CaveBot.addImage(None, [614, 455])
-        NextImage = self.CaveBot.addImage(None, [754, 455])
-
-        self.CaveBot.addLabel("Type:", [431, 480])
-        self.CaveBot.addLabel("Type:", [580, 480])
-        self.CaveBot.addLabel("Type:", [720, 480])
-
-        PreviousType = self.CaveBot.addLabel("", [463, 480])
-        CurrentType = self.CaveBot.addLabel("", [612, 480])
-        NextType = self.CaveBot.addLabel("", [752, 480])
-
-        ButtonPreviousWaypoint = self.CaveBot.addButton('<<<', SelectPreviousWaypoint, [30, 21], [430, 456])
-        ButtonNextWaypoint = self.CaveBot.addButton('>>>', SelectNextWaypoint, [30, 21], [786, 456])
-
-        CheckboxWalkForDebug = self.CaveBot.addCheck(CheckWalkForDebug, [431, 497], InitiatedWalkForDebug,
-                                                     "Enable Walk For Refresh Map (RECOMMENDED)")
-
-        self.CaveBot.addLabel('Stand Still After Reaching Waypoint Per:', [431, 520])
-
-        EntryStand = self.CaveBot.addEntry([653, 521], Stand, 2)
-        Stand.trace("w", ValidateStand)
-
-        ButtonResearchMap = self.CaveBot.addButton('Auto Research Map', SetResearchMap, [130, 37], [684, 519])
-
-        # endregion
-
-        # region GUI DepotWalker
-
-        CheckboxDropItems = self.CaveBot.addCheck(CheckDropItems, [425, 28], InitiatedDropItems, 'Drop Items Instead Of Deposit')
-        LabelGoDepot = self.CaveBot.addLabel('Go To Depot When Cap Below Than:', [480, 50])
-
-        EntryCapBelowThan = self.CaveBot.addEntry([680, 50], CapBelowThan, 5)
-
-        ButtonAutoSeller = self.CaveBot.addButton('Load AutoSeller', SetLoadAutoSeller, [110, 28], [450, 80])
-        ButtonAutoBanker = self.CaveBot.addButton('Load AutoBanker', SetLoadAutoBanker, [120, 28], [570, 80])
-        ButtonSortLoot = self.CaveBot.addButton('Load SortLoot', SetLoadSortLoot, [100, 28], [700, 80])
-
-        # endregion
-
-        def CheckingButtons():
-            if EnabledCaveBot:
-                Disable(CheckboxDebugging)
-                Disable(CheckboxHotkeyPause)
-                Disable(ButtonHotkeyPause)
-
-                Disable(OptionAttackMode)
-                Disable(CheckboxAttackOne)
-                Disable(OptionMonstersOne)
-                Disable(PriorityMonstersOne)
-                Disable(CheckboxAttackTwo)
-                Disable(OptionMonstersTwo)
-                Disable(PriorityMonstersTwo)
-                Disable(CheckboxAttackThree)
-                Disable(OptionMonstersThree)
-                Disable(PriorityMonstersThree)
-                Disable(CheckboxAttackFour)
-                Disable(OptionMonstersFour)
-                Disable(PriorityMonstersFour)
-                Disable(CheckBoxFollow)
-                Disable(CheckBoxCantAttack)
-                Disable(CheckBoxAttackPlayers)
-                Disable(CheckBoxPlayerSeen)
-                Disable(CheckBoxAttackingYou)
-                Disable(CheckBoxForceAttack)
-                Disable(LabelSuspendAfter)
-                Disable(LabelMonstersRange)
-                Disable(LabelAttackMode)
-                Disable(EntrySuspendAfter)
-                Disable(EntryMonstersRange)
-
-                Disable(CheckboxDropItems)
-                Disable(LabelGoDepot)
-                Disable(EntryCapBelowThan)
-                Disable(ButtonAutoSeller)
-                Disable(ButtonAutoBanker)
-                Disable(ButtonSortLoot)
-                
-                Disable(CheckboxEnableWalking)
-                Disable(EntryCurrentScript)
-
-                Disable(ButtonLoadScript)
-                Disable(ButtonSaveScript)
-
-                Disable(RadioImage1)
-                Disable(RadioImage2)
-                Disable(RadioImage3)
-                Disable(RadioImage4)
-                Disable(RadioImage5)
-                Disable(RadioImage6)
-                Disable(RadioImage7)
-                Disable(RadioImage8)
-                Disable(RadioImage9)
-                Disable(RadioImage10)
-                Disable(RadioImage11)
-                Disable(RadioImage12)
-                Disable(RadioImage13)
-                Disable(RadioImage14)
-                Disable(RadioImage15)
-                Disable(RadioImage16)
-                Disable(RadioImage17)
-                Disable(RadioImage18)
-                Disable(RadioImage19)
-                Disable(RadioImage20)
-
-                Disable(RadioWalk)
-                Disable(RadioRope)
-                Disable(RadioShovel)
-
-                Disable(ButtonRemoveWalker)
-                Disable(ButtonAddWalker)
-
-                Disable(ButtonResetMarks)
-
-                Disable(PreviousWaypoint)
-                Disable(CurrentWaypoint)
-                Disable(NextWaypoint)
-
-                Disable(PreviousImage)
-                Disable(CurrentImage)
-                Disable(NextImage)
-
-                Disable(PreviousType)
-                Disable(CurrentType)
-                Disable(NextType)
-
-                Disable(EntryStand)
-                Disable(CheckboxWalkForDebug)
-                Disable(ButtonPreviousWaypoint)
-                Disable(ButtonNextWaypoint)
-            else:
-                Enable(CheckboxDebugging)
-                Enable(CheckboxDebugging)
-                Enable(CheckboxHotkeyPause)
-                Enable(ButtonHotkeyPause)
-
-                Enable(OptionAttackMode)
-                Enable(CheckboxAttackOne)
-                Enable(CheckboxAttackTwo)
-                Enable(CheckboxAttackThree)
-                Enable(CheckboxAttackFour)
-                Enable(CheckboxEnableWalking)
-                if not CheckAttackOne.get():
-                    Disable(OptionMonstersOne)
-                    Disable(PriorityMonstersOne)
-                else:
-                    Enable(OptionMonstersOne)
-                    Enable(PriorityMonstersOne)
-                if not CheckAttackTwo.get():
-                    Disable(OptionMonstersTwo)
-                    Disable(PriorityMonstersTwo)
-                else:
-                    Enable(OptionMonstersTwo)
-                    Enable(PriorityMonstersTwo)
-                if not CheckAttackThree.get():
-                    Disable(OptionMonstersThree)
-                    Disable(PriorityMonstersThree)
-                else:
-                    Enable(OptionMonstersThree)
-                    Enable(PriorityMonstersThree)
-                if not CheckAttackFour.get():
-                    Disable(OptionMonstersFour)
-                    Disable(PriorityMonstersFour)
-                else:
-                    Enable(OptionMonstersFour)
-                    Enable(PriorityMonstersFour)
-                Enable(CheckBoxFollow)
-                Enable(CheckBoxCantAttack)
-                Enable(CheckBoxAttackPlayers)
-                Enable(CheckBoxPlayerSeen)
-                Enable(CheckBoxAttackingYou)
-                Enable(CheckBoxForceAttack)
-                Enable(LabelSuspendAfter)
-                Enable(LabelMonstersRange)
-                Enable(LabelAttackMode)
-                Enable(EntrySuspendAfter)
-                Enable(EntryMonstersRange)
-
-                Enable(CheckboxDropItems)
-                Enable(ButtonPreviousWaypoint)
-                Enable(ButtonNextWaypoint)
-                if CheckDropItems.get():
-                    Disable(LabelGoDepot)
-                    Disable(EntryCapBelowThan)
-                    Disable(ButtonAutoSeller)
-                    Disable(ButtonAutoBanker)
-                    Disable(ButtonSortLoot)
-                else:
-                    Enable(LabelGoDepot)
-                    Enable(EntryCapBelowThan)
-                    Enable(ButtonAutoSeller)
-                    Enable(ButtonAutoBanker)
-                    Enable(ButtonSortLoot)
-
-                if ResearchMap.get():
-                    ButtonResearchMap.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-                else:
-                    ButtonResearchMap.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-                if LoadAutoSeller.get():
-                    ButtonAutoSeller.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-                else:
-                    ButtonAutoSeller.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-                if LoadAutoBanker.get():
-                    ButtonAutoBanker.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-                else:
-                    ButtonAutoBanker.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-                if LoadSortLoot.get():
-                    ButtonSortLoot.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-                else:
-                    ButtonSortLoot.configure(relief=RAISED, bg=rgb((127, 17, 8)))
-                if CheckEnableWalking.get():
-                    Enable(EntryCurrentScript)
-
-                    Enable(ButtonLoadScript)
-                    Enable(ButtonSaveScript)
-
-                    Enable(RadioImage1)
-                    Enable(RadioImage2)
-                    Enable(RadioImage3)
-                    Enable(RadioImage4)
-                    Enable(RadioImage5)
-                    Enable(RadioImage6)
-                    Enable(RadioImage7)
-                    Enable(RadioImage8)
-                    Enable(RadioImage9)
-                    Enable(RadioImage10)
-                    Enable(RadioImage11)
-                    Enable(RadioImage12)
-                    Enable(RadioImage13)
-                    Enable(RadioImage14)
-                    Enable(RadioImage15)
-                    Enable(RadioImage16)
-                    Enable(RadioImage17)
-                    Enable(RadioImage18)
-                    Enable(RadioImage19)
-                    Enable(RadioImage20)
-
-                    Enable(RadioWalk)
-                    Enable(RadioRope)
-                    Enable(RadioShovel)
-
-                    Enable(ButtonRemoveWalker)
-                    Enable(ButtonAddWalker)
-
-                    Enable(ButtonResetMarks)
-
-                    Enable(PreviousWaypoint)
-                    Enable(CurrentWaypoint)
-                    Enable(NextWaypoint)
-
-                    Enable(PreviousImage)
-                    Enable(CurrentImage)
-                    Enable(NextImage)
-
-                    Enable(PreviousType)
-                    Enable(CurrentType)
-                    Enable(NextType)
-
-                    Enable(EntryStand)
-                    Enable(CheckboxWalkForDebug)
-                    
-            ExecGUITrigger()
-
-        def ConstantVerify():
-            if not EnabledCaveBot:
-                if not CheckAttackOne.get():
-                    Disable(OptionMonstersOne)
-                    Disable(PriorityMonstersOne)
-                else:
-                    Enable(OptionMonstersOne)
-                    Enable(PriorityMonstersOne)
-                if not CheckAttackTwo.get():
-                    Disable(OptionMonstersTwo)
-                    Disable(PriorityMonstersTwo)
-                else:
-                    Enable(OptionMonstersTwo)
-                    Enable(PriorityMonstersTwo)
-                if not CheckAttackThree.get():
-                    Disable(OptionMonstersThree)
-                    Disable(PriorityMonstersThree)
-                else:
-                    Enable(OptionMonstersThree)
-                    Enable(PriorityMonstersThree)
-                if not CheckAttackFour.get():
-                    Disable(OptionMonstersFour)
-                    Disable(PriorityMonstersFour)
-                else:
-                    Enable(OptionMonstersFour)
-                    Enable(PriorityMonstersFour)
-                if CheckDropItems.get():
-                    Disable(LabelGoDepot)
-                    Disable(EntryCapBelowThan)
-                    Disable(ButtonAutoSeller)
-                    Disable(ButtonAutoBanker)
-                    Disable(ButtonSortLoot)
-                else:
-                    Enable(LabelGoDepot)
-                    Enable(EntryCapBelowThan)
-                    Enable(ButtonAutoSeller)
-                    Enable(ButtonAutoBanker)
-                    Enable(ButtonSortLoot)
-                if not CheckHotkeyPause.get():
-                    Disable(ButtonHotkeyPause)
-                elif CheckHotkeyPause.get():
-                    Enable(ButtonHotkeyPause)
-                if not CheckEnableWalking.get():
-                    Disable(EntryCurrentScript)
-                    Disable(ButtonLoadScript)
-                    Disable(ButtonSaveScript)
-                    Disable(RadioImage1)
-                    Disable(RadioImage2)
-                    Disable(RadioImage3)
-                    Disable(RadioImage4)
-                    Disable(RadioImage5)
-                    Disable(RadioImage6)
-                    Disable(RadioImage7)
-                    Disable(RadioImage8)
-                    Disable(RadioImage9)
-                    Disable(RadioImage10)
-                    Disable(RadioImage11)
-                    Disable(RadioImage12)
-                    Disable(RadioImage13)
-                    Disable(RadioImage14)
-                    Disable(RadioImage15)
-                    Disable(RadioImage16)
-                    Disable(RadioImage17)
-                    Disable(RadioImage18)
-                    Disable(RadioImage19)
-                    Disable(RadioImage20)
-                    Disable(ButtonRemoveWalker)
-                    Disable(ButtonAddWalker)
-                    Disable(ButtonResetMarks)
-                    Disable(PreviousImage)
-                    Disable(CurrentImage)
-                    Disable(NextImage)
-                    Disable(EntryStand)
-                    Disable(ButtonResearchMap)
-                    Disable(RadioWalk)
-                    Disable(RadioRope)
-                    Disable(RadioShovel)
-                    Disable(CheckboxWalkForDebug)
-                else:
-                    Enable(EntryCurrentScript)
-                    Enable(ButtonLoadScript)
-                    Enable(ButtonSaveScript)
-                    Enable(RadioImage1)
-                    Enable(RadioImage2)
-                    Enable(RadioImage3)
-                    Enable(RadioImage4)
-                    Enable(RadioImage5)
-                    Enable(RadioImage6)
-                    Enable(RadioImage7)
-                    Enable(RadioImage8)
-                    Enable(RadioImage9)
-                    Enable(RadioImage10)
-                    Enable(RadioImage11)
-                    Enable(RadioImage12)
-                    Enable(RadioImage13)
-                    Enable(RadioImage14)
-                    Enable(RadioImage15)
-                    Enable(RadioImage16)
-                    Enable(RadioImage17)
-                    Enable(RadioImage18)
-                    Enable(RadioImage19)
-                    Enable(RadioImage20)
-                    Enable(ButtonRemoveWalker)
-                    Enable(ButtonAddWalker)
-                    Enable(ButtonResetMarks)
-                    Enable(PreviousImage)
-                    Enable(CurrentImage)
-                    Enable(NextImage)
-                    Enable(EntryStand)
-                    Enable(ButtonResearchMap)
-                    Enable(RadioWalk)
-                    Enable(RadioRope)
-                    Enable(RadioShovel)
-                    Enable(CheckboxWalkForDebug)
-                ExecGUITrigger()
-
-            self.CaveBot.After(200, ConstantVerify)
-
-        CheckingButtons()
-        ConstantVerify()
-
-        if os.path.isfile('Scripts/' + Script.get() + '.json'):
-            LoadScript()
-
-        self.CaveBot.Protocol(Destroy)
+        self._client = get_client()
+        self.map_positions = tuple(MapPositions)
+        self.battle_positions = tuple(BattlePositions)
+        self.sqms = tuple(SQMs)
+        self.mouse_option = MOUSE_OPTION
+        self._worker_message = "Idle"
+        self._hotkey_down = False
+        self._closed = False
+        self._enabled = False
+        self._route = Route("untitled", ())
+        self._editor_index = 0
+
+        self._variables()
+        self._build_ui()
+        self._load_script()
+        self._update_controls()
+        self._poll()
+        self.CaveBot.Protocol(self._close)
         self.CaveBot.loop()
+
+    def _variables(self):
+        variables = self.Setter.Variables
+        self.debug, self.initial_debug = variables.Bool("Debugging")
+        self.hotkey_pause, self.initial_hotkey_pause = variables.Bool("HotkeyPause")
+        self.hotkey_name, self.initial_hotkey_name = variables.Str("HotkeyToPause")
+        self.script_name, self.initial_script_name = variables.Str("Script")
+        self.walk_enabled, self.initial_walk_enabled = variables.Bool("EnableWalking")
+        self.follow, self.initial_follow = variables.Bool("Follow")
+        self.stand, self.initial_stand = variables.Int("Stand")
+        self.loot_enabled = tk.BooleanVar(value=True)
+        self.mark_name = tk.StringVar(value=NameMarks[0])
+
+        self.attack_enabled = []
+        self.monster_names = []
+        self.priorities = []
+        for number, suffix in enumerate(("One", "Two", "Three", "Four"), start=1):
+            enabled, initial_enabled = variables.Bool("Attack" + suffix)
+            monster, initial_monster = variables.Str(
+                "SelectedMonster" + ("" if number == 1 else str(number))
+            )
+            if monster.get() not in AVAILABLE_MONSTERS and AVAILABLE_MONSTERS:
+                monster.set(AVAILABLE_MONSTERS[0])
+            priority, initial_priority = variables.Int("Priority" + suffix)
+            self.attack_enabled.append((enabled, initial_enabled, "Attack" + suffix))
+            self.monster_names.append(
+                (monster, initial_monster, "SelectedMonster" + ("" if number == 1 else str(number)))
+            )
+            self.priorities.append((priority, initial_priority, "Priority" + suffix))
+
+    def _build_ui(self):
+        add_label = self.CaveBot.addLabel
+        add_label("Targets (lower number attacks first)", [20, 12])
+        for row in range(4):
+            y = 42 + row * 38
+            self.CaveBot.addCheck(
+                self.attack_enabled[row][0],
+                [20, y],
+                self.attack_enabled[row][1],
+                "Target {}".format(row + 1),
+            )
+            self.CaveBot.addOption(self.monster_names[row][0], AVAILABLE_MONSTERS, [135, y - 5], 16)
+            self.CaveBot.addOption(self.priorities[row][0], Priority, [300, y - 5], 3)
+
+        self.CaveBot.addCheck(
+            self.follow, [20, 205], self.initial_follow, "Enable follow while fighting"
+        )
+        self.CaveBot.addCheck(
+            self.loot_enabled, [20, 230], True, "Loot on stable target-count decrease (heuristic)"
+        )
+        add_label(
+            "Attack stance, player safety, range and unreachable rules: unavailable until verified",
+            [20, 265],
+        )
+        add_label("Depot, seller, banker and loot sorting: unavailable in CaveBot", [20, 290])
+
+        self.CaveBot.addCheck(
+            self.hotkey_pause, [20, 330], self.initial_hotkey_pause, "Enable pause hotkey"
+        )
+        self.CaveBot.addOption(self.hotkey_name, Hotkeys, [190, 325], 10)
+        self.CaveBot.addCheck(
+            self.walk_enabled, [20, 370], self.initial_walk_enabled, "Enable route walking"
+        )
+        add_label("Stand after arrival (seconds):", [20, 405])
+        self.CaveBot.addEntry([210, 405], self.stand, 5)
+
+        add_label("Route", [430, 12])
+        self.CaveBot.addEntry([430, 40], self.script_name, 20)
+        self.CaveBot.addButton("Load", self._load_script, [75, 28], [590, 35])
+        self.CaveBot.addButton("Save", self._save_script, [75, 28], [675, 35])
+        add_label("Marker:", [430, 85])
+        self.CaveBot.addOption(self.mark_name, NameMarks, [485, 80], 15)
+        self.CaveBot.addButton("Add after", self._add_waypoint, [90, 28], [430, 120])
+        self.CaveBot.addButton("Remove", self._remove_waypoint, [80, 28], [530, 120])
+        self.CaveBot.addButton("Previous", self._previous_waypoint, [80, 28], [620, 120])
+        self.CaveBot.addButton("Next", self._next_waypoint, [70, 28], [710, 120])
+        add_label("Waypoint action: Walk", [430, 165])
+        add_label("Rope and Shovel are rejected until their outcome can be verified", [430, 190])
+        self.route_label = add_label("Empty route", [430, 225])
+        self.route_detail = add_label("", [430, 250])
+
+        self._config_controls = tuple(self.window.winfo_children())
+        self.status_label = add_label("Idle", [20, 490])
+        self.toggle_button = self.CaveBot.addButton(
+            "CaveBot: OFF", self._toggle, [200, 40], [20, 535]
+        )
+        self.CaveBot.addButton("Close", self._close, [100, 32], [700, 575])
+
+    def _set_message(self, message):
+        self._worker_message = str(message)
+        if not self._closed:
+            self.status_label.configure(text=self._worker_message[:105])
+
+    def _route_name(self):
+        value = self.script_name.get().strip()
+        if value.casefold().endswith(".json"):
+            value = value[:-5]
+        return value
+
+    def _read_legacy_data(self, name):
+        path = route_file(name)
+        try:
+            import json
+
+            with path.open("r", encoding="utf-8") as stream:
+                return json.load(stream)
+        except Exception:
+            return None
+
+    def _load_script(self):
+        try:
+            name = self._route_name()
+            if not route_file(name).exists():
+                self._route = Route(name, ())
+                self._editor_index = 0
+                self._set_message("New empty route; add a waypoint and save")
+            else:
+                legacy_data = self._read_legacy_data(name)
+                self._route = load_route(name)
+                if checkpoint_file(name).exists():
+                    self._editor_index = load_checkpoint(self._route)
+                else:
+                    self._editor_index = import_legacy_active_index(legacy_data, self._route)
+                self._set_message("Loaded route '{}'".format(name))
+        except Exception as exc:
+            self._set_message("Route error: {}".format(exc))
+        self._render_route()
+
+    def _save_script(self):
+        try:
+            route = Route(self._route_name(), self._route.waypoints)
+            save_route(route)
+            self._route = route
+            if route.waypoints:
+                self._editor_index = min(self._editor_index, len(route.waypoints) - 1)
+                save_checkpoint(route, self._editor_index)
+            self._set_message("Saved route '{}'".format(route.name))
+        except Exception as exc:
+            self._set_message("Save failed: {}".format(exc))
+        self._render_route()
+
+    def _add_waypoint(self):
+        try:
+            waypoint = Waypoint(
+                "waypoint-" + uuid.uuid4().hex[:12], self.mark_name.get(), WaypointAction.WALK
+            )
+            entries = list(self._route.waypoints)
+            insert_at = self._editor_index + 1 if entries else 0
+            entries.insert(insert_at, waypoint)
+            self._route = Route(self._route_name(), tuple(entries))
+            self._editor_index = insert_at
+            self._set_message("Waypoint added; Save writes the route")
+        except Exception as exc:
+            self._set_message("Cannot add waypoint: {}".format(exc))
+        self._render_route()
+
+    def _remove_waypoint(self):
+        if self._route.waypoints:
+            entries = list(self._route.waypoints)
+            entries.pop(self._editor_index)
+            self._route = Route(self._route_name(), tuple(entries))
+            self._editor_index = min(self._editor_index, max(0, len(entries) - 1))
+            self._set_message("Waypoint removed; Save writes the route")
+        self._render_route()
+
+    def _previous_waypoint(self):
+        if self._route.waypoints:
+            self._editor_index = (self._editor_index - 1) % len(self._route.waypoints)
+            self._render_route()
+
+    def _next_waypoint(self):
+        if self._route.waypoints:
+            self._editor_index = (self._editor_index + 1) % len(self._route.waypoints)
+            self._render_route()
+
+    def _render_route(self):
+        if not self._route.waypoints:
+            self.route_label.configure(text="Empty route")
+            self.route_detail.configure(text="Walk is disabled until a waypoint exists")
+            return
+        waypoint = self._route.waypoints[self._editor_index]
+        self.route_label.configure(
+            text="Waypoint {} of {}".format(self._editor_index + 1, len(self._route.waypoints))
+        )
+        self.route_detail.configure(
+            text="{} · {} · {}".format(waypoint.id, waypoint.mark, waypoint.action.value)
+        )
+
+    def _snapshot(self):
+        route_name = self._route_name()
+        route = load_route(route_name)
+        if not route.waypoints:
+            raise RouteError("route has no waypoints")
+        if not self.walk_enabled.get():
+            raise RouteError("route walking must be enabled")
+        targets = []
+        for enabled, monster, priority in zip(
+            self.attack_enabled, self.monster_names, self.priorities
+        ):
+            if enabled[0].get():
+                name = monster[0].get()
+                asset = Path(project_path(Path("images") / "Targets" / "Names" / (name + ".png")))
+                if not asset.is_file():
+                    raise RouteError("missing target image: {}".format(name))
+                targets.append(TargetSpec(int(priority[0].get()), name))
+        if checkpoint_file(route_name).exists():
+            start_index = load_checkpoint(route)
+        else:
+            start_index = import_legacy_active_index(self._read_legacy_data(route_name), route)
+        return {
+            "route": route,
+            "start_index": start_index,
+            "targets": tuple(targets),
+            "follow": bool(self.follow.get()),
+            "loot": bool(self.loot_enabled.get()),
+            "stand": max(0.0, float(self.stand.get())),
+        }
+
+    def _toggle(self):
+        if self._enabled:
+            self._client.stop_feature("CaveBot")
+            self._enabled = False
+            self._set_message("Stopped")
+            self._update_controls()
+            return
+        try:
+            snapshot = self._snapshot()
+            points = tuple(zip(self.sqms[::2], self.sqms[1::2]))
+            feature = CaveBotFeature(
+                snapshot["route"],
+                snapshot["targets"],
+                config=SessionConfig(
+                    stand_seconds=snapshot["stand"],
+                    follow=snapshot["follow"],
+                    loot=snapshot["loot"],
+                ),
+                start_index=snapshot["start_index"],
+                map_region=self.map_positions,
+                battle_region=self.battle_positions,
+                loot_points=points,
+            )
+            self._client.start_feature(feature)
+        except Exception as exc:
+            self._set_message("Cannot start: {}".format(exc))
+            return
+        self._enabled = True
+        self._set_message("Armed — focus game")
+        self._update_controls()
+
+    def _update_controls(self):
+        if self._closed:
+            return
+        set_enabled(self._config_controls, not self._enabled)
+        if self._enabled:
+            self.toggle_button.configure(text="CaveBot: ON", relief=tk.SUNKEN)
+        else:
+            self.toggle_button.configure(text="CaveBot: OFF", relief=tk.RAISED)
+
+    def _poll_hotkey(self):
+        pressed = False
+        if self.hotkey_pause.get():
+            try:
+                pressed = poll_hotkey(self.hotkey_name.get())
+            except Exception as exc:
+                self._set_message("Pause hotkey unavailable: {}".format(exc))
+        if pressed and not self._hotkey_down:
+            self._toggle()
+        self._hotkey_down = pressed
+
+    def _poll(self):
+        if self._closed:
+            return
+        self._poll_hotkey()
+        try:
+            status = self._client.feature_status("CaveBot")
+            if status.error:
+                self._enabled = False
+                self._set_message("CaveBot stopped: {}".format(status.error))
+                self._update_controls()
+            elif status.active:
+                self._enabled = True
+                self.status_label.configure(text=status.phase or "Running")
+            elif self._enabled:
+                self._enabled = False
+                self._set_message(status.phase or "Stopped")
+                self._update_controls()
+        except Exception as exc:
+            if self._enabled:
+                self._enabled = False
+                self._set_message("CaveBot status unavailable: {}".format(exc))
+                self._update_controls()
+        self.window.after(100, self._poll)
+
+    def _save_preferences(self):
+        values = [
+            ("Debugging", self.debug.get()),
+            ("HotkeyPause", self.hotkey_pause.get()),
+            ("HotkeyToPause", self.hotkey_name.get()),
+            ("Script", self.script_name.get()),
+            ("EnableWalking", self.walk_enabled.get()),
+            ("Follow", self.follow.get()),
+            ("Stand", self.stand.get()),
+        ]
+        values.extend((key, variable.get()) for variable, _, key in self.attack_enabled)
+        values.extend((key, variable.get()) for variable, _, key in self.monster_names)
+        values.extend((key, variable.get()) for variable, _, key in self.priorities)
+        write_loader("CaveBotLoader", dict(values))
+
+    def _close(self):
+        global _ACTIVE_CAVEBOT
+        if self._closed:
+            return
+        self._closed = True
+        self._enabled = False
+        try:
+            self._client.stop_feature("CaveBot")
+        finally:
+            try:
+                self._save_preferences()
+            except Exception:
+                pass
+            finally:
+                self.CaveBot.destroyWindow()
+                _ACTIVE_CAVEBOT = None

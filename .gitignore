@@ -27,5 +27,11 @@ var/
 .idea/
 .vscode/
 venv
-Scripts/NewConfig.json
-Scripts/Loads.json
+.venv/
+.pytest_cache/
+.ruff_cache/
+scripts/NewConfig.json
+scripts/Loads.json
+scripts/*.json.lock
+scripts/*.state.json
+scripts/.*.tmp

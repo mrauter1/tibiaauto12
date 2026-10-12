@@ -1,124 +1,147 @@
-<h1 align="center"> TibiaAuto12 </h1>
+# TibiaAuto12
 
-<h2 align="center"> Project Status: In development <br />Just For Tibia Clients 11+ Versions<br />OT Is Supported ? :heavy_check_mark:<br />Global Is Supported ? :heavy_check_mark:</h2>
-  
-  
-# Table of contents
+TibiaAuto12 is a Windows desktop automation project built around captured client images and client-local input. A shared client SDK separates feature decisions from Tk, capture, native input, scheduling, and persistence, so the decision layer can be exercised offline.
 
-- [Needed Libs to Run](#Needed-Python-and-Libs-to-Run)
-- [Features Status](#Features-Status)
-- [How To Use](#How-To-Use)
+**Validation boundary:** the automated suite uses synthetic images, fake adapters, virtual clocks, and saved configuration. Passing it does not establish compatibility with a current Tibia client, prove detection accuracy during real play, or prove that a client accepts physical or window-message input. Templates, bar geometry, DPI, capture layout, and input behavior still require controlled validation on the intended installation.
 
-# Needed Python and Libs to Run
+## Install and start
 
-- [![Python 3.10.1](https://img.shields.io/badge/python-3.10.1-blue.svg)](https://www.python.org/downloads/release/python-3101/)
+Use Windows and Python 3.10–3.12 for the desktop app. Linux can run the headless checks and tests; Linux desktop automation is unsupported.
 
-- ```bash
-  python -m pip install -r requirements.txt
-  ```
+```powershell
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+.venv\Scripts\python -m tools.doctor --assets
+.venv\Scripts\python start.py
+```
 
-# Features Status
+`start.bat` prefers the repository's `.venv` and sets the working directory. Application assets and configuration paths work independently of the current directory.
 
-- [Auto Life](#Auto-Life-Module) : :heavy_check_mark:
-- [Auto Mana](#Auto-Mana-Module) : :heavy_check_mark:
-- [Auto Hur](#Auto-Hur-Module) : :heavy_check_mark:
-- [Auto SSA](#Auto-SSA-Module) : :heavy_check_mark:
-- [Auto Ring](#Auto-Ring-Module) : :heavy_check_mark:
-- [Auto Login]() : :warning:
-- [Auto Banker]() : :warning:
-- [Auto Fish]() : :warning:
-- [Auto Grouping]() : :warning:
-- [Auto Seller]() : :warning:
-- [Adjust Config]() : :warning:
-- [Ammo Restack]() : :warning:
-- [Cave Bot](#Cave-Bot-Module) : :warning: :heavy_check_mark:
-- [Color Change]() : :warning:
-- [Creature Info]() : :warning:
-- [Food Eater]() : :heavy_check_mark:
-- [FPS Changer]() : :warning:
-- [General Options]() : :warning:
-- [Healer Friends]() : :warning:
-- [Load Config]() : :warning:
-- [Modules]() : :warning:
-- [Python Scripts]() : :warning:
-- [Save Config]() : :warning:
-- [Sort Loot]() : :warning:
-- [Timed Spells]() : :heavy_check_mark:
-- [Show Map]() : :warning:
+1. Select the input client window. Select the capture window separately when using an OBS projector.
+2. A separate capture window must show the same content at the same client-area size, without scaling, letterboxing, or cropping. Equal dimensions are necessary, but do not prove that pixels and input coordinates align.
+3. Create or load a calibration profile. Older profiles require **Recalibrate existing profile** once to bind their geometry to the configured capture dimensions. Failed calibration preserves the previous profile. Resizing the client requires recalibration.
+4. Open a module, review its settings, and start it explicitly. Physical-input mode waits for the selected game window to have focus and never steals focus. Window-message mode checks that its target is ready.
+5. Stop a feature before changing its settings. Closing a feature window stops that feature before saving its settings. Closing the application closes the shared client session and its adapter.
 
-# How To Use
+Capture, readiness, invalid geometry, stale evidence, and adapter errors fail closed and appear in feature status. A native OS call cannot always be interrupted after it has entered the operating system; capture and input boundaries use bounded waits and do not respond to uncertainty with speculative actions.
 
-## Setup OBS and Tibia
+## Available behavior
 
-To configure your OBS, you must open a game capture with tibia's window selected.
+| Area | Implemented behavior |
+|---|---|
+| Auto Heal / Mana | One coherent observation per scheduler tick, most urgent satisfied threshold, cooldown, and no action from unknown or stale readings |
+| Haste / Food | Status-driven hotkey request with cooldown |
+| Ring / Amulet | Explicit empty-slot evidence, optional independent health condition, hotkey or validated client-local drag |
+| Timed spells | Monotonic deadlines, configured spacing, and no catch-up burst |
+| CaveBot | Walk routes, ordered target priorities, follow toggle, stand duration, bounded marker/arrival/combat waits, pause control, and optional bounded loot |
+| Route editor | Validated save/load, legacy route import, stable waypoint IDs, and a separate fingerprinted resume checkpoint |
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/OBS/SetTibia.png)
+CaveBot is now a nonblocking SDK feature. Navigation, combat, follow, and loot advance through short ticks and submit individual requests to the shared scheduler. This lets higher-priority support and healing requests run between CaveBot actions. It does not interrupt a native call that is already executing, and priority alone is not proof of a real-client safety guarantee.
 
-Click on Preview with a right mouse button for open the options and select this option:
+Rope/Shovel execution, depot/refill, fishing, reconnect/login, and other unfinished legacy modules are unavailable. Source files that only opened unimplemented placeholder windows have been retired; their disabled **N/A** labels remain in the main window so the UI does not imply that those features work. Loot remains a bounded target-count-drop heuristic over calibrated surrounding tiles; it is not corpse recognition. Disable it when that heuristic is inappropriate.
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/OBS/Projetor.png)
+The health and mana reader retains the existing 100-pixel bar calibration and five-percent steps. A missing or unreadable fill is unknown rather than zero. It does not infer death or reliably distinguish a truly empty bar from failed observation.
 
-Put the oppened window behind off tibia, must be identical with the tibia window for work of the Bot.
+## Offline checks
 
-After it, Set the tibia life like this:
+```powershell
+.venv\Scripts\python -m pip install -r requirements-dev.txt
+.venv\Scripts\python -m pytest -q
+.venv\Scripts\python -m ruff check .
+.venv\Scripts\python -m tools.doctor --assets --route ratThais --json
+.venv\Scripts\python -m tools.doctor --profile NewConfig.json
+```
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/OBS/MarkLife.png)
+On Linux use `.venv/bin/python`. The doctor never captures a window or sends input. `--profile` checks saved geometry, not its correspondence with a live screen. `--route` checks the definition, marker assets, and resume checkpoint. Its exit code is nonzero on errors.
 
-And you is ready to start a Bot.
+CI runs the offline suite and syntax/undefined-name checks on Windows and Linux with Python 3.10 and 3.12. GUI tests require a display and skip when one is unavailable.
 
-## Starting the Bot
+## Shared SDK architecture
 
-The first step is install all libs needed to run the Bot, After this, if you want use with loggin in console, execute the file with name `Main.py`.
+```mermaid
+flowchart TD
+  UI["Tk UI and persisted settings"] --> App["application.configure/get/close_client"]
+  App --> Session["ClientSession"]
+  Features["Pure support and CaveBot features"] --> Session
+  Session --> Snapshot["Immutable Snapshot of Sensor observations"]
+  Snapshot --> Features
+  Features --> Requests["Step with prioritized Requests"]
+  Requests --> Session
+  Session --> Adapter["DesktopAdapter native boundary"]
+  Adapter --> Capture["Bounded capture process"]
+  Adapter --> Input["Physical or message input backend"]
+```
 
-Running it will open the following window:
+The application creates one `ClientSession` for the selected client. Every active feature shares that session, its coherent snapshots, its bounded request queue, and its serialized action stream. Starting a feature with an existing name supersedes its previous generation; stopping it invalidates queued work owned by that generation.
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/SelectCharacter.png)
+A scheduler tick collects the sensors needed by due features, asks the adapter for one observation batch, builds an immutable `Snapshot`, calls each feature's `tick(FeatureContext)`, and accepts the returned `Step`. A `Request` contains one `Action`, a priority, a time-to-live, and optional fresh-observation requirements or confirmation. The session rejects expired or stale requests and dispatches at most one action per tick. Features receive `ActionResult` values through `on_result` and never capture or send input themselves.
 
-Join with your character in tibia to Bot find your tibia window, after this click on `Configure` and this window will oppened:
+`DesktopAdapter` is the production native boundary. It converts calibrated sensors into readings from one captured frame and translates validated SDK actions to the existing physical or window-message backend. Tk modules only build features, call the shared session, and poll `FeatureStatus` with `after`; they do not import scanners, native hotkeys, or worker/runtime modules.
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/SelectConfig.png)
+| Public contract | Location | Purpose |
+|---|---|---|
+| `ClientSession` | `tibia_client/session.py` | Feature generations, coherent observations, priority arbitration, cancellation, status, and events |
+| `Sensor`, `Snapshot`, `FeatureContext`, `Step`, `Request` | `tibia_client/models.py` | Immutable data exchanged across the decision boundary |
+| `Feature`, `ClientAdapter`, `Clock` | `tibia_client/ports.py` | Small protocols for policies, adapters, and deterministic time |
+| `DesktopAdapter` | `tibia_client/desktop.py` | Production capture, detection, readiness, and native action implementation |
+| `configure_client`, `get_client`, `close_client` | `tibia_client/application.py` | Composition root and the single UI-owned session |
+| Support features | `features/support.py` | Healing, mana, haste, food, equipment, and timed-spell decisions |
+| CaveBot feature | `features/cavebot.py` | Nonblocking route, combat, follow, and loot state machine |
+| Routes and checkpoints | `engine/CaveBot/routes.py` | Immutable definitions, validation, legacy import, and progress persistence |
+| `JsonlRecorder`, `ReplayAdapter`, `replay_policies` | `tibia_client/trace.py` | Bounded diagnostics, virtual runtime scenarios, and exact policy comparison |
 
-If you want to play on the global client, leave the options as they are.
-<br />
-If you want to play in OT client you can mark this Option:
+### Minimal feature example
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/SendEvents.png)
+This feature requests one heal while health remains low, then rearms after recovery. Its sensor coordinates come from a validated profile.
 
-Click on button `create` for configure your tibia's positions, after it, verify the file `NewConfig` (it name can be edited in `Choose Your Config` window) or in your console, all status should be defined with `true`, none of the values ​​can be 0
-
-- ### Console View
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/ConsoleConfig.png)
-
-- ### Json File View
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/JsonConfig.png)
-
-If all positions is correctly setted, your TibiaAuto12 will open with the main window:
-
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/Root.png)
-
-# Available Modules:
-
-## Auto Life Module
-
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/AutoHeal.png)
-
-## Auto Mana Module
-
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/AutoMana.png)
-
-## Auto Hur Module
-
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/AutoHur.png)
-
-## Auto SSA Module
-
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/AutoAmulet.png)
-
-## Auto Ring Module
+```python
+from tibia_client import (
+    Action, ActionKind, FeatureContext, Priority,
+    ObservationUnavailable, Request, Requirement,
+    ResultState, Sensor, SensorKind, Step,
+)
 
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/AutoRing.png)
+class EmergencyHeal:
+    name = "EmergencyHeal"
+    interval = 0.05
 
-## Cave Bot Module
+    def __init__(self, health_anchor: tuple[int, int], hotkey: str):
+        self.health = Sensor(SensorKind.HEALTH, health_anchor)
+        self.hotkey = hotkey
+        self.sent = False
 
-- ![Alt text](https://github.com/MuriloChianfa/TibiaAuto12/blob/master/images/ImagesReadme/CaveBot.png)
+    def sensors(self):
+        return (self.health,)
+
+    def tick(self, context: FeatureContext):
+        try:
+            health = context.require(self.health, max_age=0.5)
+        except ObservationUnavailable:
+            return Step(phase="Waiting for health")
+        if health > 35:
+            self.sent = False
+            return Step(phase=f"Health {health}%")
+        if self.sent:
+            return Step(phase="Waiting for recovery")
+        self.sent = True
+        request = Request(
+            key="emergency-heal",
+            action=Action(ActionKind.PRESS, key=self.hotkey),
+            priority=Priority.HEAL,
+            ttl=0.25,
+            requirements=(Requirement(self.health, max_age=0.5),),
+            reason=f"health is {health}%",
+        )
+        return Step(requests=(request,), phase="Heal requested")
+
+    def on_result(self, result):
+        if result.final and result.state not in (ResultState.EXECUTED, ResultState.CONFIRMED):
+            self.sent = False  # Rejected/cancelled work may be decided again from fresh evidence.
+```
+
+Construct production sessions through `configure_client(mouse_mode)` and retrieve them with `get_client()`. Tests should construct `ClientSession(fake_adapter, clock=fake_clock, autostart=False)` and advance it with `tick_once()`; this path does not require a display or native input.
+
+See [the engineering contract](docs/reliability-foundation.md) for native-boundary rules, calibration constraints, route migration, and remaining live-client checks, and [recording and replay](docs/recording-replay.md) for diagnostic workflows.
+
+The [feature roadmap](docs/feature-roadmap.md) compares primary bot references and proposes staged route-authoring, supply, refill/depot, combat, and supervision improvements. It distinguishes planned capabilities from implemented behavior and specifies their validation gates.

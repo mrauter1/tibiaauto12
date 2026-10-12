@@ -1,75 +1,76 @@
+"""Non-modal error window helpers."""
+from __future__ import annotations
+
+import os
 import tkinter as tk
 from PIL import Image, ImageTk
-from win32api import GetSystemMetrics, GetCursorPos
 
-from core.Defaults import rgb
+from core.GUI import GUI, application_root, rgb
+from core.paths import project_path
 
 
 class ExceptionsWindow:
     def __init__(self):
-        self.windowID = 'TibiaAuto Error'
-        self.name = 'TibiaAuto Error'
+        self.windowID = None
+        self.name = "TibiaAuto Error"
+        self._gui = GUI("error", self.name)
 
     def ErrorWindow(self, BackgroundImage):
-        self.windowID = tk.Tk()
-        self.windowID.focus_force()
-        self.windowID.grab_set()
-        X, Y = GetSys()
-        CalculatedX = CalculatingX(X)
-        CalculatedY = CalculatingY(Y)
-        self.windowID.geometry('%dx%d+%d+%d' % (370, 233, CalculatedX, CalculatedY))
-        self.windowID.title(self.name)
-        self.windowID.resizable(width=False, height=False)
-        self.windowID.configure(background='#001000', takefocus=True)
-        if BackgroundImage is not None:
-            # image = Image.open('images/Modules/' + BackgroundImage + '.png')
-            image = Image.open(BackgroundImage + '.png')
-            photo = ImageTk.PhotoImage(image)
-            label = tk.Label(self.windowID, image=photo, bg='#001000')
-            label.image = photo
-            label.pack()
+        self._gui.MainWindow(None, [370, 233], [2, 2])
+        self.windowID = self._gui.windowID
+        self.windowID.configure(background="#001000", takefocus=True)
         self.windowID.overrideredirect(True)
         self.windowID.wm_attributes("-topmost", True)
-        self.windowID.attributes("-transparentcolor", '#001000')
+        if BackgroundImage is not None:
+            image = Image.open(project_path(f"{BackgroundImage}.png"))
+            photo = ImageTk.PhotoImage(image, master=self.windowID)
+            label = tk.Label(self.windowID, image=photo, bg="#001000")
+            label.image = photo
+            label.pack()
+        try:
+            self.windowID.attributes("-transparentcolor", "#001000")
+        except tk.TclError:
+            pass
 
     def loop(self):
-        self.windowID.mainloop()
+        return self._gui.loop()
 
     def Protocol(self, Function):
         return self.windowID.protocol("WM_DELETE_WINDOW", Function)
 
     def destroyWindow(self):
-        self.windowID.destroy()
+        return self._gui.destroyWindow()
 
     def UpdateWindow(self, X, Y):
-        self.windowID.geometry('370x233+%d+%d' % (X - 185, Y - 187))
-        self.windowID.update()
+        self.windowID.geometry("370x233+%d+%d" % (X - 185, Y - 187))
+        self.windowID.update_idletasks()
 
     def addLabel(self, textOfLabel, position):
-        labelID = tk.Label(self.windowID,
-                           text=textOfLabel,
-                           bg=rgb((114, 94, 48)),
-                           fg='white')
-        labelID.place(x=position[0], y=position[1])
-        return labelID
+        label = tk.Label(self.windowID, text=textOfLabel, bg=rgb((114, 94, 48)), fg="white")
+        label.place(x=position[0], y=position[1])
+        return label
 
     def addImage(self, image, position):
-        imageID = tk.Label(self.windowID,
-                           image=image,
-                           bg=rgb((114, 94, 48)),
-                           fg='white')
-        imageID.place(x=position[0], y=position[1])
-        return imageID
+        label = tk.Label(self.windowID, image=image, bg=rgb((114, 94, 48)), fg="white")
+        label.place(x=position[0], y=position[1])
+        return label
 
     def PositionOfWindow(self, value):
-        if value == 'X':
+        if value == "X":
             return self.windowID.winfo_x()
-        elif value == 'Y':
+        if value == "Y":
             return self.windowID.winfo_y()
+        raise ValueError("position must be 'X' or 'Y'")
 
 
 def GetSys():
-    return GetSystemMetrics(0), GetSystemMetrics(1)
+    if os.name == "nt":
+        import ctypes
+        return ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1)
+    root = application_root()
+    if root is None:
+        raise OSError("screen metrics require an active GUI on this platform")
+    return root.winfo_screenwidth(), root.winfo_screenheight()
 
 
 def CalculatingX(X):
@@ -81,12 +82,11 @@ def CalculatingY(Y):
 
 
 def MousePosition():
-    X, Y = GetCursorPos()
-    return X, Y
+    import pyautogui
+    return tuple(pyautogui.position())
 
 
 def OpenImage(image, size):
-    ImageID = Image.open(image)
-    ImageID = ImageID.resize((size[0], size[1]), Image.ANTIALIAS)
-    ImageID = ImageTk.PhotoImage(ImageID)
-    return ImageID
+    opened = Image.open(project_path(image))
+    opened = opened.resize((size[0], size[1]), Image.Resampling.LANCZOS)
+    return ImageTk.PhotoImage(opened, master=application_root())

@@ -1,118 +1,124 @@
-"""
-starts the selection page to choose window of capture
-"""
+"""Window selection flow. No windows are enumerated or created at import time."""
+from __future__ import annotations
 
-import time
-import os
-import threading
+from conf.conf_manager import ConfManager, ConfigError
 
-from core.GUI import *
-from conf.conf_manager import ConfManager
-from conf.WindowTitles import get_titles
-from modules.ChooseConfig import ChooseConfig
 
-from modules.Root import root
-
-titles = get_titles()
-conf = ConfManager.get('conf.json')
-script = f'scripts/{conf["preferences_name"]}'
+def _display_name(hwnd: int, title: str) -> str:
+    return f"{title}  [HWND {hwnd}]"
 
 
 def choose_capture_window():
-    window = tk.Tk()
-    w = 260
-    h = 90
-    x = (window.winfo_screenwidth() - w) / 2.3
-    y = (window.winfo_screenheight() - h) / 2.4
-    window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-    window.resizable(width=False, height=False)
-    window.title('Choose window')
-    window.configure(background=rgb((120, 98, 51)), takefocus=True)
-    window.iconbitmap('images/icon.ico')
+    import tkinter as tk
+    from tkinter import messagebox
 
-    def destroy():
-        """
-        destroy current window and exit with success status
-        """
+    from conf.WindowTitles import get_titles
+    from core.Getters import CalibrationError
+    from core.GetHWND import WindowLookupError, validate_window_pair
+    from core.GUI import GUI, rgb, shutdown
+    from core.runtime import stop_all
 
-        print('Exiting...')
+    ui = GUI("window chooser", "Choose capture and game windows")
+    ui.MainWindow(None, [480, 190], [2, 2.36])
+    window = ui.windowID
+    window.configure(background=rgb((120, 98, 51)))
 
-        window.destroy()
-        exit(0)
+    capture_choice = tk.StringVar(master=window)
+    input_choice = tk.StringVar(master=window)
+    menus = []
+    handles_by_label = {}
 
-    def reconfigure():
-        """
-        The Reconfigure Function, Verify If Already Exist One File
-        With The Name Placed On Loads.Json.
+    tk.Label(window, text="Capture source (client or OBS)", bg=rgb((120, 98, 51))).place(x=15, y=15)
+    tk.Label(window, text="Game input target", bg=rgb((120, 98, 51))).place(x=15, y=70)
 
-        If Already Have One Archive, He Destroy The Archive And Restart The Program.
-        """
+    def close():
+        stop_all(1.0)
+        shutdown()
 
-        if os.path.isfile(script):
-            os.remove(script)
+    def refresh():
+        nonlocal handles_by_label
+        try:
+            titles = get_titles()
+        except OSError as exc:
+            messagebox.showerror("Window enumeration failed", str(exc), parent=window)
+            return
+        own_handle = window.winfo_id()
+        handles_by_label = {
+            _display_name(hwnd, title): hwnd
+            for hwnd, title in titles.items()
+            if hwnd != own_handle and title != window.title()
+        }
+        labels = list(handles_by_label)
+        for option, variable in ((menus[0], capture_choice), (menus[1], input_choice)):
+            menu = option["menu"]
+            menu.delete(0, "end")
+            for label in labels:
+                menu.add_command(label=label, command=tk._setit(variable, label))
+        config = ConfManager.get("conf.json")
 
-        conf['configured'] = False
-        ConfManager.set(conf, 'conf.json')
+        def preferred(key):
+            handle = config.get(key) or config.get("hwnd")
+            for label, candidate in handles_by_label.items():
+                if candidate == handle:
+                    return label
+            return labels[0] if labels else ""
 
-        window.destroy()
+        capture_choice.set(preferred("capture_hwnd"))
+        input_choice.set(preferred("input_hwnd"))
+        if not labels:
+            messagebox.showwarning(
+                "No windows found", "No visible application windows were found. Open the game or OBS and click Refresh.",
+                parent=window,
+            )
 
-        from start import main
-        main()
+    capture_menu = tk.OptionMenu(window, capture_choice, "")
+    capture_menu.place(x=15, y=37, width=450, height=27)
+    input_menu = tk.OptionMenu(window, input_choice, "")
+    input_menu.place(x=15, y=92, width=450, height=27)
+    menus.extend((capture_menu, input_menu))
 
-    def bootstrap():
-        """
-        load-up configurations and pass to conf page
-        """
+    def continue_to_app(force_config=False):
+        try:
+            capture_hwnd = handles_by_label[capture_choice.get()]
+            input_hwnd = handles_by_label[input_choice.get()]
+            size = validate_window_pair(capture_hwnd, input_hwnd)
+            capture_title = capture_choice.get().rsplit("  [HWND ", 1)[0]
+            input_title = input_choice.get().rsplit("  [HWND ", 1)[0]
 
-        if conf['preferences_name'] is None:
-            conf['preferences_name'] = 'NewConfig.json'
+            def select(current):
+                current.update(
+                    platform="windows", capture_hwnd=capture_hwnd, input_hwnd=input_hwnd,
+                    hwnd=input_hwnd, capture_title=capture_title, input_title=input_title,
+                    capture_size=list(size),
+                )
+                if force_config:
+                    current["configured"] = False
 
-        conf['hwnd'] = list(titles.keys())[list(titles.values()).index(selected_window.get())]
-        ConfManager.set(conf, 'conf.json')
-
-        window.destroy()
-
-        if not conf['configured']:
-            ChooseConfig(selected_window.get())
+            config = ConfManager.update("conf.json", select)
+        except (KeyError, ConfigError, WindowLookupError, OSError) as exc:
+            messagebox.showerror("Window selection is invalid", str(exc), parent=window)
+            refresh()
             return
 
-        root(selected_window.get(), conf['preferences_name'])
+        ui.withdraw()
+        try:
+            if config.get("configured") and not force_config:
+                from modules.Root import root
+                root(input_title, config.get("preferences_name", "NewConfig.json"))
+            else:
+                from modules.ChooseConfig import ChooseConfig
+                ChooseConfig(input_title)
+        except (CalibrationError, ConfigError, OSError, ValueError, KeyError, TypeError) as exc:
+            window.deiconify()
+            messagebox.showerror(
+                "Startup configuration is invalid",
+                f"{exc}\n\nSelect Reconfigure to repair the profile.",
+                parent=window,
+            )
 
-    selected_window = tk.StringVar()
-    selected_window.set(list(titles.values())[1])
-
-    select_window_list = tk.OptionMenu(window, selected_window, *list(titles.values()))
-    select_window_list.configure(anchor='w')
-    select_window_list.pack()
-    select_window_list.place(w=230, h=24, x=15, y=17)
-
-    # region Buttons
-
-    if conf['configured']:
-        bootstrap_button = tk.Button(window, width=15, text="Load Up", command=bootstrap, bg=rgb((127, 17, 8)),
-                                     fg='white',
-                                     activebackground=rgb((123, 13, 5)))
-        bootstrap_button.pack()
-        bootstrap_button.place(w=85, h=25, x=140, y=53)
-
-        exit_button = tk.Button(window, width=15, text="Reconfigure", command=reconfigure, bg=rgb((127, 17, 8)),
-                                fg='white',
-                                activebackground=rgb((123, 13, 5)))
-    else:
-        bootstrap_button = tk.Button(window, width=15, text="Configure", command=bootstrap,
-                                     bg=rgb((127, 17, 8)),
-                                     fg='white',
-                                     activebackground=rgb((123, 13, 5)))
-        bootstrap_button.pack()
-        bootstrap_button.place(w=85, h=25, x=140, y=53)
-
-        exit_button = tk.Button(window, width=15, text="Exit", command=destroy, bg=rgb((127, 17, 8)),
-                                fg='white',
-                                activebackground=rgb((123, 13, 5)))
-
-    exit_button.pack()
-    exit_button.place(w=85, h=25, x=28, y=53)
-
-    # endregion
-
-    window.mainloop()
+    tk.Button(window, text="Refresh", command=refresh).place(x=15, y=145, width=90, height=28)
+    tk.Button(window, text="Reconfigure", command=lambda: continue_to_app(True)).place(x=180, y=145, width=110, height=28)
+    tk.Button(window, text="Continue", command=continue_to_app).place(x=375, y=145, width=90, height=28)
+    window.protocol("WM_DELETE_WINDOW", close)
+    refresh()
+    ui.loop()

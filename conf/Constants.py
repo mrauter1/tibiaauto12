@@ -20,7 +20,7 @@ ContainersNamePath = ItemsPath + "ContainersName/"
 
 CornersItemsPath = ItemsPath + "Corners/"
 FramesItemsPath = ItemsPath + "Frames/"
-NoneItemsPath = ItemsPath + "Nome/"
+NoneItemsPath = ItemsPath + "None/"
 
 
 # Containers

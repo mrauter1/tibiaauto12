@@ -1,244 +1,141 @@
-import numpy as np
-import cv2
-from PIL import Image, ImageOps
+"""Compatibility facade for reliable capture and detection primitives."""
 
-from conf.conf_manager import ConfManager
+from __future__ import annotations
 
+from typing import Optional
 
-data = ConfManager.get('conf.json')
+from PIL import Image
 
-if data['platform'] == "windows":
-    from ctypes import windll
-    import win32ui
-    import win32gui
-
-    hwnd = data['hwnd']
-elif data['platform'] == "linux":
-    import os
-    from core.LinuxClient import Execute, FindAnotherWindow, FindWindow
-
-    TEMPLATES_PATH = os.path.dirname(__file__) + "/../images/"
-
-    AnotherWindow = FindAnotherWindow()
-    Window = FindWindow()
+from core.perception import (
+    CaptureError,
+    DetectionError,
+    Frame,
+    ImageLike,
+    Match,
+    capture_frame,
+    current_frame,
+    frame_scope,
+    load_template,
+    locate_match,
+    locate_matches,
+    reset_capture_provider,
+    set_capture_provider,
+)
 
 
 class Hooker:
-    if data['platform'] == 'windows':
-        def __init__(self):
-            self.hwnd = hwnd
-            self.win32gui = win32gui
-            self.win32ui = win32ui
-            self.dll = windll.user32
-            self.hwndDC = self.win32gui.GetWindowDC(self.hwnd)
-            self.mfcDC = self.win32ui.CreateDCFromHandle(self.hwndDC)
-            self.saveDC = self.mfcDC.CreateCompatibleDC()
-            self.saveBitMap = self.win32ui.CreateBitmap()
-            self.left, self.top, self.right, self.bot = self.win32gui.GetClientRect(self.hwnd)
-            self.left = self.left + 8
-            self.top = self.top + 8
-            self.right = self.right + 8
-            self.bot = self.bot + 8
-            self.w = self.right - self.left
-            self.h = self.bot - self.top
-            self.saveBitMap.CreateCompatibleBitmap(self.mfcDC, self.w, self.h)
-            self.saveDC.SelectObject(self.saveBitMap)
-            self.result = self.dll.PrintWindow(self.hwnd, self.saveDC.GetSafeHdc(), 1)
+    """Legacy capture object backed by the bounded provider interface."""
 
-            self.bmpinfo = self.saveBitMap.GetInfo()
-            self.bmpstr = self.saveBitMap.GetBitmapBits(True)
+    def __init__(self, provider=None, max_attempts: int = 2):
+        self.frame = capture_frame(provider, max_attempts=max_attempts)
+        self.TakedImage = self.frame.image
+        self.result = 1
 
-            self.TakedImage = Image.frombuffer(
-                'RGB',
-                (self.bmpinfo['bmWidth'], self.bmpinfo['bmHeight']),
-                self.bmpstr, 'raw', 'BGRX', 0, 1)
-
-            self.win32gui.DeleteObject(self.saveBitMap.GetHandle())
-            self.saveDC.DeleteDC()
-            self.mfcDC.DeleteDC()
-            self.win32gui.ReleaseDC(self.hwnd, self.hwndDC)
-
-    elif data['platform'] == 'linux':
-        def __init__(self, FileName="images/tmp_screen.png"):
-            Execute(["scrot", "-u", FileName])
-            self.TakedImage = cv2.imread(FileName)
-
-            if self.TakedImage is not None:
-                self.result = 1
-
-    def HookWindow(self):
-        if self.result == 1:
-            return self.TakedImage
-        else:
-            self.win32gui.SetForegroundWindow(self.hwnd)
-            self.TakedImage = Hooker().HookWindow()
-            if self.result == 1:
-                return self.TakedImage
-            else:
-                return print('Debugged From HookWindow')
+    def HookWindow(self) -> Image.Image:
+        return self.TakedImage.copy()
 
 
-'''
-    Here It Call The Hook Class, Passing The Region For Crop,
-    Returning The Img Cropped.
-'''
+def TakeImage(Region=None, frame: Optional[ImageLike] = None) -> Image.Image:
+    snapshot = current_frame(frame)
+    return snapshot.image if Region is None else snapshot.crop(Region)
 
 
-def TakeImage(Region=None):
-    Except = True
-    while Except:
-        try:
-            TakedImage = Hooker().HookWindow()
-            if Region is not None:
-                TakedImage = TakedImage.crop(
-                    (Region[0], Region[1], Region[0] + (Region[2] - Region[0]), Region[1] + (Region[3] - Region[1])))
-                return TakedImage
-            else:
-                return TakedImage
-        except Exception as Ex:
-            # print("Debugged From TakeImage: ", Ex)
-            Except = True
-            pass
+def LocateMatch(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None) -> Optional[Match]:
+    """Return an explicit optional match; (0, 0) remains a valid position."""
+
+    return locate_match(image, frame=frame, region=Region, precision=Precision)
 
 
-'''
-    In LocateImage, It Compare With Another Image, If The Two Have Any
-    Similarity To Each Other.
-    
-    If Have Similarity, He Return The X And Y Position.
-    
-    Examples:
-    
-    1°: LocateImage('images/TibiaSettings/BattleList.png')
-    
-    2°: LocateImage('images/TibiaSettings/BattleList.png', (1234, 435, 1280, 460)) == He Locate The Image On Passed Folder,
-    In X: 1234 Up Until 1280 And Y: 435 Up Until 460.
-'''
+def LocateMatches(
+    image,
+    Region=None,
+    Precision=0.8,
+    frame: Optional[ImageLike] = None,
+    NmsIou=0.3,
+) -> list[Match]:
+    return locate_matches(image, frame=frame, region=Region, precision=Precision, nms_iou=NmsIou)
 
 
-def LocateImage(image, Region=None, Precision=0.8):
-    TakedImage = TakeImage(Region)
-
-    img_rgb = np.array(TakedImage)
-    img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread(image, 0)
-
-    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-    min_val, LocatedPrecision, min_loc, Position = cv2.minMaxLoc(res)
-    if LocatedPrecision > Precision:
-        return Position[0], Position[1]
-    return 0, 0
+def LocateImage(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None):
+    match = LocateMatch(image, Region=Region, Precision=Precision, frame=frame)
+    return match.position if match is not None else (0, 0)
 
 
-'''
-    In LocateCenterImage, It Compare With Another Image, If The Two Have Any
-    Similarity To Each Other.
-
-    If Have Similarity, He Return The X And Y Position More Half Of Size The Image
-    For Return The Position Of Center Of Image...
-'''
+def LocateCenterImage(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None):
+    match = LocateMatch(image, Region=Region, Precision=Precision, frame=frame)
+    return match.center if match is not None else (0, 0)
 
 
-def LocateCenterImage(image, Region=None, Precision=0.8):
-    TakedImage = TakeImage(Region)
-
-    img_rgb = np.array(TakedImage)
-    img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread(image, 0)
-
-    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-    min_val, LocatedPrecision, min_loc, Position = cv2.minMaxLoc(res)
-    if LocatedPrecision > Precision:
-        needleWidth, needleHeight = GetImageSize(image)
-        if needleWidth:
-            return Position[0] + int(needleWidth / 2), Position[1] + int(needleHeight / 2)
-        else:
-            print('Debugged From LocateCenterImage')
-    return 0, 0
+def LocateAllImages(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None):
+    return len(LocateMatches(image, Region=Region, Precision=Precision, frame=frame))
 
 
-'''
-    Here, It Search For All Images Passed From Argument
-    And It Return The Number Of Images Found.
-    
-    Examples:
-    
-    LocateAllImages('images/Foods/Cheese.png'), He Search For All Cheeses On Your Screen,
-    And Will Return This Number.
-'''
+def LocateBoolRGBImage(image, Region=None, Precision=0.9, frame: Optional[ImageLike] = None):
+    return LocateMatch(image, Region=Region, Precision=Precision, frame=frame) is not None
 
 
-def LocateAllImages(image, Region=None, Precision=0.8):
-    TakedImage = TakeImage(Region)
-
-    TakedImage = np.array(TakedImage)
-    img_gray = cv2.cvtColor(TakedImage, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread(image, 0)
-
-    w, h = template.shape[::-1]
-
-    res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
-    loc = np.where(res >= Precision)
-
-    Number = 0
-
-    for pt in zip(*loc[::-1]):
-        Number = Number + 1
-    return Number
-
-
-def LocateBoolRGBImage(image, Region=None, Precision=0.9):
-    SaveImage('images/MonstersAttack/VerifyAttacking.png', Region)
-    img_rgb = cv2.imread('images/MonstersAttack/VerifyAttacking.png', 0)
-    template = cv2.imread(image, 0)
-
-    res = cv2.matchTemplate(img_rgb, template, cv2.TM_CCOEFF_NORMED)
-    min_val, LocatedPrecision, min_loc, Position = cv2.minMaxLoc(res)
-    if LocatedPrecision > Precision:
-        return True
-    return False
+def PixelMatchesColor(
+    X,
+    Y,
+    expectedRGBColor,
+    frame: Optional[ImageLike] = None,
+    tolerance: int = 0,
+):
+    snapshot = current_frame(frame)
+    if not isinstance(tolerance, int) or tolerance < 0:
+        raise DetectionError("color tolerance must be a non-negative integer")
+    actual = snapshot.crop((int(X), int(Y), int(X) + 1, int(Y) + 1)).getpixel((0, 0))
+    try:
+        expected = tuple(int(channel) for channel in expectedRGBColor)
+    except (TypeError, ValueError) as exc:
+        raise DetectionError("expectedRGBColor must contain three integer channels") from exc
+    if len(expected) != 3 or any(channel < 0 or channel > 255 for channel in expected):
+        raise DetectionError("expectedRGBColor must contain three channels from 0 through 255")
+    return all(abs(actual[index] - expected[index]) <= tolerance for index in range(3))
 
 
-'''
-    In PixelMatchesColor, It Compare The RGB Color Of The Pixel Nedded,
-    But This Dont Work 100% >.< Hahahaha.
-    
-    Example:
-    
-    PixelMatchesColor(657, 432, (255, 255, 255)), He Verify If Pixel X: 657 And Y: 432, Is Black.
-'''
-
-
-def PixelMatchesColor(X, Y, expectedRGBColor):
-    TakedImage = TakeImage(Region=(X, Y, X + 1, Y + 1))
-    rgb = TakedImage.getpixel((0, 0))
-    if rgb == expectedRGBColor:
-        return True
-    else:
-        return False
-
-
-'''
-    When Called, It Save The Image On Folder And Name Passed Per Argument, Examples:
-    
-    1°: SaveImage('TakedImage.png') == Save The Image In Current Directory,
-    2°: SaveImage('images/Foods/Cheese.png', (1234, 435, 1280, 460)) == Save The Image On Passed Folder,
-    And Crop Then In X: 1234 Up Until 1280 And Y: 435 Up Until 460.
-'''
-
-
-def SaveImage(Name, Region=None):
-    TakedImage = TakeImage(Region)
-    return TakedImage.save(Name)
+def SaveImage(Name, Region=None, frame: Optional[ImageLike] = None):
+    image = TakeImage(Region, frame=frame)
+    try:
+        image.save(Name)
+    except OSError as exc:
+        raise CaptureError(f"could not save capture to {Name}: {exc}") from exc
 
 
 def GetImageSize(needleImage):
-    needleFileObj = open(needleImage, 'rb')
-    needleImage = Image.open(needleFileObj)
-    needleImage = ImageOps.grayscale(needleImage)
-    needleWidth, needleHeight = needleImage.size
-    return needleWidth, needleHeight
+    template = load_template(needleImage)
+    return int(template.shape[1]), int(template.shape[0])
 
 
 def IsFocused():
+    """Return the foreground hwnd. Windows dependencies are imported lazily."""
+
+    try:
+        import win32gui
+    except ImportError as exc:
+        raise CaptureError("IsFocused is only available with pywin32") from exc
     return int(win32gui.GetForegroundWindow())
+
+
+__all__ = [
+    "CaptureError",
+    "DetectionError",
+    "Frame",
+    "Match",
+    "Hooker",
+    "capture_frame",
+    "frame_scope",
+    "set_capture_provider",
+    "reset_capture_provider",
+    "TakeImage",
+    "LocateMatch",
+    "LocateMatches",
+    "LocateImage",
+    "LocateCenterImage",
+    "LocateAllImages",
+    "LocateBoolRGBImage",
+    "PixelMatchesColor",
+    "SaveImage",
+    "GetImageSize",
+    "IsFocused",
+]

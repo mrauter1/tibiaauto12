@@ -1,42 +1,14 @@
-import json
+"""Main module launcher and current profile state."""
 
-from core.GUI import *
+from __future__ import annotations
 
-# from modules.AdjustConfig import AdjustConfig
-# from modules.AmmoRestack import AmmoRestack
-# from modules.ShowMap import ShowMap
-# from modules.AutoBanker import AutoBanker
-# from modules.AutoFish import AutoFish
-# from modules.AutoGrouping import AutoGrouping
-from modules.AutoHeal import AutoHeal
-from modules.AutoHur import AutoHur
-# from modules.AutoLogin import AutoLogin
-# from modules.AutoLooter import AutoLooter
-from modules.AutoMana import AutoMana
-from modules.AutoRing import AutoRing
-# from modules.AutoSeller import AutoSeller
-from modules.AutoSSA import AutoSSA
-from modules.CaveBot import CaveBot
-# from modules.ColorChange import ColorChange
-# from modules.CreatureInfo import CreatureInfo
-from modules.FoodEater import FoodEater
-# from modules.FPSChanger import FPSChanger
-# from modules.GeneralOptions import GeneralOptions
-# from modules.HealerFriend import HealerFriend
-# from modules.LoadConfig import LoadConfig
-# from modules.Modules import Modules
-# from modules.Monsters import Monsters
-# from modules.PythonScripts import PythonScripts
-# from modules.SaveConfig import SaveConfig
-# from modules.SortLoot import SortLoot
-from modules.TimedSpells import TimedSpells
+from conf.conf_manager import ConfManager
+from core.Getters import validate_calibration
+from core.GUI import GUI, shutdown
+from tibia_client.application import close_client, configure_client
 
-
-SETTED_VARIABLES = False
 MOUSE_OPTION = None
-
 ItemsSquare = 32
-
 mark = [0, 0]
 Player = [0, 0]
 Target = [0, 0]
@@ -48,299 +20,164 @@ StatsPositions = [0, 0, 0, 0]
 HealthLocation = [0, 0]
 BattlePositions = [0, 0, 0, 0]
 AmuletPositions = [0, 0, 0, 0]
-SQMs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-MainPath = None
-ItemsPath = None
-ChestsPath = None
-ContainersNamePath = None
-CavebotScriptsPath = None
+SQMs = [0] * 18
+MainPath = ItemsPath = ChestsPath = ContainersNamePath = CavebotScriptsPath = None
+_active_root = None
+
+
+def _values(data, group, name, keys):
+    entry = data[group][name][0]
+    return [entry[key] for key in keys]
+
+
+def load_profile(filename: str) -> dict:
+    """Reload all globals from disk on every root construction/reconfigure."""
+    global MOUSE_OPTION, MainPath, ItemsPath, ChestsPath, ContainersNamePath, CavebotScriptsPath
+    data = ConfManager.get(filename)
+    config = ConfManager.get("conf.json")
+    size = config.get("capture_size")
+    validate_calibration(data, tuple(size) if isinstance(size, list) and len(size) == 2 else None)
+    if data.get("calibration_size") is None:
+        raise ValueError(
+            "legacy profile has no bound capture size; select Reconfigure and recalibrate it"
+        )
+
+    MOUSE_OPTION = data.get("MouseOption", 1)
+    if type(MOUSE_OPTION) is not int or MOUSE_OPTION not in (0, 1):
+        raise ValueError("profile MouseOption must be physical (1) or window messages (0)")
+    HealthLocation[:] = _values(data, "Positions", "LifePosition", ("x", "y"))
+    ManaLocation[:] = _values(data, "Positions", "ManaPosition", ("x", "y"))
+    Player[:] = _values(data, "Positions", "PlayerPosition", ("x", "y"))
+    BattlePositions[:] = _values(data, "Boxes", "BattleBox", ("x", "y", "w", "h"))
+    StatsPositions[:] = _values(data, "Boxes", "StatusBarBox", ("x", "y", "w", "h"))
+    RingPositions[:] = _values(data, "Boxes", "RingBox", ("x", "y", "w", "h"))
+    AmuletPositions[:] = _values(data, "Boxes", "AmuletBox", ("x", "y", "w", "h"))
+    MapPositions[:] = _values(data, "Boxes", "MapBox", ("x", "y", "w", "h"))
+    gameWindow[:] = _values(data, "Boxes", "GameWindowBox", ("x", "y", "w", "h"))
+    SQMs[:] = [
+        coordinate
+        for number in range(1, 10)
+        for coordinate in _values(data, "SQM", f"SQM{number}", ("x", "y"))
+    ]
+    paths = data.get("Paths", {})
+    MainPath = paths.get("MainPath")
+    ItemsPath = paths.get("ItemsPath")
+    ChestsPath = paths.get("ChestsPath")
+    ContainersNamePath = paths.get("ContainersNamePath")
+    CavebotScriptsPath = paths.get("CavebotScriptsPath")
+    return data
+
+
+def _open(module_name, class_name, *args):
+    import importlib
+
+    constructor = getattr(importlib.import_module(module_name), class_name)
+    return constructor(*args)
+
+
+def OpenAutoHeal():
+    return _open("modules.AutoHeal", "AutoHeal", HealthLocation, MOUSE_OPTION)
+
+
+def OpenAutoHur():
+    return _open("modules.AutoHur", "AutoHur", StatsPositions, MOUSE_OPTION)
+
+
+def OpenAutoMana():
+    return _open("modules.AutoMana", "AutoMana", ManaLocation, MOUSE_OPTION)
+
+
+def OpenAutoRing():
+    return _open(
+        "modules.AutoRing",
+        "AutoRing",
+        _active_root,
+        RingPositions,
+        HealthLocation,
+        MOUSE_OPTION,
+        ItemsPath,
+    )
+
+
+def OpenAutoSSA():
+    return _open(
+        "modules.AutoSSA",
+        "AutoSSA",
+        _active_root,
+        AmuletPositions,
+        HealthLocation,
+        MOUSE_OPTION,
+        ItemsPath,
+    )
+
+
+def OpenCaveBot():
+    return _open("modules.CaveBot", "CaveBot", MapPositions, BattlePositions, SQMs, MOUSE_OPTION)
+
+
+def OpenFoodEater():
+    return _open("modules.FoodEater", "FoodEater", _active_root, StatsPositions, MOUSE_OPTION)
+
+
+def OpenTimedSpells():
+    return _open("modules.TimedSpells", "TimedSpells", _active_root, MOUSE_OPTION)
 
 
 class root:
     def __init__(self, CharName, LoadedJson):
-        self.root = GUI('root', 'TibiaAuto V12')
-        self.root.MainWindow('Main', [357, 530], [2, 2.36])
+        global _active_root
+        load_profile(LoadedJson)
+        configure_client(MOUSE_OPTION)
+        self.root = GUI("root", "TibiaAuto V12")
+        self.root.MainWindow("Main", [357, 530], [2, 2.36])
         self.root.deiconify()
+        _active_root = self.root
+        self.root.addMinimalLabel(f"Logged as: {CharName}", [14, 14])
 
-        self.root.addMinimalLabel(f'Logged as: {CharName}', [14, 14])
+        unavailable = (
+            ("Healer Friend", [23, 56]),
+            ("Color Change", [23, 108]),
+            ("Ammo Restack", [23, 135]),
+            ("Auto Looter", [23, 160]),
+            ("Auto Grouping", [23, 236]),
+            ("Sort Loot", [23, 262]),
+            ("Auto Banker", [23, 288]),
+            ("Auto Seller", [23, 340]),
+            ("FPS Changer", [23, 366]),
+            ("Auto Fish", [245, 83]),
+            ("Auto Login", [245, 135]),
+            ("Creature Info", [147, 188]),
+            ("Monsters", [245, 188]),
+            ("Show Map", [147, 290]),
+            ("Load Config", [147, 340]),
+            ("Save Config", [245, 340]),
+            ("Adjust Config", [147, 366]),
+            ("Modules", [245, 366]),
+            ("Python Scripts", [245, 392]),
+        )
+        for text, position in unavailable:
+            self.root.addButton(f"{text} (N/A)", lambda: None, [92, 23], position).configure(
+                state="disabled"
+            )
 
-        # regions Buttons
+        self.root.addButton("Food Eater", OpenFoodEater, [92, 23], [23, 210])
+        self.root.addButton("Auto Life", OpenAutoHeal, [92, 23], [147, 56])
+        self.root.addButton("Auto Hur", OpenAutoHur, [92, 23], [245, 56])
+        self.root.addButton("Auto Mana", OpenAutoMana, [92, 23], [147, 83])
+        self.root.addButton("Auto Amulet", OpenAutoSSA, [92, 23], [147, 108])
+        self.root.addButton("Auto Ring", OpenAutoRing, [92, 23], [245, 108])
+        self.root.addButton("Timed Spells", OpenTimedSpells, [92, 23], [147, 135])
+        self.root.addButton("Cave Bot", OpenCaveBot, [92, 23], [245, 290])
+        self.root.addButton("General Options (N/A)", lambda: None, [213, 23], [134, 426]).configure(
+            state="disabled"
+        )
 
-        self.root.addButton('Healer Friend', OpenHealerFriend, [92, 23], [23, 56]).configure(state='disabled')
-        self.root.addButton('Color Change', OpenColorChange, [92, 23], [23, 108]).configure(state='disabled')
-        self.root.addButton('Ammo Restack', OpenAmmoRestack, [92, 23], [23, 135]).configure(state='disabled')
-        self.root.addButton('Auto Looter', OpenAutoLooter, [92, 23], [23, 160]).configure(state='disabled')
+        def close():
+            try:
+                close_client()
+            finally:
+                shutdown()
 
-        self.root.addButton('Food Eater', OpenFoodEater, [92, 23], [23, 210])
-        self.root.addButton('Auto Grouping', OpenAutoGrouping, [92, 23], [23, 236]).configure(state='disabled')
-        self.root.addButton('Sort Loot', OpenSortLoot, [92, 23], [23, 262]).configure(state='disabled')
-        self.root.addButton('Auto Banker', OpenAutoBanker, [92, 23], [23, 288]).configure(state='disabled')
-        self.root.addButton('Auto Seller', OpenAutoSeller, [92, 23], [23, 340]).configure(state='disabled')
-        self.root.addButton('FPS Changer', OpenFPSChanger, [92, 23], [23, 366]).configure(state='disabled')
-
-        self.root.addButton('Auto Life', OpenAutoHeal, [92, 23], [147, 56])
-        self.root.addButton('Auto Hur', OpenAutoHur, [92, 23], [245, 56])
-        self.root.addButton('Auto Mana', OpenAutoMana, [92, 23], [147, 83])
-        self.root.addButton('Auto Fish', OpenAutoFish, [92, 23], [245, 83]).configure(state='disabled')
-        self.root.addButton('Auto Amulet', OpenAutoSSA, [92, 23], [147, 108])
-        self.root.addButton('Auto Ring', OpenAutoRing, [92, 23], [245, 108])
-        self.root.addButton('Timed Spells', OpenTimedSpells, [92, 23], [147, 135])
-        self.root.addButton('Auto Login', OpenAutoLogin, [92, 23], [245, 135]).configure(state='disabled')
-
-        self.root.addButton('Creature Info', OpenCreatureInfo, [92, 23], [147, 188]).configure(state='disabled')
-        self.root.addButton('Monsters', OpenMonsters, [92, 23], [245, 188]).configure(state='disabled')
-
-        self.root.addButton('Show Map', OpenShowMap, [92, 23], [147, 290]).configure(state='disabled')
-        self.root.addButton('Cave Bot', OpenCaveBot, [92, 23], [245, 290])
-
-        self.root.addButton('Load Config', OpenLoadConfig, [92, 23], [147, 340]).configure(state='disabled')
-        self.root.addButton('Save Config', OpenSaveConfig, [92, 23], [245, 340]).configure(state='disabled')
-        self.root.addButton('Adjust Config', OpenAdjustConfig, [92, 23], [147, 366]).configure(state='disabled')
-        self.root.addButton('Modules', OpenModules, [92, 23], [245, 366]).configure(state='disabled')
-        self.root.addButton('Python Scripts', OpenPythonScripts, [92, 23], [245, 392]).configure(state='disabled')
-
-        self.root.addButton('General Options', OpenGeneralOptions, [213, 23], [134, 426]).configure(state='disabled')
-
-        def Exit():
-            print("Exiting...")
-            raise SystemExit
-
-        self.root.addButton('Exit', Exit, [92, 23], [10, 498])
-
-        # endregion
-
-        '''
-            This Functions Is Called From Line 189, As Soon As Window Is Loaded.
-            
-            It Sets For Program, The Variables Loaded From The Script You Chose,
-            So That It Can Pass To The Modules That Are Opened.
-        '''
-
-        def SetVariablesFromLoadedJson():
-            global SETTED_VARIABLES
-            if not SETTED_VARIABLES:
-                with open('scripts/' + LoadedJson, 'r') as LoadsJson:
-                    data = json.load(LoadsJson)
-
-                global MOUSE_OPTION
-                MOUSE_OPTION = data['MouseOption']
-                if MOUSE_OPTION == 0:
-                    print("Your Mouse Option Is: Send Events To Client")
-                else:
-                    print("Your Mouse Option Is: Movement Mouse")
-
-                if data['Positions']['LifePosition'][0]['Stats']:
-                    HealthLocation[0] = data['Positions']['LifePosition'][0]['x']
-                    HealthLocation[1] = data['Positions']['LifePosition'][0]['y']
-                if data['Positions']['ManaPosition'][0]['Stats']:
-                    ManaLocation[0] = data['Positions']['ManaPosition'][0]['x']
-                    ManaLocation[1] = data['Positions']['ManaPosition'][0]['y']
-                if data['Boxes']['BattleBox'][0]['Stats']:
-                    BattlePositions[0] = data['Boxes']['BattleBox'][0]['x'] - 3
-                    BattlePositions[1] = data['Boxes']['BattleBox'][0]['y'] - 3
-                    BattlePositions[2] = data['Boxes']['BattleBox'][0]['w'] + 3
-                    BattlePositions[3] = data['Boxes']['BattleBox'][0]['h'] + 3
-                if data['Boxes']['StatusBarBox'][0]['Stats']:
-                    StatsPositions[0] = data['Boxes']['StatusBarBox'][0]['x'] - 1
-                    StatsPositions[1] = data['Boxes']['StatusBarBox'][0]['y'] - 1
-                    StatsPositions[2] = data['Boxes']['StatusBarBox'][0]['w']
-                    StatsPositions[3] = data['Boxes']['StatusBarBox'][0]['h']
-                if data['Boxes']['RingBox'][0]['Stats']:
-                    RingPositions[0] = data['Boxes']['RingBox'][0]['x']
-                    RingPositions[1] = data['Boxes']['RingBox'][0]['y']
-                    RingPositions[2] = data['Boxes']['RingBox'][0]['w']
-                    RingPositions[3] = data['Boxes']['RingBox'][0]['h']
-                if data['Boxes']['AmuletBox'][0]['Stats']:
-                    AmuletPositions[0] = data['Boxes']['AmuletBox'][0]['x']
-                    AmuletPositions[1] = data['Boxes']['AmuletBox'][0]['y']
-                    AmuletPositions[2] = data['Boxes']['AmuletBox'][0]['w']
-                    AmuletPositions[3] = data['Boxes']['AmuletBox'][0]['h']
-                if data['Boxes']['MapBox'][0]['Stats']:
-                    MapPositions[0] = data['Boxes']['MapBox'][0]['x'] + 1
-                    MapPositions[1] = data['Boxes']['MapBox'][0]['y'] + 1
-                    MapPositions[2] = data['Boxes']['MapBox'][0]['w']
-                    MapPositions[3] = data['Boxes']['MapBox'][0]['h'] + 1
-                if data['Positions']['PlayerPosition'][0]['Stats'] and data['Boxes']['GameWindowBox'][0]['Stats']:
-                    gameWindow[0] = data['Boxes']['GameWindowBox'][0]['x']
-                    gameWindow[1] = data['Boxes']['GameWindowBox'][0]['y']
-                    gameWindow[2] = data['Boxes']['GameWindowBox'][0]['w']
-                    gameWindow[3] = data['Boxes']['GameWindowBox'][0]['h']
-                    Player[0] = data['Positions']['PlayerPosition'][0]['x']
-                    Player[1] = data['Positions']['PlayerPosition'][0]['y']
-                if data['SQM']['SQM1'][0]['Stats'] and data['SQM']['SQM2'][0]['Stats'] and data['SQM']['SQM3'][0][
-                    'Stats'] and data['SQM']['SQM4'][0]['Stats'] and data['SQM']['SQM5'][0]['Stats'] and data['SQM'][
-                    'SQM6'][0]['Stats'] and data['SQM']['SQM7'][0]['Stats'] and data['SQM']['SQM8'][0][
-                    'Stats'] and data['SQM']['SQM9'][0]['Stats']:
-                    SQMs[0] = data['SQM']['SQM1'][0]['x']
-                    SQMs[1] = data['SQM']['SQM1'][0]['y']
-                    SQMs[2] = data['SQM']['SQM2'][0]['x']
-                    SQMs[3] = data['SQM']['SQM2'][0]['y']
-                    SQMs[4] = data['SQM']['SQM3'][0]['x']
-                    SQMs[5] = data['SQM']['SQM3'][0]['y']
-                    SQMs[6] = data['SQM']['SQM4'][0]['x']
-                    SQMs[7] = data['SQM']['SQM4'][0]['y']
-                    SQMs[8] = data['SQM']['SQM5'][0]['x']
-                    SQMs[9] = data['SQM']['SQM5'][0]['y']
-                    SQMs[10] = data['SQM']['SQM6'][0]['x']
-                    SQMs[11] = data['SQM']['SQM6'][0]['y']
-                    SQMs[12] = data['SQM']['SQM7'][0]['x']
-                    SQMs[13] = data['SQM']['SQM7'][0]['y']
-                    SQMs[14] = data['SQM']['SQM8'][0]['x']
-                    SQMs[15] = data['SQM']['SQM8'][0]['y']
-                    SQMs[16] = data['SQM']['SQM9'][0]['x']
-                    SQMs[17] = data['SQM']['SQM9'][0]['y']
-
-                global MainPath, ItemsPath, ChestsPath, ContainersNamePath, CavebotScriptsPath
-                MainPath = data["Paths"]["MainPath"]
-                ItemsPath = data["Paths"]["ItemsPath"]
-                ChestsPath = data["Paths"]["ChestsPath"]
-                ContainersNamePath = data["Paths"]["ContainersNamePath"]
-                CavebotScriptsPath = data["Paths"]["CavebotScriptsPath"]
-
-                SETTED_VARIABLES = True
-
-        SetVariablesFromLoadedJson()
-
-        self.root.Protocol(Exit)
+        self.root.addButton("Exit", close, [92, 23], [10, 498])
+        self.root.Protocol(close)
         self.root.loop()
-
-
-'''
-    Functions For Open The Modules, Passing The Arguments Necessary Loaded From The Script.
-'''
-
-# region Functions
-
-
-def OpenAdjustConfig():
-    print("AdjustConfig In Development...")
-    # AdjustConfig(root)
-
-
-def OpenAmmoRestack():
-    print("AmmoRestack In Development...")
-    # AmmoRestack(root)
-
-
-def OpenShowMap():
-    print("ShowMap In Development...")
-    # ShowMap(SQMs, BattlePositions)
-
-
-def OpenAutoBanker():
-    print("AutoBanker In Development...")
-    # AutoBanker(root)
-
-
-def OpenAutoFish():
-    print("AutoFish In Development...")
-    # AutoFish(root)
-
-
-def OpenAutoGrouping():
-    print("AutoGroupin In Development...")
-    # AutoGrouping(root)
-
-
-def OpenAutoHeal():
-    AutoHeal(HealthLocation, MOUSE_OPTION)
-
-
-def OpenAutoHur():
-    AutoHur(StatsPositions, MOUSE_OPTION)
-
-
-def OpenAutoLogin():
-    print("AutoLogin In Development...")
-    # AutoLogin(root)
-
-
-def OpenAutoLooter():
-    print("AutoLooter In Development...")
-    # AutoLooter(Player, SQMs)
-
-
-def OpenAutoMana():
-    AutoMana(ManaLocation, MOUSE_OPTION)
-
-
-def OpenAutoRing():
-    AutoRing(root, RingPositions, HealthLocation, MOUSE_OPTION, ItemsPath)
-
-
-def OpenAutoSeller():
-    print("AutoSeller In Development...")
-    # AutoSeller(root)
-
-
-def OpenAutoSSA():
-    AutoSSA(root, AmuletPositions, HealthLocation, MOUSE_OPTION, ItemsPath)
-
-
-def OpenCaveBot():
-    CaveBot(MapPositions, BattlePositions, SQMs, MOUSE_OPTION)
-
-
-def OpenColorChange():
-    print("ColorChange In Development...")
-    # ColorChange(Player)
-
-
-def OpenCreatureInfo():
-    print("CreatureInfo In Development...")
-    # CreatureInfo(root)
-
-
-def OpenFoodEater():
-    FoodEater(root, StatsPositions, MOUSE_OPTION)
-
-
-def OpenFPSChanger():
-    print("FPSChanger In Development...")
-    # FPSChanger(root)
-
-
-def OpenGeneralOptions():
-    print("GeneralOption In Development...")
-    # GeneralOptions(root)
-
-
-def OpenHealerFriend():
-    print("HealerFriend In Development...")
-    # HealerFriend(root)
-
-
-def OpenLoadConfig():
-    print("LoadConfig In Development...")
-    # LoadConfig(root)
-
-
-def OpenModules():
-    print("Modules In Development...")
-    # Modules(root)
-
-
-def OpenMonsters():
-    print("Monsters In Development...")
-    # Monsters(root)
-
-
-def OpenPythonScripts():
-    print("PythonScripts In Development...")
-    # PythonScripts(root)
-
-
-def OpenSaveConfig():
-    print("SaveConfig In Development...")
-    # SaveConfig(root)
-
-
-def OpenSortLoot():
-    print("SortLoot In Development...")
-    # SortLoot(root)
-
-
-def OpenTimedSpells():
-    TimedSpells(root, MOUSE_OPTION)
-
-# endregion

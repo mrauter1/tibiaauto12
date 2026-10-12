@@ -1,7 +1,8 @@
-pywin32
-pygetwindow
-opencv-python
-numpy
-pyautogui
-Pillow
-keyboard
+# Pinned desktop dependencies (Python 3.10-3.12). OpenCV's own GUI is not used.
+numpy==2.2.6
+opencv-python-headless==4.11.0.86
+Pillow==11.3.0
+pywin32==311; sys_platform == "win32"
+keyboard==0.13.5; sys_platform == "win32"
+PyAutoGUI==0.9.54; sys_platform == "win32"
+PyGetWindow==0.0.9; sys_platform == "win32"

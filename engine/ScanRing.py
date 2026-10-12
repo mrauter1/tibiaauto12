@@ -1,16 +1,28 @@
-from core.HookWindow import LocateCenterImage, LocateBoolRGBImage
+"""Ring-slot observations based on positive visual evidence."""
+
+from pathlib import Path
+from core.paths import project_path
 
 
 def ScanRing(RingPositions):
-    return LocateBoolRGBImage('images/PlayerStats/NoRing.png', Precision=0.9, Region=(
-        RingPositions[0], RingPositions[1], RingPositions[2], RingPositions[3]))
+    from core.HookWindow import LocateBoolRGBImage
+
+    return bool(
+        LocateBoolRGBImage(
+            "images/PlayerStats/NoRing.png", Precision=0.9, Region=tuple(RingPositions)
+        )
+    )
 
 
 def SearchForRing(Ring):
-    FoundRing = [0, 0]
+    from core.HookWindow import LocateCenterImage
 
-    FoundRing[0], FoundRing[1] = LocateCenterImage('images/Rings/' + Ring + '.png', Precision=0.9)
-    if FoundRing[0] != 0 and FoundRing[1] != 0:
-        return FoundRing[0], FoundRing[1]
-    else:
-        return 0, 0
+    candidates = (
+        Path("images/Rings") / f"{Ring}.png",
+        Path("images/Items/None/Rings") / f"{Ring}.png",
+    )
+    paths = (project_path(p) for p in candidates)
+    path = next((p for p in paths if p.is_file()), None)
+    if path is None:
+        raise FileNotFoundError(f"no image asset for ring {Ring!r}")
+    return LocateCenterImage(str(path), Precision=0.9)

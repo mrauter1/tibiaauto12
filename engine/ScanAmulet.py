@@ -1,16 +1,29 @@
-from core.HookWindow import LocateCenterImage, LocateBoolRGBImage
+"""Amulet-slot observations based on the explicit empty-slot asset."""
+
+from pathlib import Path
+from core.paths import project_path
 
 
-def ScanAmulet(AmuletPositions, Amulet, Precision):
-    return not LocateBoolRGBImage('images/Amulets/' + Amulet + '.png', Precision=Precision, Region=(
-        AmuletPositions[0] - 1, AmuletPositions[1] - 1, AmuletPositions[2] + 1, AmuletPositions[3] + 1))
+def ScanAmulet(AmuletPositions, Amulet=None, Precision=0.9):
+    del Amulet, Precision
+    from core.HookWindow import LocateBoolRGBImage
+
+    return bool(
+        LocateBoolRGBImage(
+            "images/PlayerStats/NoAmulet.png", Precision=0.9, Region=tuple(AmuletPositions)
+        )
+    )
 
 
 def SearchForAmulet(Amulet):
-    FoundAmulet = [0, 0]
+    from core.HookWindow import LocateCenterImage
 
-    FoundAmulet[0], FoundAmulet[1] = LocateCenterImage('images/Amulets/' + Amulet + '.png', Precision=0.9)
-    if FoundAmulet[0] != 0 and FoundAmulet[1] != 0:
-        return FoundAmulet[0], FoundAmulet[1]
-    else:
-        return 0, 0
+    candidates = (
+        Path("images/Amulets") / f"{Amulet}.png",
+        Path("images/Items/None/Amulets") / f"{Amulet}.png",
+    )
+    paths = (project_path(p) for p in candidates)
+    path = next((p for p in paths if p.is_file()), None)
+    if path is None:
+        raise FileNotFoundError(f"no image asset for amulet {Amulet!r}")
+    return LocateCenterImage(str(path), Precision=0.9)
