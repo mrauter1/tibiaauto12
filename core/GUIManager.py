@@ -1,28 +1,53 @@
-ComponentsForEnable = []
-ComponentsForDisable = []
+"""Batch widget state changes without retaining destroyed widgets."""
+from __future__ import annotations
+
+import weakref
+
+_ComponentsForEnable: list[weakref.ReferenceType] = []
+_ComponentsForDisable: list[weakref.ReferenceType] = []
+# Compatibility aliases. Lists contain weak references rather than widgets.
+ComponentsForEnable = _ComponentsForEnable
+ComponentsForDisable = _ComponentsForDisable
+
+
+def _remember(collection, component):
+    try:
+        collection.append(weakref.ref(component))
+    except TypeError:
+        # Tk widgets support weak references; fail clearly for invalid callers.
+        raise TypeError("GUI state target must be a live Tk widget")
 
 
 def Enable(Component):
-    ComponentsForEnable.append(Component)
+    _remember(_ComponentsForEnable, Component)
 
 
 def Disable(Component):
-    ComponentsForDisable.append(Component)
+    _remember(_ComponentsForDisable, Component)
+
+
+def _apply(collection, state):
+    for reference in collection:
+        widget = reference()
+        if widget is None:
+            continue
+        try:
+            if widget.winfo_exists():
+                widget.configure(state=state)
+        except Exception:
+            # A widget may be destroyed between the existence check and update.
+            continue
+    collection.clear()
 
 
 def ComponentsToDisable():
-    for f in range(len(ComponentsForDisable)):
-        ComponentsForDisable[f].configure(state='disabled')
+    _apply(_ComponentsForDisable, "disabled")
 
 
 def ComponentsToEnable():
-    for f in range(len(ComponentsForEnable)):
-        ComponentsForEnable[f].configure(state='normal')
+    _apply(_ComponentsForEnable, "normal")
 
 
 def ExecGUITrigger():
     ComponentsToEnable()
     ComponentsToDisable()
-    global ComponentsForDisable, ComponentsForEnable
-    ComponentsForDisable = []
-    ComponentsForEnable = []

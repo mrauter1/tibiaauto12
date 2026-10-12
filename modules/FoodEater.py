@@ -1,128 +1,100 @@
-"""
-Food eater module
-"""
-
-from time import sleep
-
+from __future__ import annotations
+from dataclasses import dataclass
+import tkinter as tk
+from tkinter import ttk
 from conf.Hotkeys import Hotkey
-
-from core.GUI import *
-from core.GUIManager import *
-from core.GUISetter import GUISetter, check_gui
+from core import runtime
 from core.ThreadManager import ThreadManager
+from engine.support import Cooldown, arm_input
+from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
 
-from engine.ScanFood import scan_food
+
+@dataclass(frozen=True)
+class _Settings:
+    positions: tuple[int, int, int, int]
+    hotkey: str
 
 
 class FoodEater:
-    started = False
     enabled = False
 
-    gui_changes = []
-
     def __init__(self, root, stats_positions, MOUSE_OPTION):
-        self.root = root
-        self.window = GUI('FoodEater', 'Module: Food Eater')
-        self.window.DefaultWindow('FoodEater', [306, 191], [1.2, 2.29])
-        self.Setter = GUISetter("FoodEaterLoader")
-        self.SendToClient = Hotkey(MOUSE_OPTION)
+        del root
+        self._positions = tuple(stats_positions)
+        self._sender = Hotkey(MOUSE_OPTION)
         self.ThreadManager = ThreadManager("ThreadFoodEater")
-        self.stats_positions = stats_positions
+        self.ui = SupportWindow("FoodEater", "Module: Food Eater", self.close)
+        self.window = self.ui
+        if not self.ui.owner:
+            return
+        data = read_loader("FoodEaterLoader")
+        self.key = tk.StringVar(value=data.get("HotkeyFood", "Shift + F12"))
+        ttk.Label(self.ui.body, text="Food hotkey").grid(row=0, column=0, sticky="w")
+        self.key_widget = ttk.Combobox(
+            self.ui.body, values=hotkeys(), textvariable=self.key, state="readonly"
+        )
+        self.key_widget.grid(row=0, column=1)
+        ttk.Label(self.ui.body, text="Eats when the starving status icon is visible.").grid(
+            row=1, column=0, columnspan=2, sticky="w"
+        )
+        self.button = ttk.Button(self.ui.body, text="FoodEater: OFF", command=self.toggle)
+        self.button.grid(row=2, column=0, columnspan=2, sticky="ew", pady=5)
+        self.ui.status_label.grid(row=3, column=0, columnspan=2, sticky="w")
+        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
 
-        self.gui_vars()
-        self.gui()
+    def _worker_failed(self, error):
+        del error
+        self.enabled = False
+        self.button.configure(text="FoodEater: OFF")
+        set_enabled((self.key_widget,), True)
 
-        self.check()
-        self.check_state()
+    def toggle(self):
+        if self.enabled:
+            self.enabled = False
+            self.ThreadManager.PauseThread()
+            set_enabled((self.key_widget,), True)
+            self.button.configure(text="FoodEater: OFF")
+            self.ui.status("Stopped")
+            return
+        if not self.key.get().strip():
+            self.ui.status("Error: select a hotkey")
+            return
+        settings = _Settings(self._positions, self.key.get())
+        write_loader("FoodEaterLoader", {"HotkeyFood": settings.hotkey})
+        self.enabled = True
+        set_enabled((self.key_widget,), False)
+        self.button.configure(text="FoodEater: ON")
+        self.ui.status("Armed — focus game")
+        self.ThreadManager.NewThread(lambda: self._run(settings))
 
-        self.window.Protocol(self.destroy)
-        self.window.loop()
+    def _run(self, settings):
+        from core import HookWindow
+        from engine.ScanFood import scan_food
 
-    def trigger(self):
-        if FoodEater.enabled:
-            FoodEater.enabled = False
-            self.enabled_button.configure(text='FoodEater: OFF', relief=RAISED, bg=rgb((127, 17, 8)))
-            self.pause()
-        else:
-            FoodEater.enabled = True
-            self.enabled_button.configure(text='FoodEater: ON', relief=SUNKEN, bg=rgb((158, 46, 34)))
-            self.run()
+        arm_input(self._sender)
+        cooldown = Cooldown(0.5)
+        while True:
+            runtime.checkpoint()
+            try:
+                with HookWindow.frame_scope():
+                    hungry = scan_food(settings.positions)
+            except runtime.CancelledError:
+                raise
+            except Exception as exc:
+                raise RuntimeError(f"food sensor failed; check stats coordinates: {exc}") from exc
+            if hungry and cooldown.ready():
+                with runtime.input_transaction("eat food"):
+                    self._sender.Press(settings.hotkey)
+                cooldown.mark()
+            runtime.wait(0.2)
 
-        self.check()
-        self.check_state()
+    def close(self):
+        self.enabled = False
+        self.ThreadManager.KillThread()
+        if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
+            try:
+                write_loader("FoodEaterLoader", {"HotkeyFood": self.key.get()})
+            except Exception:
+                pass
 
-    def run(self):
-        if not FoodEater.started:
-            self.ThreadManager.NewThread(self.execute)
-            FoodEater.started = False
-        else:
-            self.ThreadManager.UnPauseThread()
-        print('FoodEater: ON')
-
-    def pause(self):
-        self.ThreadManager.PauseThread()
-        print('FoodEater: OFF')
-
-    def execute(self):
-        while FoodEater.enabled:
-            if scan_food(self.stats_positions):
-                self.SendToClient.Press(self.food_hotkey.get())
-                print("Starving... pressing: ", self.food_hotkey.get())
-                sleep(0.5)
-
-    def destroy(self):
-        check_gui(FoodEater.gui_changes, self.init_check_print, self.check_print.get(), 'CheckPrint')
-        check_gui(FoodEater.gui_changes, self.init_food_hotkey, self.food_hotkey.get(), 'HotkeyFood')
-
-        if len(FoodEater.gui_changes) != 0:
-            for each_change in range(len(FoodEater.gui_changes)):
-                self.Setter.SetVariables.SetVar(
-                    FoodEater.gui_changes[each_change][0],
-                    FoodEater.gui_changes[each_change][1]
-                )
-
-        if not FoodEater.enabled:
-            print('Killing thread: ', self.ThreadManager)
-            self.ThreadManager.KillThread()
-
-        self.window.destroyWindow()
-
-    def gui_vars(self):
-        self.check_print, self.init_check_print = self.Setter.Variables.Bool('CheckPrint')
-        self.food_hotkey, self.init_food_hotkey = self.Setter.Variables.Str('HotkeyFood')
-
-    def gui(self):
-        self.label = self.window.addLabel('Hotkey To Press', [110, 24])
-
-        self.hotkey_button = self.window.addOption(self.food_hotkey, self.SendToClient.Hotkeys, [105, 50], 10)
-
-        self.check_print_button = self.window.addCheck(self.check_print, [11, 100], self.init_check_print,
-                                                       "Print on Tibia's screen")
-        self.check_print_button.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                       selectcolor=rgb((114, 94, 48)))
-
-        if not FoodEater.enabled:
-            self.enabled_button = self.window.addButton('FoodEater: OFF', self.trigger, [287, 23], [11, 132])
-        else:
-            self.enabled_button = self.window.addButton('FoodEater: ON', self.trigger, [287, 23], [11, 132])
-            self.enabled_button.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-
-        self.ok_button = self.window.addButton('Ok', self.destroy, [73, 21], [115, 161])
-
-    def check(self):
-        if FoodEater.enabled:
-            self.hotkey_button.configure(state='disabled')
-        else:
-            self.hotkey_button.configure(state='normal')
-
-    def check_state(self):
-        if FoodEater.enabled:
-            Disable(self.label)
-            Disable(self.hotkey_button)
-            Disable(self.check_print_button)
-        else:
-            Enable(self.label)
-            Enable(self.hotkey_button)
-            Enable(self.check_print_button)
-
-        ExecGUITrigger()
+    destroy = close

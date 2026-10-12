@@ -1,124 +1,75 @@
-from threading import Event, Thread
-from queue import Queue
+"""Compatibility facade for the cooperative worker runtime."""
 
+from __future__ import annotations
+
+from typing import Callable, Optional
+
+from core import runtime
+
+
+# Retained for callers which imported the old module global. Runtime behavior
+# no longer depends on this mutable list.
 ActivatedThreads = []
-Queue = Queue(maxsize=19)
-Event = Event()
 
 
 class ThreadManager:
-    """
-    This Class Has Been Rewritten So That We Can Pause The Modules Enabled,
-    In Original Class, It's Not Possible, There He Had To Keep Creating New Threads
-    And That, Overloads The System.
+    """Manage the single active worker associated with ``Name``."""
 
-    Example For Usage:
+    def __init__(self, Name: str):
+        self.Name = str(Name)
+        self.Target: Optional[Callable[[], None]] = None
 
-    # Import The Module Fist
-    from Core.ThreadManager import ThreadManager
+    def NewThread(self, _Target: Callable[[], None]):
+        """Start a zero-argument target, unless this name is already active."""
+        self.Target = _Target
+        thread = runtime.start(self.Name, _Target)
+        self._refresh_compatibility_list(thread)
+        return thread
 
-    # And Create The Instance
-    ThreadManager = ThreadManager("NameOfYourThread")
+    def PauseThread(self, timeout: float = 0.5) -> bool:
+        """Cooperatively cancel the active generation, retaining its target."""
+        return runtime.cancel(self.Name, timeout=timeout)
 
-    # For Start The New Thread
-    ThreadManager.NewThread(TargetFunctionHere) [DOES NOT ACCEPT ARGUMENTS YET]
-
-    # For Pause All Threads
-    ThreadManager.PauseThread()
-
-    # For UnPause All Threads
-    ThreadManager.UnPauseThread()
-
-    #
-    # The Kill Threads Functions Not Ready Yet !!! Sorry
-    #
-    """
-
-    def __init__(self, Name):
-        self.Name = Name
-        self.Queue = Queue
-        self.Target = None
-
-    # Create One New Thread And Put Them In The Pipeline
-    def NewThread(self, _Target):
-        # The Handle Need The 1st Arg to Work..
-        def HandleTarget(PipeOBJ):
-            # print(f"PipeObject: {PipeOBJ}")
-            _Target()
-
-        self.Target = Pipeline(HandleTarget)
-        self.Queue.put(self.Target)
-        Event.set()
-        TheThread = self.ThreadHandler(Target=self.Target, Qqueue=Queue, Name=self.Name)
-
-        # This thread dies when main thread
-        TheThread.daemon = True
-
-        TheThread.start()
-        ActivatedThreads.append((TheThread, str(self.Name)))
-
-    # Pause The All Threads Created From Manager Object
-    def PauseThread(self):
-        for i in range(len(ActivatedThreads)):
-            if ActivatedThreads[i][1] == self.Name:
-                ActivatedThreads[i][0].PauseOn()
-        # print(self.Queue.queue)
-
-    # UnPause The All Threads Created From Manager Object
     def UnPauseThread(self):
-        for i in range(len(ActivatedThreads)):
-            if ActivatedThreads[i][1] == self.Name:
-                ActivatedThreads[i][0].PauseOff()
+        """Start the retained target once the cancelled generation has exited."""
+        if self.Target is None:
+            return None
+        thread = runtime.start(self.Name, self.Target)
+        self._refresh_compatibility_list(thread)
+        return thread
 
-    # This Function Is Not Ready To Use !!!
-    def KillThread(self):
-        for i in range(len(ActivatedThreads)):
-            if 1 not in ActivatedThreads[i] and ActivatedThreads[i][1] == self.Name:
-                ActivatedThreads.remove(ActivatedThreads[i])
-        Queue.put('Kill')
-        # print(f"{self.Name} Killed")
+    def KillThread(self, timeout: float = 0.5) -> bool:
+        """Cooperatively cancel the worker and forget this manager's target."""
+        stopped = runtime.cancel(self.Name, timeout=timeout, forget=True)
+        self.Target = None
+        self._remove_compatibility_entries()
+        return stopped
+
+    def Status(self):
+        return runtime.status(self.Name)
+
+    def _remove_compatibility_entries(self) -> None:
+        ActivatedThreads[:] = [
+            entry for entry in ActivatedThreads if entry[1] != self.Name
+        ]
+
+    def _refresh_compatibility_list(self, thread) -> None:
+        self._remove_compatibility_entries()
+        ActivatedThreads.append((thread, self.Name))
 
     def __repr__(self) -> str:
-        return str(self.Name)
-
-    '''
-        This Is Thread Class Rewrited, To Can Pause Them.
-    '''
-
-    class ThreadHandler(Thread):
-        def __init__(self, Target, Qqueue, *, Name='Handler'):
-            super().__init__()
-            self.Name = Name
-            self.Queue = Qqueue
-            self._target = Target
-            self._stoped = False
-            # print(self.Name, "Created")
-
-        def run(self):
-            # Event.wait()
-            while not self.Queue.empty():
-                SelectedThread = self.Queue.get()
-                # print(self.Name, "Pipeline To Handle:",SelectedThread)
-                if SelectedThread == 'Kill':
-                    self.Queue.put(SelectedThread)
-                    self._stoped = True
-                    # self.Queue.pop(-1)
-                    break
-                self._target(SelectedThread)
-
-        def PauseOn(self):
-            self._stoped = False
-
-        def PauseOff(self):
-            self._stoped = True
-
-        def __repr__(self) -> str:
-            return str(self.Name)
+        return self.Name
 
 
 def Pipeline(*funcs):
+    """Retain the old function-composition helper for external callers."""
     def Inner(argument):
         state = argument
         for func in funcs:
             state = func(state)
+        return state
+
     return Inner
+
+
+__all__ = ["ActivatedThreads", "Pipeline", "ThreadManager"]

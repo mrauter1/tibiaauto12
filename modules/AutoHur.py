@@ -1,140 +1,103 @@
-import time
-
+from __future__ import annotations
+from dataclasses import dataclass
+import tkinter as tk
+from tkinter import ttk
 from conf.Hotkeys import Hotkey
-
-from core.GUI import *
-from core.GUIManager import *
-from core.GUISetter import GUISetter
+from core import runtime
 from core.ThreadManager import ThreadManager
-
-from engine.ScanHur import ScanHur
+from engine.support import Cooldown, arm_input
+from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
 
 EnabledAutoHur = False
 
-ThreadStarted = False
 
-GUIChanges = []
+@dataclass(frozen=True)
+class _Settings:
+    positions: tuple[int, int, int, int]
+    hotkey: str
 
 
 class AutoHur:
     def __init__(self, StatsPositions, MOUSE_OPTION):
-        self.AutoHur = GUI('AutoHur', 'Module: Auto Hur')
-        self.AutoHur.DefaultWindow('AutoHur', [224, 258], [1.2, 2.29])
-        self.Setter = GUISetter("HurLoader")
-        self.SendToClient = Hotkey(MOUSE_OPTION)
+        self._positions = tuple(StatsPositions)
+        self._sender = Hotkey(MOUSE_OPTION)
         self.ThreadManager = ThreadManager("ThreadAutoHur")
+        self.ui = SupportWindow("AutoHur", "Module: Auto Hur", self.close)
+        self.AutoHur = self.ui.window
+        if not self.ui.owner:
+            return
+        data = read_loader("HurLoader")
+        self.key = tk.StringVar(value=data.get("HotkeyHur", "F6"))
+        ttk.Label(self.ui.body, text="Haste hotkey").grid(row=0, column=0, sticky="w")
+        self.key_widget = ttk.Combobox(
+            self.ui.body, values=hotkeys(), textvariable=self.key, state="readonly"
+        )
+        self.key_widget.grid(row=0, column=1)
+        ttk.Label(self.ui.body, text="Casts only when the haste status icon is absent.").grid(
+            row=1, column=0, columnspan=2, sticky="w"
+        )
+        ttk.Label(
+            self.ui.body, text="Legacy print, buff, and low-mana options are unsupported."
+        ).grid(row=2, column=0, columnspan=2, sticky="w")
+        self.button = ttk.Button(self.ui.body, text="AutoHur: OFF", command=self.toggle)
+        self.button.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5)
+        self.ui.status_label.grid(row=4, column=0, columnspan=2, sticky="w")
+        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
 
-        def SetAutoHur():
-            global EnabledAutoHur
-            if not EnabledAutoHur:
-                EnabledAutoHur = True
-                ButtonEnabled.configure(text='AutoHur: ON', relief=SUNKEN, bg=rgb((158, 46, 34)))
-                print("AutoHur: ON")
-                CheckingButtons()
-                if not ThreadStarted:
-                    self.ThreadManager.NewThread(ScanAutoHur)
-                else:
-                    self.ThreadManager.UnPauseThread()
-            else:
-                EnabledAutoHur = False
-                CheckingButtons()
-                print("AutoHur: OFF")
-                ButtonEnabled.configure(text='AutoHur: OFF', relief=RAISED, bg=rgb((127, 17, 8)))
-                self.ThreadManager.PauseThread()
-
-        def ScanAutoHur():
-            while EnabledAutoHur:
-                try:
-                    NeedHur = ScanHur(StatsPositions)
-                except Exception:
-                    NeedHur = False
-                    pass
-                if NeedHur:
-                    self.SendToClient.Press(VarHotkeyHur.get())
-                    print("Hur Pressed ", VarHotkeyHur.get())
-                    time.sleep(.3)
-                time.sleep(.3)
-
-        def Recapture():
-            print("recapture")
-
-        VarCheckPrint, InitiatedCheckPrint = self.Setter.Variables.Bool('CheckPrint')
-        VarCheckBuff, InitiatedCheckBuff = self.Setter.Variables.Bool('CheckBuff')
-
-        VarHotkeyHur, InitiatedHotkeyHur = self.Setter.Variables.Str('HotkeyHur')
-
-        CheckLowMana, InitiatedCheckLowMana = self.Setter.Variables.Bool('CheckLowMana')
-
-        def CheckingGUI(Init, Get, Name):
-            if Get != Init:
-                GUIChanges.append((Name, Get))
-
-        def Destroy():
-            CheckingGUI(InitiatedCheckPrint, VarCheckPrint.get(), 'CheckPrint')
-            CheckingGUI(InitiatedCheckBuff, VarCheckBuff.get(), 'CheckBuff')
-            CheckingGUI(InitiatedHotkeyHur, VarHotkeyHur.get(), 'HotkeyHur')
-            CheckingGUI(InitiatedCheckLowMana, CheckLowMana.get(), 'CheckLowMana')
-
-            if len(GUIChanges) != 0:
-                for EachChange in range(len(GUIChanges)):
-                    self.Setter.SetVariables.SetVar(GUIChanges[EachChange][0], GUIChanges[EachChange][1])
-
-            self.AutoHur.destroyWindow()
-
-        self.AutoHur.addButton('Ok', Destroy, [73, 21], [75, 225])
-
+    def _worker_failed(self, error):
+        del error
         global EnabledAutoHur
-        if not EnabledAutoHur:
-            ButtonEnabled = self.AutoHur.addButton('AutoHur: OFF', SetAutoHur, [203, 23], [11, 195])
-        else:
-            ButtonEnabled = self.AutoHur.addButton('AutoHur: ON', SetAutoHur, [203, 23], [11, 195])
-            ButtonEnabled.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
+        EnabledAutoHur = False
+        self.button.configure(text="AutoHur: OFF")
+        set_enabled((self.key_widget,), True)
 
-        CheckPrint = self.AutoHur.addCheck(VarCheckPrint, [11, 150], InitiatedCheckPrint, "Print on Tibia's screen")
-        CheckPrint.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
-        CheckBuff = self.AutoHur.addCheck(VarCheckBuff, [11, 170], InitiatedCheckBuff, "Don't Buff")
-        CheckBuff.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+    def toggle(self):
+        global EnabledAutoHur
+        if EnabledAutoHur:
+            EnabledAutoHur = False
+            self.ThreadManager.PauseThread()
+            set_enabled((self.key_widget,), True)
+            self.button.configure(text="AutoHur: OFF")
+            self.ui.status("Stopped")
+            return
+        if not self.key.get().strip():
+            self.ui.status("Error: select a hotkey")
+            return
+        settings = _Settings(self._positions, self.key.get())
+        write_loader("HurLoader", {"HotkeyHur": settings.hotkey})
+        EnabledAutoHur = True
+        set_enabled((self.key_widget,), False)
+        self.button.configure(text="AutoHur: ON")
+        self.ui.status("Armed — focus game")
+        self.ThreadManager.NewThread(lambda: self._run(settings))
 
-        ImgHur = 'images/PlayerStats/Hur.png'
-        ImageID = self.AutoHur.openImage(ImgHur, [64, 64])
+    def _run(self, settings):
+        from core import HookWindow
+        from engine.ScanHur import ScanHur
 
-        ImgLabel = self.AutoHur.addLabel('Image To Search', [16, 14])
-        LabelImage = self.AutoHur.addImage(ImageID, [28, 33])
+        arm_input(self._sender)
+        cooldown = Cooldown(0.6)
+        while True:
+            runtime.checkpoint()
+            try:
+                with HookWindow.frame_scope():
+                    needed = ScanHur(settings.positions)
+            except runtime.CancelledError:
+                raise
+            except Exception as exc:
+                raise RuntimeError(f"haste sensor failed; check stats coordinates: {exc}") from exc
+            if needed and cooldown.ready():
+                with runtime.input_transaction("auto haste"):
+                    self._sender.Press(settings.hotkey)
+                cooldown.mark()
+            runtime.wait(0.2)
 
-        LabelHotkey = self.AutoHur.addLabel('Hotkey', [135, 48])
-        HotkeyHur = self.AutoHur.addOption(VarHotkeyHur, self.SendToClient.Hotkeys, [113, 72], 8)
-
-        ButtonRecapture = self.AutoHur.addButton('Recapture', Recapture, [85, 24], [20, 111])
-
-        CheckBoxLowMana = self.AutoHur.addCheck(CheckLowMana, [118, 103], InitiatedCheckLowMana, 'Stop With\nLowMana')
-
-        def CheckingButtons():
-            if EnabledAutoHur:
-                Disable(CheckPrint)
-                Disable(CheckBuff)
-
-                Disable(LabelImage)
-                Disable(ImgLabel)
-
-                Disable(ButtonRecapture)
-                Disable(CheckBoxLowMana)
-                Disable(LabelHotkey)
-                Disable(HotkeyHur)
-            else:
-                Enable(CheckPrint)
-                Enable(CheckBuff)
-
-                Enable(LabelImage)
-                Enable(ImgLabel)
-
-                Enable(ButtonRecapture)
-                Enable(CheckBoxLowMana)
-                Enable(LabelHotkey)
-                Enable(HotkeyHur)
-            ExecGUITrigger()
-
-        CheckingButtons()
-
-        self.AutoHur.Protocol(Destroy)
-        self.AutoHur.loop()
-
+    def close(self):
+        global EnabledAutoHur
+        EnabledAutoHur = False
+        self.ThreadManager.KillThread()
+        if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
+            try:
+                write_loader("HurLoader", {"HotkeyHur": self.key.get()})
+            except Exception:
+                pass

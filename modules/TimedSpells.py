@@ -1,240 +1,145 @@
-"""
-Food eater module
-"""
-
-from time import sleep
-
+from __future__ import annotations
+import tkinter as tk
+from tkinter import ttk
 from conf.Hotkeys import Hotkey
-
-from core.GUI import *
-from core.GUIManager import *
-from core.GUISetter import GUISetter, check_gui
-
-from tkinter import CENTER, VERTICAL
-
+from core import runtime
 from core.ThreadManager import ThreadManager
-
-from engine.ScanFood import scan_food
+from engine.support import TimedSchedule, arm_input, parse_spells
+from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
 
 
 class TimedSpells:
-    started = False
     enabled = False
 
-    gui_changes = []
-
     def __init__(self, root, MOUSE_OPTION):
-        self.root = root
-        self.window = GUI('TimedSpells', 'Module: Timed spells')
-        self.window.DefaultWindow('TimedSpells', [306, 473], [1.2, 2.29])
-        self.Setter = GUISetter("TimedSpellsLoader")
-        self.SendToClient = Hotkey(MOUSE_OPTION)
+        del root
+        self._sender = Hotkey(MOUSE_OPTION)
         self.ThreadManager = ThreadManager("ThreadTimedSpells")
-
-        self.gui_vars()
-        self.gui()
-
-        self.check()
-        self.check_state()
-
-        self.window.Protocol(self.destroy)
-        self.window.loop()
-
-    def trigger(self):
-        if TimedSpells.enabled:
-            TimedSpells.enabled = False
-            self.enabled_button.configure(text='TimedSpells: OFF', relief=RAISED, bg=rgb((127, 17, 8)))
-            self.pause()
-        else:
-            TimedSpells.enabled = True
-            self.enabled_button.configure(text='TimedSpells: ON', relief=SUNKEN, bg=rgb((158, 46, 34)))
-            self.run()
-
-        self.check()
-        self.check_state()
-
-    def trigger_table(self):
-        self.check()
-        self.check_state()
-
-    def run(self):
-        if not TimedSpells.started:
-            self.ThreadManager.NewThread(self.execute)
-            TimedSpells.started = False
-        else:
-            self.ThreadManager.UnPauseThread()
-        print('TimedSpells: ON')
-
-    def pause(self):
-        self.ThreadManager.PauseThread()
-        print('TimedSpells: OFF')
-
-    def execute(self):
-        hotkey = 0
-        cast_time = 1
-        current_time = 2
-
-        spells = []
-
-        for spell in self.table.get_children():
-            spells.append(self.table.item(spell)["values"])
-
-        for spell in spells:
-            if self.check_instant.get():
-                self.SendToClient.Press(spell[hotkey])
-
-            spell.extend([0])
-
-        while TimedSpells.enabled:
-            for spell in spells:
-                spell[current_time] += 1
-
-                if spell[cast_time] == spell[current_time]:
-                    spell[current_time] = 0
-                    self.SendToClient.Press(spell[hotkey])
-
-            sleep(1)
-
-    def destroy(self):
-        check_gui(TimedSpells.gui_changes, self.init_check_print, self.check_print.get(), 'CheckPrint')
-        check_gui(TimedSpells.gui_changes, self.init_instant, self.check_instant.get(), 'InstantExecute')
-        check_gui(TimedSpells.gui_changes, self.init_food_hotkey, self.food_hotkey.get(), 'Hotkey')
-
-        spells = []
-
-        for spell in self.table.get_children():
-            spells.append(self.table.item(spell)["values"])
-
-        check_gui(TimedSpells.gui_changes, self.init_spells, spells, 'Spells')
-
-        if len(TimedSpells.gui_changes) != 0:
-            for each_change in range(len(TimedSpells.gui_changes)):
-                self.Setter.SetVariables.SetVar(
-                    TimedSpells.gui_changes[each_change][0],
-                    TimedSpells.gui_changes[each_change][1]
-                )
-
-        if not TimedSpells.enabled:
-            print('Killing thread: ', self.ThreadManager)
-            self.ThreadManager.KillThread()
-
-        self.window.destroyWindow()
-
-    def gui_vars(self):
-        self.check_print, self.init_check_print = self.Setter.Variables.Bool('CheckPrint')
-        self.check_instant, self.init_instant = self.Setter.Variables.Bool('InstantExecute')
-        self.food_hotkey, self.init_food_hotkey = self.Setter.Variables.Str('Hotkey')
-        self.cast_every, self.init_cast_every = self.Setter.Variables.Str('CastEvery')
-        self.spells, self.init_spells = self.Setter.Variables.array('Spells')
-
-    def validate_cast_every(self, *args):
-        seconds = self.entry_cast_every.get()
-
-        if len(seconds) < 2:
+        self.ui = SupportWindow("TimedSpells", "Module: Timed spells", self.close)
+        self.window = self.ui
+        if not self.ui.owner:
             return
+        data = read_loader("TimedSpellsLoader")
+        self.key = tk.StringVar(value=data.get("Hotkey", "Shift + F12"))
+        self.interval = tk.StringVar(value=str(data.get("CastEvery", "")))
+        self.instant = tk.BooleanVar(value=bool(data.get("InstantExecute", False)))
+        ttk.Label(self.ui.body, text="Hotkey").grid(row=0, column=0, sticky="w")
+        self.key_widget = ttk.Combobox(
+            self.ui.body, values=hotkeys(), textvariable=self.key, state="readonly"
+        )
+        self.key_widget.grid(row=0, column=1)
+        ttk.Label(self.ui.body, text="Every seconds").grid(row=1, column=0, sticky="w")
+        self.interval_widget = ttk.Entry(self.ui.body, textvariable=self.interval, width=10)
+        self.interval_widget.grid(row=1, column=1, sticky="w")
+        self.add_button = ttk.Button(self.ui.body, text="Add / replace", command=self.add_item)
+        self.add_button.grid(row=2, column=0, sticky="ew")
+        self.remove_button = ttk.Button(self.ui.body, text="Remove", command=self.remove_item)
+        self.remove_button.grid(row=2, column=1, sticky="ew")
+        self.table = ttk.Treeview(
+            self.ui.body, columns=("hotkey", "interval"), show="headings", height=7
+        )
+        self.table.heading("hotkey", text="Hotkey")
+        self.table.heading("interval", text="Seconds")
+        self.table.column("hotkey", width=135)
+        self.table.column("interval", width=80)
+        self.table.grid(row=3, column=0, columnspan=2)
+        for row in data.get("Spells", []):
+            try:
+                spell = parse_spells((row,))[0]
+            except ValueError:
+                continue
+            self.table.insert("", "end", values=(spell.hotkey, spell.interval))
+        self.instant_widget = ttk.Checkbutton(
+            self.ui.body, text="Cast each once on start", variable=self.instant
+        )
+        self.instant_widget.grid(row=4, column=0, columnspan=2, sticky="w")
+        self.button = ttk.Button(self.ui.body, text="TimedSpells: OFF", command=self.toggle)
+        self.button.grid(row=5, column=0, columnspan=2, sticky="ew", pady=5)
+        self.ui.status_label.grid(row=6, column=0, columnspan=2, sticky="w")
+        self._controls = (
+            self.key_widget,
+            self.interval_widget,
+            self.add_button,
+            self.remove_button,
+            self.table,
+            self.instant_widget,
+        )
+        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
 
-        if not seconds[-1].isdigit():
-            self.cast_every.set(seconds[:-1])
-            return
+    def _worker_failed(self, error):
+        del error
+        self.enabled = False
+        self.button.configure(text="TimedSpells: OFF")
+        set_enabled(self._controls, True)
 
-        self.cast_every.set(seconds[:2])
-
-    def remove_item(self):
-        current_item = self.table.focus()
-
-        if (type(self.table.item(current_item)['values']) is str):
-            return
-
-        # print(self.table.item(current_item))
-        self.table.delete(current_item)
+    def _rows(self):
+        return tuple(self.table.item(item, "values") for item in self.table.get_children())
 
     def add_item(self):
-        for child in self.table.get_children():
-            if self.food_hotkey.get() in self.table.item(child)["values"]:
-                return
+        try:
+            spell = parse_spells(((self.key.get(), self.interval.get()),))[0]
+        except ValueError as exc:
+            self.ui.status(f"Error: {exc}")
+            return
+        for item in self.table.get_children():
+            if self.table.item(item, "values")[0] == spell.hotkey:
+                self.table.delete(item)
+        self.table.insert("", "end", values=(spell.hotkey, spell.interval))
+        self.ui.status("Spell saved in table")
 
-        # print(self.table.item(child)["values"])
+    def remove_item(self):
+        for item in self.table.selection():
+            self.table.delete(item)
 
-        self.table.insert('', tk.END, text='', values=(
-            self.food_hotkey.get(),
-            self.entry_cast_every.get()
-        ))
+    def _snapshot(self):
+        spells = parse_spells(self._rows())
+        write_loader(
+            "TimedSpellsLoader",
+            {
+                "InstantExecute": self.instant.get(),
+                "Hotkey": self.key.get(),
+                "CastEvery": self.interval.get(),
+                "Spells": [[s.hotkey, s.interval] for s in spells],
+            },
+        )
+        return spells, self.instant.get()
 
-    def gui(self):
-        self.label = self.window.addLabel('Hotkey to press', [40, 45])
-        self.hotkey_button = self.window.addOption(self.food_hotkey, self.SendToClient.Hotkeys, [145, 40], 10)
+    def toggle(self):
+        if self.enabled:
+            self.enabled = False
+            self.ThreadManager.PauseThread()
+            set_enabled(self._controls, True)
+            self.button.configure(text="TimedSpells: OFF")
+            self.ui.status("Stopped")
+            return
+        try:
+            spells, instant = self._snapshot()
+        except ValueError as exc:
+            self.ui.status(f"Error: {exc}")
+            return
+        self.enabled = True
+        set_enabled(self._controls, False)
+        self.button.configure(text="TimedSpells: ON")
+        self.ui.status("Armed — focus game")
+        self.ThreadManager.NewThread(lambda: self._run(spells, instant))
 
-        self.label2 = self.window.addLabel('Cast every', [40, 75])
-        self.label3 = self.window.addLabel('seconds', [230, 75])
-        self.entry_cast_every = self.window.addEntry([145, 75], self.cast_every, 12)
-        self.cast_every.trace("w", self.validate_cast_every)
+    def _run(self, spells, instant):
+        arm_input(self._sender)
+        schedule = TimedSchedule(spells, immediate=instant, spacing=0.15)
+        while True:
+            runtime.checkpoint()
+            spell = schedule.due()
+            if spell is not None:
+                with runtime.input_transaction("timed spell"):
+                    self._sender.Press(spell.hotkey)
+            runtime.wait(schedule.wait_time())
 
-        self.add_button = self.window.addButton('Add', self.add_item, [75, 23], [70, 110])
-        self.remove_button = self.window.addButton('Remove', self.remove_item, [75, 23], [170, 110])
+    def close(self):
+        self.enabled = False
+        self.ThreadManager.KillThread()
+        try:
+            self._snapshot()
+        except Exception:
+            pass
 
-        self.table = self.window.addList(('hotkey', 'time'), 8, [230, 100], [40, 150])
-
-        self.table.column('hotkey', width=115)
-        self.table.column('time', anchor=CENTER, width=115)
-
-        self.table.heading('hotkey', text="Hotkey", anchor=CENTER)
-        self.table.heading('time', text="Time", anchor=CENTER)
-
-        self.scroll = self.window.addScrollbar()
-
-        self.table.config(yscrollcommand=self.scroll.set)
-        self.scroll.config(command=self.table.yview)
-
-        for spell in self.init_spells:
-            self.table.insert('', tk.END, text='', values=(
-                spell[0],
-                spell[1]
-            ))
-
-        self.check_print_button = self.window.addCheck(self.check_print, [11, 365], self.init_check_print,
-                                                       "Print on Tibia's screen")
-        self.check_print_button.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                          selectcolor=rgb((114, 94, 48)))
-
-        self.check_instant_button = self.window.addCheck(self.check_instant, [11, 385], self.init_instant,
-                                                         "Execute instant")
-        self.check_instant_button.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)),
-                                            selectcolor=rgb((114, 94, 48)))
-
-        if not TimedSpells.enabled:
-            self.enabled_button = self.window.addButton('TimedSpells: OFF', self.trigger, [287, 23], [11, 411])
-        else:
-            self.enabled_button = self.window.addButton('TimedSpells: ON', self.trigger, [287, 23], [11, 411])
-            self.enabled_button.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
-
-        self.ok_button = self.window.addButton('Ok', self.destroy, [73, 21], [115, 440])
-
-    def check(self):
-        if TimedSpells.enabled:
-            self.hotkey_button.configure(state='disabled')
-        else:
-            self.hotkey_button.configure(state='normal')
-
-    def check_state(self):
-        if TimedSpells.enabled:
-            Disable(self.label)
-            Disable(self.hotkey_button)
-            Disable(self.check_print_button)
-            Disable(self.label2)
-            Disable(self.label3)
-            Disable(self.entry_cast_every)
-            Disable(self.add_button)
-            Disable(self.remove_button)
-            Disable(self.check_instant_button)
-        else:
-            Enable(self.label)
-            Enable(self.hotkey_button)
-            Enable(self.check_print_button)
-            Enable(self.label2)
-            Enable(self.label3)
-            Enable(self.entry_cast_every)
-            Enable(self.add_button)
-            Enable(self.remove_button)
-            Enable(self.check_instant_button)
-
-        ExecGUITrigger()
+    destroy = close

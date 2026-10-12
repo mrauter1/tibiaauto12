@@ -1,312 +1,151 @@
-import time
+from __future__ import annotations
 
+from dataclasses import dataclass
+import tkinter as tk
+from tkinter import ttk
+
+from conf.Constants import LifeColor, LifeColorFull
 from conf.Hotkeys import Hotkey
-from conf.Constants import LifeColor, LifeColorFull, Percentage, ImageStats, Stats
-
-from core.GUI import *
-from core.GUIManager import *
-from core.GUISetter import GUISetter
+from core import runtime
 from core.ThreadManager import ThreadManager
-
-from engine.ScanStages import ScanStages
-
+from engine.support import Cooldown, Threshold, arm_input, choose_threshold
+from modules.support_ui import (
+    SupportWindow,
+    hotkeys,
+    integer,
+    read_loader,
+    set_enabled,
+    write_loader,
+)
 
 EnabledAutoHeal = False
-ThreadStarted = False
+Life = None  # compatibility only; other modules obtain a fresh sample
 
-GUIChanges = []
 
-Life = 0
+@dataclass(frozen=True)
+class _Settings:
+    location: tuple[int, int]
+    rules: tuple[Threshold, ...]
 
 
 class AutoHeal:
     def __init__(self, HealthLocation, MOUSE_OPTION):
-        self.AutoHeal = GUI('AutoHeal', 'Module: Auto Heal')
-        self.AutoHeal.DefaultWindow('AutoHeal2', [306, 372], [1.2, 2.29])
-        self.Setter = GUISetter("HealthLoader")
-        self.SendToClient = Hotkey(MOUSE_OPTION)
-        self.Scan = ScanStages('Life')
         self.ThreadManager = ThreadManager("ThreadAutoHeal")
+        self._sender, self._location = Hotkey(MOUSE_OPTION), tuple(HealthLocation)
+        self.ui = SupportWindow("AutoHeal", "Module: Auto Heal", self.close)
+        self.AutoHeal = self.ui.window
+        if not self.ui.owner:
+            return
+        data, self._vars = read_loader("HealthLoader"), []
+        ttk.Label(self.ui.body, text="Lowest matching threshold has priority.").grid(
+            row=0, column=0, columnspan=4, sticky="w"
+        )
+        for index, label in enumerate(("One", "Two", "Three"), 1):
+            enabled = tk.BooleanVar(value=bool(data.get(f"LifeCheckStage{label}", False)))
+            percent = tk.StringVar(value=str(data.get(f"LifePercentageStage{label}", 50)))
+            key = tk.StringVar(value=data.get(f"LifeHotkeyStage{label}", "F1"))
+            widgets = (
+                ttk.Checkbutton(self.ui.body, text=f"Stage {index}", variable=enabled),
+                ttk.Spinbox(self.ui.body, from_=0, to=100, width=5, textvariable=percent),
+                ttk.Combobox(
+                    self.ui.body, values=hotkeys(), width=13, textvariable=key, state="readonly"
+                ),
+            )
+            widgets[0].grid(row=index, column=0, sticky="w", pady=3)
+            widgets[1].grid(row=index, column=1)
+            ttk.Label(self.ui.body, text="%").grid(row=index, column=2)
+            widgets[2].grid(row=index, column=3, padx=4)
+            self._vars.append((label, enabled, percent, key, widgets))
+        ttk.Label(self.ui.body, text="Legacy print, buff, and cure options are unsupported.").grid(
+            row=4, column=0, columnspan=4, sticky="w", pady=(6, 2)
+        )
+        self.button = ttk.Button(self.ui.body, text="AutoHealing: OFF", command=self.toggle)
+        self.button.grid(row=5, column=0, columnspan=4, sticky="ew", pady=5)
+        self.ui.status_label.grid(row=6, column=0, columnspan=4, sticky="w")
+        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
 
-        def SetAutoHeal():
-            global EnabledAutoHeal
-            if not EnabledAutoHeal:
-                EnabledAutoHeal = True
-                ButtonEnabled.configure(text='AutoHealing: ON', relief=SUNKEN, bg=rgb((158, 46, 34)))
-                print("AutoHealing: ON")
-                CheckingButtons()
-                if not ThreadStarted:
-                    self.ThreadManager.NewThread(scanning_auto_life)
-                else:
-                    self.ThreadManager.UnPauseThread()
-            else:
-                EnabledAutoHeal = False
-                print("AutoHealing: OFF")
-                CheckingButtons()
-                ButtonEnabled.configure(text='AutoHealing: OFF', relief=RAISED, bg=rgb((114, 0, 0)))
-                self.ThreadManager.PauseThread()
-
-        def scanning_auto_life():
-            while EnabledAutoHeal:
-                global Life
-                Life = self.Scan.ScanStages(HealthLocation, LifeColor, LifeColorFull)
-
-                if Life is None:
-                    Life = 0
-
-                if LifeCheckStageThree.get():
-                    stage_three = LifePercentageStageThree.get()
-                    if stage_three > Life or stage_three == Life:
-                        self.SendToClient.Press(LifeHotkeyStageThree.get())
-                        print("Pressed ", LifeHotkeyStageThree.get())
-                        time.sleep(.15)
-                    elif LifeCheckStageTwo.get():
-                        stage_two = LifePercentageStageTwo.get()
-                        if stage_two > Life or stage_two == Life:
-                            self.SendToClient.Press(LifeHotkeyStageTwo.get())
-                            print("Pressed ", LifeHotkeyStageTwo.get())
-                            time.sleep(.15)
-                        elif LifeCheckStageOne.get():
-                            stage_one = LifePercentageStageOne.get()
-                            if stage_one > Life or stage_one == Life:
-                                self.SendToClient.Press(LifeHotkeyStageOne.get())
-                                print("Pressed ", LifeHotkeyStageOne.get())
-                                time.sleep(.15)
-                    elif LifeCheckStageOne.get():
-                        stage_one = LifePercentageStageOne.get()
-                        if stage_one > Life or stage_one == Life:
-                            self.SendToClient.Press(LifeHotkeyStageOne.get())
-                            print("Pressed ", LifeHotkeyStageOne.get())
-                            time.sleep(.15)
-                elif LifeCheckStageTwo.get():
-                    stage_two = LifePercentageStageTwo.get()
-                    if stage_two > Life or stage_two == Life:
-                        self.SendToClient.Press(LifeHotkeyStageTwo.get())
-                        print("Pressed ", LifeHotkeyStageTwo.get())
-                        time.sleep(.15)
-                    elif LifeCheckStageThree.get():
-                        stage_three = LifePercentageStageThree.get()
-                        if stage_three > Life or stage_three == Life:
-                            self.SendToClient.Press(LifeHotkeyStageThree.get())
-                            print("Pressed ", LifeHotkeyStageThree.get())
-                            time.sleep(.15)
-                        elif LifeCheckStageOne.get():
-                            stage_one = LifePercentageStageOne.get()
-                            if stage_one > Life or stage_one == Life:
-                                self.SendToClient.Press(LifeHotkeyStageOne.get())
-                                print("Pressed ", LifeHotkeyStageOne.get())
-                                time.sleep(.15)
-                    elif LifeCheckStageOne.get():
-                        stage_one = LifePercentageStageOne.get()
-                        if stage_one > Life or stage_one == Life:
-                            self.SendToClient.Press(LifeHotkeyStageOne.get())
-                            print("Pressed ", LifeHotkeyStageOne.get())
-                            time.sleep(.15)
-                elif LifeCheckStageOne.get():
-                    stage_one = LifePercentageStageOne.get()
-                    if stage_one > Life or stage_one == Life:
-                        self.SendToClient.Press(LifeHotkeyStageOne.get())
-                        print("Pressed ", LifeHotkeyStageOne.get())
-                        time.sleep(.15)
-                    elif LifeCheckStageTwo.get():
-                        stage_two = LifePercentageStageTwo.get()
-                        if stage_two > Life or stage_two == Life:
-                            self.SendToClient.Press(LifeHotkeyStageTwo.get())
-                            print("Pressed ", LifeHotkeyStageTwo.get())
-                            time.sleep(.15)
-                        elif LifeCheckStageThree.get():
-                            stage_three = LifePercentageStageThree.get()
-                            if stage_three > Life or stage_three == Life:
-                                self.SendToClient.Press(LifeHotkeyStageThree.get())
-                                print("Pressed ", LifeHotkeyStageThree.get())
-                                time.sleep(.15)
-                    elif LifeCheckStageThree.get():
-                        stage_three = LifePercentageStageThree.get()
-                        if stage_three > Life or stage_three == Life:
-                            self.SendToClient.Press(LifeHotkeyStageThree.get())
-                            print("Pressed ", LifeHotkeyStageThree.get())
-                            time.sleep(.15)
-                else:
-                    print("Module Not Configured")
-                    time.sleep(1)
-
-        VarCheckPrint, InitiatedCheckPrint = self.Setter.Variables.Bool('CheckPrint')
-        VarCheckBuff, InitiatedCheckBuff = self.Setter.Variables.Bool('CheckBuff')
-
-        LifeCheckStageOne, InitiatedLifeCheckStageOne = self.Setter.Variables.Bool('LifeCheckStageOne')
-        LifeCheckStageTwo, InitiatedLifeCheckStageTwo = self.Setter.Variables.Bool('LifeCheckStageTwo')
-        LifeCheckStageThree, InitiatedLifeCheckStageThree = self.Setter.Variables.Bool('LifeCheckStageThree')
-
-        VarCheckCureStats, InitiatedCheckCureStats = self.Setter.Variables.Bool('CheckCureStats')
-
-        VarCheckParalyze, InitiatedCheckParalyze = self.Setter.Variables.Bool('CheckParalyze')
-        VarCheckPoison, InitiatedCheckPoison = self.Setter.Variables.Bool('CheckPoison')
-        VarCheckFire, InitiatedCheckFire = self.Setter.Variables.Bool('CheckFire')
-        VarCheckElectrify, InitiatedCheckElectrify = self.Setter.Variables.Bool('CheckElectrify')
-        VarCheckMort, InitiatedCheckMort = self.Setter.Variables.Bool('CheckMort')
-        VarCheckBlood, InitiatedCheckBlood = self.Setter.Variables.Bool('CheckBlood')
-
-        LifePercentageStageOne, InitiatedLifePercentageStageOne = self.Setter.Variables.Int('LifePercentageStageOne')
-        LifeHotkeyStageOne, InitiatedLifeHotkeyStageOne = self.Setter.Variables.Str('LifeHotkeyStageOne')
-
-        LifePercentageStageTwo, InitiatedLifePercentageStageTwo = self.Setter.Variables.Int('LifePercentageStageTwo')
-        LifeHotkeyStageTwo, InitiatedLifeHotkeyStageTwo = self.Setter.Variables.Str('LifeHotkeyStageTwo')
-
-        LifePercentageStageThree, InitiatedLifePercentageStageThree = self.Setter.Variables.Int('LifePercentageStageThree')
-        LifeHotkeyStageThree, InitiatedLifeHotkeyStageThree = self.Setter.Variables.Str('LifeHotkeyStageThree')
-
-        for i in range(len(Stats)):
-            ImageStatus = Image.open('images/Stats/' + Stats[i] + '.webp')
-            ImageStatus = ImageStatus.resize((13, 13), Image.ANTIALIAS)
-            ImageStatus = ImageTk.PhotoImage(ImageStatus)
-            ImageStats.append(ImageStatus)
-
-        def CheckingGUI(Init, Get, Name):
-            if Get != Init:
-                GUIChanges.append((Name, Get))
-
-        def Destroy():
-            CheckingGUI(InitiatedCheckPrint, VarCheckPrint.get(), 'CheckPrint')
-            CheckingGUI(InitiatedCheckBuff, VarCheckBuff.get(), 'CheckBuff')
-            CheckingGUI(InitiatedLifeCheckStageOne, LifeCheckStageOne.get(), 'LifeCheckStageOne')
-            CheckingGUI(InitiatedLifeCheckStageTwo, LifeCheckStageTwo.get(), 'LifeCheckStageTwo')
-            CheckingGUI(InitiatedLifeCheckStageThree, LifeCheckStageThree.get(), 'LifeCheckStageThree')
-            CheckingGUI(InitiatedCheckCureStats, VarCheckCureStats.get(), 'CheckCureStats')
-            CheckingGUI(InitiatedCheckParalyze, VarCheckParalyze.get(), 'CheckParalyze')
-            CheckingGUI(InitiatedCheckPoison, VarCheckPoison.get(), 'CheckPoison')
-            CheckingGUI(InitiatedCheckFire, VarCheckFire.get(), 'CheckFire')
-            CheckingGUI(InitiatedCheckElectrify, VarCheckElectrify.get(), 'CheckElectrify')
-            CheckingGUI(InitiatedCheckMort, VarCheckMort.get(), 'CheckMort')
-            CheckingGUI(InitiatedCheckBlood, VarCheckBlood.get(), 'CheckBlood')
-            CheckingGUI(InitiatedLifePercentageStageOne, LifePercentageStageOne.get(), 'LifePercentageStageOne')
-            CheckingGUI(InitiatedLifeHotkeyStageOne, LifeHotkeyStageOne.get(), 'LifeHotkeyStageOne')
-            CheckingGUI(InitiatedLifePercentageStageTwo, LifePercentageStageTwo.get(), 'LifePercentageStageTwo')
-            CheckingGUI(InitiatedLifeHotkeyStageTwo, LifeHotkeyStageTwo.get(), 'LifeHotkeyStageTwo')
-            CheckingGUI(InitiatedLifePercentageStageThree, LifePercentageStageThree.get(), 'LifePercentageStageThree')
-            CheckingGUI(InitiatedLifeHotkeyStageThree, LifeHotkeyStageThree.get(), 'LifeHotkeyStageThree')
-
-            if len(GUIChanges) != 0:
-                for EachChange in range(len(GUIChanges)):
-                    self.Setter.SetVariables.SetVar(GUIChanges[EachChange][0], GUIChanges[EachChange][1])
-
-            self.AutoHeal.destroyWindow()
-
-        self.AutoHeal.addButton('Ok', Destroy, [73, 21], [115, 340])
-
-        ''' button enable healing '''
-
+    def _worker_failed(self, error):
+        del error
         global EnabledAutoHeal
-        if not EnabledAutoHeal:
-            ButtonEnabled = self.AutoHeal.addButton('AutoHealing: OFF', SetAutoHeal, [287, 23], [11, 311])
-        else:
-            ButtonEnabled = self.AutoHeal.addButton('AutoHealing: ON', SetAutoHeal, [287, 23], [11, 311])
-            ButtonEnabled.configure(relief=SUNKEN, bg=rgb((158, 46, 34)))
+        EnabledAutoHeal = False
+        self.button.configure(text="AutoHealing: OFF")
+        set_enabled((w for v in self._vars for w in v[4]), True)
 
-        CheckPrint = self.AutoHeal.addCheck(VarCheckPrint, [11, 260], InitiatedCheckPrint, "Print on Tibia's screen")
-        CheckPrint.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
-        CheckBuff = self.AutoHeal.addCheck(VarCheckBuff, [11, 280], InitiatedCheckBuff, "Don't Buff")
-        CheckBuff.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+    def _snapshot(self):
+        rules = tuple(
+            Threshold(v[1].get(), integer(v[2].get(), f"stage {i} threshold"), v[3].get())
+            for i, v in enumerate(self._vars, 1)
+        )
+        if not any(r.enabled for r in rules):
+            raise ValueError("enable at least one healing stage")
+        values = {}
+        for label, e, p, k, _ in self._vars:
+            values.update(
+                {
+                    f"LifeCheckStage{label}": e.get(),
+                    f"LifePercentageStage{label}": int(p.get()),
+                    f"LifeHotkeyStage{label}": k.get(),
+                }
+            )
+        write_loader("HealthLoader", values)
+        return _Settings(self._location, rules)
 
-        LabelPercentage = self.AutoHeal.addLabel('% Percentage', [145, 24])
-        LabelHotkey = self.AutoHeal.addLabel('HotKey', [230, 24])
+    def toggle(self):
+        global EnabledAutoHeal
+        if EnabledAutoHeal:
+            EnabledAutoHeal = False
+            self.ThreadManager.PauseThread()
+            self.button.configure(text="AutoHealing: OFF")
+            set_enabled((w for v in self._vars for w in v[4]), True)
+            self.ui.status("Stopped")
+            return
+        try:
+            settings = self._snapshot()
+        except ValueError as exc:
+            self.ui.status(f"Error: {exc}")
+            return
+        EnabledAutoHeal = True
+        set_enabled((w for v in self._vars for w in v[4]), False)
+        self.button.configure(text="AutoHealing: ON")
+        self.ui.status("Armed — focus game")
+        self.ThreadManager.NewThread(lambda: self._run(settings))
 
-        StageOne = self.AutoHeal.addCheck(LifeCheckStageOne, [17, 55], InitiatedLifeCheckStageOne, "Enable Stage One")
-        StageTwo = self.AutoHeal.addCheck(LifeCheckStageTwo, [17, 105], InitiatedLifeCheckStageTwo, "Enable Stage Two")
-        StageThree = self.AutoHeal.addCheck(LifeCheckStageThree, [17, 155], InitiatedLifeCheckStageThree, "Enable Stage Three")
-        CheckStats = self.AutoHeal.addCheck(VarCheckCureStats, [95, 192], InitiatedCheckCureStats, "Enable Cure Stats")
+    def _run(self, settings):
+        global Life
+        from engine.ScanStages import ScanStages
+        from core import HookWindow
 
-        Paralyze = self.AutoHeal.addCheck(VarCheckParalyze, [40, 226], InitiatedCheckParalyze, '', ImageStats[0])
-        Poison = self.AutoHeal.addCheck(VarCheckPoison, [80, 226], InitiatedCheckPoison, '', ImageStats[1])
-        Fire = self.AutoHeal.addCheck(VarCheckFire, [120, 226], InitiatedCheckFire, '', ImageStats[2])
-        Electrify = self.AutoHeal.addCheck(VarCheckElectrify, [160, 226], InitiatedCheckElectrify, '', ImageStats[3])
-        Mort = self.AutoHeal.addCheck(VarCheckMort, [200, 226], InitiatedCheckMort, '', ImageStats[4])
-        Blood = self.AutoHeal.addCheck(VarCheckBlood, [240, 226], InitiatedCheckBlood, '', ImageStats[5])
+        arm_input(self._sender)
+        scan, cooldown = ScanStages("Life"), Cooldown(0.15)
+        while True:
+            runtime.checkpoint()
+            try:
+                with HookWindow.frame_scope():
+                    value = scan.ScanStages(settings.location, LifeColor, LifeColorFull)
+            except runtime.CancelledError:
+                raise
+            except Exception as exc:
+                Life = None
+                raise RuntimeError(
+                    f"life sensor failed; check the configured life bar: {exc}"
+                ) from exc
+            if value is None:
+                Life = None
+                raise RuntimeError("life sensor returned no readable bar; check its coordinates")
+            Life = value
+            rule = choose_threshold(value, settings.rules)
+            if rule is not None and cooldown.ready():
+                with runtime.input_transaction("auto heal"):
+                    self._sender.Press(rule.hotkey)
+                cooldown.mark()
+            runtime.wait(0.05)
 
-        PercentageStageOne = self.AutoHeal.addOption(LifePercentageStageOne, Percentage, [148, 54])
-        HotkeyStageOne = self.AutoHeal.addOption(LifeHotkeyStageOne, self.SendToClient.Hotkeys, [223, 54])
-
-        PercentageStageTwo = self.AutoHeal.addOption(LifePercentageStageTwo, Percentage, [148, 104])
-        HotkeyStageTwo = self.AutoHeal.addOption(LifeHotkeyStageTwo, self.SendToClient.Hotkeys, [223, 104])
-
-        PercentageStageThree = self.AutoHeal.addOption(LifePercentageStageThree, Percentage, [148, 154])
-        HotkeyStageThree = self.AutoHeal.addOption(LifeHotkeyStageThree, self.SendToClient.Hotkeys, [223, 154])
-
-        def CheckingButtons():
-            if EnabledAutoHeal:
-                Disable(CheckStats)
-                Disable(StageThree)
-                Disable(StageTwo)
-                Disable(StageOne)
-                Disable(LabelHotkey)
-                Disable(LabelPercentage)
-                Disable(PercentageStageOne)
-                Disable(HotkeyStageOne)
-                Disable(PercentageStageTwo)
-                Disable(HotkeyStageTwo)
-                Disable(PercentageStageThree)
-                Disable(HotkeyStageThree)
-                Disable(Paralyze)
-                Disable(Poison)
-                Disable(Fire)
-                Disable(Electrify)
-                Disable(Mort)
-                Disable(Blood)
-                Disable(CheckPrint)
-                Disable(CheckBuff)
-            else:
-                Enable(CheckStats)
-                Enable(StageThree)
-                Enable(StageTwo)
-                Enable(StageOne)
-                Enable(LabelHotkey)
-                Enable(LabelPercentage)
-                Enable(PercentageStageOne)
-                Enable(HotkeyStageOne)
-                Enable(PercentageStageTwo)
-                Enable(HotkeyStageTwo)
-                Enable(PercentageStageThree)
-                Enable(HotkeyStageThree)
-                Enable(CheckPrint)
-                Enable(CheckBuff)
-                if not VarCheckCureStats.get():
-                    Disable(Paralyze)
-                    Disable(Poison)
-                    Disable(Fire)
-                    Disable(Electrify)
-                    Disable(Mort)
-                    Disable(Blood)
-                elif VarCheckCureStats.get():
-                    Enable(Paralyze)
-                    Enable(Poison)
-                    Enable(Fire)
-                    Enable(Electrify)
-                    Enable(Mort)
-                    Enable(Blood)
-            ExecGUITrigger()
-
-        def ConstantVerify():
-            if not EnabledAutoHeal:
-                if not VarCheckCureStats.get():
-                    Disable(Paralyze)
-                    Disable(Poison)
-                    Disable(Fire)
-                    Disable(Electrify)
-                    Disable(Mort)
-                    Disable(Blood)
-                elif VarCheckCureStats.get():
-                    Enable(Paralyze)
-                    Enable(Poison)
-                    Enable(Fire)
-                    Enable(Electrify)
-                    Enable(Mort)
-                    Enable(Blood)
-                ExecGUITrigger()
-
-            self.AutoHeal.After(30, ConstantVerify)
-
-        CheckingButtons()
-
-        ConstantVerify()
-
-        self.AutoHeal.Protocol(Destroy)
-        self.AutoHeal.loop()
+    def close(self):
+        global EnabledAutoHeal
+        EnabledAutoHeal = False
+        self.ThreadManager.KillThread()
+        if getattr(self, "ui", None) is not None and self.ui.owner:
+            try:
+                self._snapshot()
+            except Exception:
+                pass

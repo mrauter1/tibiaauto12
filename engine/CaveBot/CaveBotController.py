@@ -1,267 +1,207 @@
-import json
-from time import sleep, time
+"""Client adapters for the headless :mod:`engine.CaveBot.session` engine."""
+
+from __future__ import annotations
+
+import time
+from typing import Any, Iterable, Optional
 
 from conf.Hotkeys import Hotkey
+from core.HookWindow import LocateCenterImage, LocateMatch
+from core.perception import frame_scope
+from core import runtime
+from engine.CaveBot import Scanners
+from engine.CaveBot.routes import (
+    Route,
+    RouteError,
+    checkpoint_file,
+    import_legacy_active_index,
+    load_checkpoint,
+    route_from_data,
+    save_checkpoint,
+)
+from engine.CaveBot.session import CaveBotSession, SessionConfig, TargetSpec
 
-from core.HookWindow import LocateCenterImage
-from engine.CaveBot.Scanners import NumberOfTargets, ScanTarget, IsAttacking, NeedFollow, CheckWaypoint
+class LegacyPerception:
+    """Translate existing image scanners to the session perception contract."""
 
-TargetNumber = 0
-NumberOfMonster = []
+    def __init__(self, map_position, battle_position):
+        self.map_position = tuple(map_position)
+        self.battle_position = tuple(battle_position)
+
+    def frame_scope(self):
+        return frame_scope()
+
+    def find_marker(self, waypoint, frame):
+        match = LocateMatch(
+            "images/MapSettings/" + waypoint.mark + ".png",
+            Region=self.map_position,
+            Precision=0.8,
+            frame=frame,
+        )
+        if match is None:
+            return None
+        center_x, center_y = match.center
+        return self.map_position[0] + center_x, self.map_position[1] + center_y
+
+    def waypoint_reached(self, waypoint, frame):
+        return bool(Scanners.CheckWaypoint(waypoint.mark, self.map_position, frame=frame))
+
+    def target_count(self, name, frame):
+        return Scanners.NumberOfTargets(self.battle_position, name, frame=frame)
+
+    def target_position(self, name, frame):
+        match = Scanners.locate_target(self.battle_position, name, frame=frame)
+        return None if match is None else match.center
+
+    def target_selected(self, name, frame):
+        selected = getattr(Scanners, "target_selected", None)
+        if selected is not None:
+            return bool(selected(self.battle_position, frame=frame, target=name))
+        return not bool(Scanners.IsAttacking(self.battle_position, frame=frame))
+
+    def need_follow(self, frame):
+        return bool(Scanners.NeedFollow(frame=frame))
+
+
+class ClientActions:
+    """Serialized, cancellation-gated client input used by a cavebot session."""
+
+    def __init__(self, mouse_option, loot_button, sqms, *, loot_budget=9, loot_max_seconds=2.0):
+        self.mouse_option = mouse_option
+        self.hotkey = Hotkey(mouse_option)
+        self.loot_button = loot_button
+        self.sqms = tuple(sqms)
+        self.loot_budget = max(0, min(int(loot_budget), len(self.sqms) // 2))
+        self.loot_max_seconds = max(0.1, float(loot_max_seconds))
+
+    @staticmethod
+    def _transaction(reason):
+        return runtime.input_transaction(reason=reason)
+
+    def _click(self, method, point, token, reason):
+        token.checkpoint()
+        with self._transaction(reason):
+            token.checkpoint()
+            previous = self.hotkey.Position() if self.mouse_option == 1 else None
+            method(point[0], point[1])
+            token.checkpoint()
+            if previous is not None:
+                self._restore_cursor(previous, token)
+
+    def _restore_cursor(self, previous, token):
+        cancelled = getattr(token, "cancelled", False)
+        cancelled = cancelled() if callable(cancelled) else cancelled
+        if cancelled:
+            return
+        try:
+            width, height = self.hotkey.MainWindowSize()
+            if 0 <= previous[0] < width and 0 <= previous[1] < height:
+                self.hotkey.MoveTo(previous[0], previous[1])
+        except runtime.CancelledError:
+            raise
+        except Exception:
+            # Cursor restoration is best effort and must not turn a successful
+            # game action into a failed session after focus/window changes.
+            return
+
+    def click_map(self, point, token):
+        self._click(self.hotkey.LeftClick, point, token, "cavebot-map-click")
+
+    def click_target(self, point, token):
+        self._click(self.hotkey.LeftClick, point, token, "cavebot-target-click")
+
+    def enable_follow(self, token):
+        token.checkpoint()
+        point = LocateCenterImage("images/TibiaSettings/NotFollow.png", Precision=0.7)
+        if point == (0, 0):
+            return
+        self._click(self.hotkey.LeftClick, point, token, "cavebot-follow-click")
+
+    def loot(self, token):
+        deadline = time.monotonic() + self.loot_max_seconds
+        with self._transaction("cavebot-loot"):
+            previous = self.hotkey.Position() if self.mouse_option == 1 else None
+            try:
+                for index in range(self.loot_budget):
+                    token.checkpoint()
+                    if time.monotonic() >= deadline:
+                        break
+                    x, y = self.sqms[index * 2:index * 2 + 2]
+                    if self.loot_button == "right":
+                        self.hotkey.RightClick(x, y)
+                    elif self.loot_button == "left":
+                        self.hotkey.LeftClick(x, y)
+                    else:
+                        raise ValueError("loot button must be 'left' or 'right'")
+            finally:
+                if previous is not None:
+                    self._restore_cursor(previous, token)
 
 
 class CaveBotController:
-    def __init__(self, MOUSE_OPTION, ScriptName, LootButton, TimeToStand, Walk, Loot, ForRefresh, MapPosition, BattlePosition, SQMs):
-        self.MOUSE_OPTION = MOUSE_OPTION
-        self.SendToClient = Hotkey(self.MOUSE_OPTION)
-        self.ScriptName = ScriptName
-        self.LootButton = LootButton
-        self.TimeToStand = TimeToStand
-        self.EnabledWalk = Walk
-        self.EnabledLooting = Loot
-        self.WalkForRefresh = ForRefresh
-        self.MapPosition = MapPosition
-        self.BattlePosition = BattlePosition
-        self.SQMs = SQMs
-        self.Target = []
+    """Construct and run one cavebot session; positional arguments remain compatible."""
 
-        # Remember Set For Get From Cavebot (for me)
+    def __init__(self, MOUSE_OPTION, ScriptName, LootButton, TimeToStand, Walk, Loot,
+                 ForRefresh, MapPosition, BattlePosition, SQMs):
+        self.mouse_option = MOUSE_OPTION
+        self.script_name = ScriptName
+        self.map_position = tuple(MapPosition)
+        self.battle_position = tuple(BattlePosition)
+        self.walk_enabled = bool(Walk)
+        self.loot_enabled = bool(Loot)
+        self.follow_enabled = True
+        self.stand_seconds = float(TimeToStand)
+        self.perception = LegacyPerception(MapPosition, BattlePosition)
+        self.actions = ClientActions(MOUSE_OPTION, LootButton, SQMs)
+        self.session: Optional[CaveBotSession] = None
 
-        self.FollowMode = True
+    def create_session(self, route: Route, targets: Iterable[TargetSpec], token: Any, *,
+                       config: Optional[SessionConfig] = None, start_index: Optional[int] = None,
+                       perception=None, actions=None, clock=None) -> CaveBotSession:
+        if not self.walk_enabled:
+            raise RouteError("attack-only mode is not supported by the route session")
+        if start_index is None:
+            start_index = load_checkpoint(route)
+        config = config or SessionConfig(
+            stand_seconds=self.stand_seconds,
+            follow=self.follow_enabled,
+            loot=self.loot_enabled,
+        )
+        self.session = CaveBotSession(
+            route,
+            perception or self.perception,
+            actions or self.actions,
+            token,
+            targets=targets,
+            config=config,
+            start_index=start_index,
+            save_progress=save_checkpoint,
+            clock=clock,
+        )
+        return self.session
 
-    '''
-    StartCaveBot Take The Data From Module CaveBot And Search For Mark With Status TRUE,
-    When He Finds, He Starts The Engine Of CaveBot.
-    '''
+    def StartCaveBot(self, data, MonstersToAttack, token=None, *, priorities=None,
+                     max_completed_waypoints=None):
+        """Compatibility entry point; unlike the old engine it never mutates ``data``."""
+        route = route_from_data(self.script_name, data)
+        legacy_index = import_legacy_active_index(data, route)
+        start_index = load_checkpoint(route) if checkpoint_file(route.name).exists() else legacy_index
+        if token is None:
+            token = runtime.current_token()
+        if token is None:
+            raise RuntimeError("CaveBot must run in a managed worker")
+        priorities = priorities or range(1, len(MonstersToAttack) + 1)
+        targets = [TargetSpec(int(priority), name) for priority, name in zip(priorities, MonstersToAttack)]
+        return self.create_session(route, targets, token, start_index=start_index).run(
+            max_completed_waypoints=max_completed_waypoints
+        )
 
-    def StartCaveBot(self, data, MonstersToAttack):
-        while IsEnable():
-            for i in range(len(data)):
-                if not IsEnable():
-                    return
-                else:
-                    if data[i]['status']:
-                        self.HandleCaveBot(data, i, MonstersToAttack)
-
-    '''
-    The Handler 
-    '''
-
-    def HandleCaveBot(self, data, i, Monsters):
-
-        global TargetNumber
-        MarkLocation = [0, 0]
-
-        sleep(self.TimeToStand)
-
-        if not IsEnable():
+    def TakeLoot(self, token=None):
+        """Compatibility helper which now honors the configured loot setting."""
+        if not self.loot_enabled:
             return
-
-        '''
-        Disconsider This Block If You Don't Mark The Walk Option...
-        '''
-        # region Walk
-
-        if self.EnabledWalk:
-            while MarkLocation[0] == 0 and MarkLocation[1] == 0:
-                MarkLocation[0], MarkLocation[1] = LocateCenterImage('images/MapSettings/' + data[i]["mark"] + '.png',
-                                                 Region=(
-                                                     self.MapPosition[0], self.MapPosition[1], self.MapPosition[2],
-                                                     self.MapPosition[3]),
-                                                 Precision=0.8)
-                if MarkLocation[0] == 0 and MarkLocation[1] == 0:
-                    print("Mark: { ", data[i]["mark"], " } Not Located, Try Again")
-                    if self.WalkForRefresh:
-                        sleep(.3)
-                        self.SendToClient.Press('up_arrow')
-                        sleep(.1)
-                        self.SendToClient.Press('left_arrow')
-                        sleep(.7)
-                        self.SendToClient.Press('down_arrow')
-                        sleep(.1)
-                        self.SendToClient.Press('right_arrow')
-                        sleep(.1)
-                else:
-                    print("successfully Located The Mark: { ", data[i]["mark"], " } Clicking On Your Position")
-                    MarkLocation[0] = self.MapPosition[0] + MarkLocation[0]
-                    MarkLocation[1] = self.MapPosition[1] + MarkLocation[1]
-
-            # Clicking In Mark Position
-
-            if self.MOUSE_OPTION == 1:
-                PastPosition = self.SendToClient.Position()
-            else:
-                PastPosition = [0, 0]
-
-            self.SendToClient.LeftClick(MarkLocation[0], MarkLocation[1])
-
-            if self.MOUSE_OPTION == 1:
-                self.SendToClient.MoveTo(PastPosition[0], PastPosition[1])
-
-        # endregion
-
-        '''
-        The Attack, Is Every Time Enabled.
-        '''
-
-        # region Attack
-
-        for Monster in Monsters:
-
-            FirstMonstersNumber = 0
-            SecondMonstersNumber = 0
-
-            Number = NumberOfTargets(self.BattlePosition, Monster)
-            # NumberOfMonster.append(Number)
-
-            while Number > 0:
-
-                if not IsEnable():
-                    return
-
-                self.Target = ScanTarget(self.BattlePosition, Monster)
-
-                if self.Target[0] != 0 and self.Target[1] != 0:
-
-                    # Verify If You Are Already Attacking !
-                    if IsAttacking(self.BattlePosition):
-                        print("Attacking The Target")
-
-                        if self.MOUSE_OPTION == 1:
-                            PastPosition = self.SendToClient.Position()
-                        else:
-                            PastPosition = [0, 0]
-
-                        print(self.Target[0] - 10)
-                        print(self.Target[1])
-
-                        self.SendToClient.LeftClick(self.Target[0] - 10, self.Target[1])
-
-                        if self.MOUSE_OPTION == 1:
-                            self.SendToClient.MoveTo(PastPosition[0], PastPosition[1])
-
-                        FirstMonstersNumber = NumberOfTargets(self.BattlePosition, Monster)
-                    else:
-                        print("You are attacking")
-                        FirstMonstersNumber = NumberOfTargets(self.BattlePosition, Monster)
-
-                # Control Follow Mode In Attack (Follow Or Idle)
-
-                if self.FollowMode:
-
-                    IsNeedFollow = NeedFollow()
-
-                    if IsNeedFollow:
-                        print("Clicking In Follow")
-
-                        if self.MOUSE_OPTION == 1:
-                            PastPosition = self.SendToClient.Position()
-                        else:
-                            PastPosition = [0, 0]
-                        FollowPosition = LocateCenterImage('images/TibiaSettings/NotFollow.png', Precision=0.7)
-                        self.SendToClient.LeftClick(FollowPosition[0], FollowPosition[1])
-                        if self.MOUSE_OPTION == 1:
-                            self.SendToClient.MoveTo(PastPosition[0], PastPosition[1])
-
-                sleep(.2)
-
-                self.Target = ScanTarget(self.BattlePosition, Monster)
-
-                if self.Target[0] != 0 and self.Target[1] != 0:
-
-                    # Verify If You Are Already Attacking !
-                    if IsAttacking(self.BattlePosition):
-                        # For Debugging
-                        # print("Attacking The Target2")
-
-                        if self.MOUSE_OPTION == 1:
-                            PastPosition = self.SendToClient.Position()
-                        else:
-                            PastPosition = [0, 0]
-
-                        self.SendToClient.LeftClick(self.Target[0], self.Target[1])
-
-                        if self.MOUSE_OPTION == 1:
-                            self.SendToClient.MoveTo(PastPosition[0], PastPosition[1])
-
-                        SecondMonstersNumber = NumberOfTargets(self.BattlePosition, Monster)
-                    else:
-                        # For Debugging
-                        # print("You are attacking2")
-
-                        SecondMonstersNumber = NumberOfTargets(self.BattlePosition, Monster)
-
-                if SecondMonstersNumber < FirstMonstersNumber:
-                    self.TakeLoot()
-
-                self.Target = []
-
-                sleep(0.2)
-
-                Number = NumberOfTargets(self.BattlePosition, Monster)
-
-                if Number == 0:
-                    break
-
-        '''
-            If Walk Option Is Enabled, It Verify If The Player Already
-            Arrived To The Current Mark.
-            
-            If Already Arrived, It Set On Script, The Current Mark As False
-            And The Next Mark As True, For The Next Check.
-        '''
-
-        if self.EnabledWalk:
-            if CheckWaypoint(data[i]["mark"], self.MapPosition):
-                data[i]['status'] = False
-                if i + 1 == len(data):
-                    data[i - i]['status'] = True
-                    with open('Scripts/' + self.ScriptName + '.json', 'w') as wJson:
-                        json.dump(data, wJson, indent=4)
-                else:
-                    data[i + 1]['status'] = True
-                    with open('Scripts/' + self.ScriptName + '.json', 'w') as wJson:
-                        json.dump(data, wJson, indent=4)
-            else:
-                self.HandleCaveBot(data, i, Monsters)
-
-        # endregion
-
-    '''
-        Clicking Around Of The Player To Get A Loot.
-    '''
-
-    def TakeLoot(self):
-        if self.MOUSE_OPTION == 1:
-            PastPosition = self.SendToClient.Position()
-        else:
-            PastPosition = [0, 0]
-
-        # For Debugging
-        # StartLootTime = time()
-
-        for i, j in zip(range(0, 18, + 2), range(1, 19, + 2)):
-            if self.LootButton == 'right':
-                self.SendToClient.RightClick(self.SQMs[i], self.SQMs[j])
-            elif self.LootButton == 'left':
-                self.SendToClient.LeftClick(self.SQMs[i], self.SQMs[j])
-
-        # For Debugging
-        # EndLootTime = time() - StartLootTime
-
-        if self.MOUSE_OPTION == 1:
-            self.SendToClient.MoveTo(PastPosition[0], PastPosition[1])
-
-        # For Debugging
-        # print("Looted In: ", EndLootTime)
-
-
-'''
-    Import The EnabledCaveBot Variable From CaveBot Module, To Verify
-    If CaveBot Is Enabled.
-'''
-
-
-def IsEnable():
-    from modules.CaveBot import EnabledCaveBot
-    return EnabledCaveBot
+        if token is None:
+            token = runtime.current_token()
+        if token is None:
+            raise RuntimeError("loot must run in a managed worker")
+        self.actions.loot(token)

@@ -1,74 +1,45 @@
-import ctypes
-from ctypes import wintypes
-from collections import namedtuple
-from core.GetHWND import GetHWND
+"""Enumerate visible top-level Windows windows."""
+from __future__ import annotations
+
+import os
 
 
-def check_zero(result, func, args):
-    if not result:
-        err = ctypes.get_last_error()
+def get_titles() -> dict[int, str]:
+    """Return ``{native_handle: title}`` without parsing object repr strings."""
+    if os.name != "nt":
+        raise OSError("Window selection is currently supported only on Windows")
 
-        if err:
-            raise ctypes.WinError(err)
+    import ctypes
+    from ctypes import wintypes
 
-    return args
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    titles: dict[int, str] = {}
+    callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user32.EnumWindows.argtypes = (callback_type, wintypes.LPARAM)
+    user32.EnumWindows.restype = wintypes.BOOL
+    user32.IsWindowVisible.argtypes = (wintypes.HWND,)
+    user32.IsWindowVisible.restype = wintypes.BOOL
+    user32.GetWindowTextLengthW.argtypes = (wintypes.HWND,)
+    user32.GetWindowTextLengthW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = (wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
+    user32.GetWindowTextW.restype = ctypes.c_int
 
-
-if not hasattr(wintypes, 'LPDWORD'): # PY2
-    wintypes.LPDWORD = ctypes.POINTER(wintypes.DWORD)
-
-WindowInfo = namedtuple('WindowInfo', 'hwnd title')
-
-WNDENUMPROC = ctypes.WINFUNCTYPE(
-    wintypes.BOOL,
-    wintypes.HWND,    # _In_ hWnd
-    wintypes.LPARAM,) # _In_ lParam
-
-user32 = ctypes.WinDLL('user32', use_last_error=True)
-
-user32.EnumWindows.errcheck = check_zero
-user32.EnumWindows.argtypes = (
-   WNDENUMPROC,      # _In_ lpEnumFunc
-   wintypes.LPARAM,) # _In_ lParam
-
-user32.IsWindowVisible.argtypes = (
-    wintypes.HWND,) # _In_ hWnd
-
-user32.GetWindowThreadProcessId.restype = wintypes.DWORD
-user32.GetWindowThreadProcessId.argtypes = (
-  wintypes.HWND,     # _In_      hWnd
-  wintypes.LPDWORD,) # _Out_opt_ lpdwProcessId
-
-user32.GetWindowTextLengthW.errcheck = check_zero
-user32.GetWindowTextLengthW.argtypes = (
-   wintypes.HWND,) # _In_ hWnd
-
-user32.GetWindowTextW.errcheck = check_zero
-user32.GetWindowTextW.argtypes = (
-    wintypes.HWND,   # _In_  hWnd
-    wintypes.LPWSTR, # _Out_ lpString
-    ctypes.c_int,)   # _In_  nMaxCount
-
-
-def get_titles():
-    titles = {}
-
-    @WNDENUMPROC
-    def enum_proc(hWnd, lParam):
-        if not user32.IsWindowVisible(hWnd):
+    @callback_type
+    def enum_proc(hwnd, _lparam):
+        if not user32.IsWindowVisible(hwnd):
             return True
-
-        pid = wintypes.DWORD()
-        user32.GetWindowThreadProcessId(
-                    hWnd, ctypes.byref(pid))
-        length = user32.GetWindowTextLengthW(hWnd) + 1
-        title = ctypes.create_unicode_buffer(length)
-        user32.GetWindowTextW(hWnd, title, length)
-
-        titles[GetHWND(title.value)] = title.value
-
+        length = user32.GetWindowTextLengthW(hwnd)
+        if length <= 0:
+            return True
+        buffer = ctypes.create_unicode_buffer(length + 1)
+        user32.GetWindowTextW(hwnd, buffer, length + 1)
+        title = buffer.value.strip()
+        if title:
+            titles[int(hwnd)] = title
         return True
 
-    user32.EnumWindows(enum_proc, 0)
-
+    if not user32.EnumWindows(enum_proc, 0):
+        error = ctypes.get_last_error()
+        if error:
+            raise ctypes.WinError(error)
     return titles

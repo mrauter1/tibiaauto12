@@ -1,9 +1,15 @@
+"""Tk variable loading and atomic GUI preference updates."""
+from __future__ import annotations
+
+import threading
 import tkinter as tk
+from typing import Any
+
 from conf.conf_manager import ConfManager
 
 
 def GetData():
-    return ConfManager.get('GUILoader.json')
+    return ConfManager.get("GUILoader.json")
 
 
 def check_gui(gui_changes, init, get, name):
@@ -22,40 +28,24 @@ class Variables:
     def __init__(self, Locate):
         self.Locate = Locate
 
-    # For Usage This:
-    # Variable, Initiated = self.Setter.Variables.Bool('')
     def Bool(self, VarName):
-        Variable = tk.BooleanVar()
-        InitiatedVariable = SetVariables(self.Locate).GetBoolVar(VarName)
-        Variable.set(InitiatedVariable)
+        initiated = SetVariables(self.Locate).GetBoolVar(VarName)
+        variable = tk.BooleanVar(value=initiated)
+        return variable, initiated
 
-        return Variable, InitiatedVariable
-
-    # For Usage This:
-    # Variable, Initiated = self.Setter.Variables.Str('')
     def Str(self, VarName):
-        Variable = tk.StringVar()
-        InitiatedVariable = SetVariables(self.Locate).GetVar(VarName)
-        Variable.set(InitiatedVariable)
+        initiated = SetVariables(self.Locate).GetVar(VarName)
+        variable = tk.StringVar(value=initiated)
+        return variable, initiated
 
-        return Variable, InitiatedVariable
-
-    # For Usage This:
-    # Variable, Initiated = self.Setter.Variables.Int('')
     def Int(self, VarName):
-        Variable = tk.IntVar()
-        InitiatedVariable = SetVariables(self.Locate).GetVar(VarName)
-        Variable.set(InitiatedVariable)
+        initiated = SetVariables(self.Locate).GetVar(VarName)
+        variable = tk.IntVar(value=initiated)
+        return variable, initiated
 
-        return Variable, InitiatedVariable
-
-    # For Usage This:
-    # Variable, Initiated = self.Setter.Variables.Int('')
     def array(self, name):
-        initiated_array = SetVariables(self.Locate).GetVar(name)
-        array = initiated_array
-
-        return array, initiated_array
+        initiated = SetVariables(self.Locate).GetVar(name)
+        return list(initiated), initiated
 
 
 class SetVariables:
@@ -63,16 +53,28 @@ class SetVariables:
         self.Locate = Locate
 
     def GetBoolVar(self, VarName):
-        if GetData()['Loaders'][self.Locate][VarName]:
-            return True
-        return False
+        return bool(GetData()["Loaders"][self.Locate][VarName])
 
     def GetVar(self, VarName):
-        return GetData()['Loaders'][self.Locate][VarName]
+        return GetData()["Loaders"][self.Locate][VarName]
 
-    # self.Setter.SetVariables.SetVar
-    def SetVar(self, Name, Value):
-        Returned = GetData()
-        Returned['Loaders'][self.Locate][Name] = Value
+    def _set(self, Name: str, Value: Any):
+        locate = self.Locate
 
-        ConfManager.set(Returned, 'GUILoader.json')
+        def update(data):
+            data["Loaders"][locate][Name] = Value
+
+        return ConfManager.update("GUILoader.json", update)
+
+    def SetVar(self, Name, Value, widget=None):
+        """Save atomically; schedule through Tk when invoked by a worker."""
+        if threading.current_thread() is threading.main_thread():
+            return self._set(Name, Value)
+        if widget is None:
+            # File locking makes the write safe even without a live window.
+            return self._set(Name, Value)
+        widget.after(0, self._set, Name, Value)
+        return None
+
+    def SetVarOnMainThread(self, widget, Name, Value):
+        return self.SetVar(Name, Value, widget=widget)
