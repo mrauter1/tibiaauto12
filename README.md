@@ -143,3 +143,5 @@ class EmergencyHeal:
 Construct production sessions through `configure_client(mouse_mode)` and retrieve them with `get_client()`. Tests should construct `ClientSession(fake_adapter, clock=fake_clock, autostart=False)` and advance it with `tick_once()`; this path does not require a display or native input.
 
 See [the engineering contract](docs/reliability-foundation.md) for native-boundary rules, calibration constraints, route migration, and remaining live-client checks, and [recording and replay](docs/recording-replay.md) for diagnostic workflows.
+
+The [feature roadmap](docs/feature-roadmap.md) compares primary bot references and proposes staged route-authoring, supply, refill/depot, combat, and supervision improvements. It distinguishes planned capabilities from implemented behavior and specifies their validation gates.
