@@ -276,15 +276,20 @@ class CaveBotFeature:
         priority: int,
         sensor: Sensor,
         reason: str,
+        additional_sensors: Iterable[Sensor] = (),
     ) -> Request:
         key = self._next_key(kind)
         self._pending = _Pending(key, kind, context.now, context.snapshot.frame_id)
+        requirements = (sensor, *additional_sensors)
         return Request(
             key=key,
             action=action,
             priority=priority,
             ttl=self._MAX_EVIDENCE_AGE,
-            requirements=(Requirement(sensor, self._MAX_EVIDENCE_AGE),),
+            requirements=tuple(
+                Requirement(required, self._MAX_EVIDENCE_AGE)
+                for required in requirements
+            ),
             reason=reason,
         )
 
@@ -296,15 +301,28 @@ class CaveBotFeature:
 
     def _choose_target(
         self, context: FeatureContext
-    ) -> tuple[TargetSpec | None, Target | None, bool]:
-        all_known = True
+    ) -> tuple[TargetSpec | None, Target | None, str | None]:
         for spec in self.targets:
-            value = self._known(context, self._target_sensor(spec))
+            try:
+                value = context.require(
+                    self._target_sensor(spec), self._MAX_EVIDENCE_AGE
+                )
+            except ObservationUnavailable as exc:
+                return (
+                    None,
+                    None,
+                    f"target evidence for {spec.name!r} is unavailable: {exc}",
+                )
             if not isinstance(value, Target):
-                return None, None, False
-            if isinstance(value, Target) and value.count > 0:
-                return spec, value, all_known
-        return None, None, all_known
+                return (
+                    None,
+                    None,
+                    f"target evidence for {spec.name!r} has invalid type "
+                    f"{type(value).__name__}; expected Target",
+                )
+            if value.count > 0:
+                return spec, value, None
+        return None, None, None
 
     def _expire_pending(self, context: FeatureContext) -> None:
         pending = self._pending
@@ -393,10 +411,10 @@ class CaveBotFeature:
         if self._combat_deadline is not None and context.now >= self._combat_deadline:
             return self._fail("combat_timeout", "combat timed out")
 
-        spec, target, all_known = self._choose_target(context)
+        spec, target, evidence_error = self._choose_target(context)
+        if evidence_error is not None:
+            return self._fail("target_evidence_unavailable", evidence_error)
         if spec is None or target is None:
-            if not all_known:
-                return self._step()
             self._empty_samples += 1
             if self._empty_samples < self.config.count_stable_samples:
                 return self._step()
@@ -473,8 +491,21 @@ class CaveBotFeature:
         # Requiring a fresh battle-list observation prevents an old count drop
         # from authorizing a burst of later clicks.  The adapter restores the
         # cursor around each individual click; no multi-click input lease exists.
-        if self._known(context, self._loot_sensor) is None:
-            return self._step()
+        try:
+            loot_evidence = context.require(
+                self._loot_sensor, self._MAX_EVIDENCE_AGE
+            )
+        except ObservationUnavailable as exc:
+            return self._fail(
+                "target_evidence_unavailable",
+                f"loot target evidence is unavailable: {exc}",
+            )
+        if not isinstance(loot_evidence, Target):
+            return self._fail(
+                "target_evidence_unavailable",
+                "loot target evidence has invalid type "
+                f"{type(loot_evidence).__name__}; expected Target",
+            )
         action_kind = (
             ActionKind.RIGHT_CLICK if self.config.loot_button == "right" else ActionKind.LEFT_CLICK
         )
@@ -519,6 +550,7 @@ class CaveBotFeature:
                 Priority.NAVIGATION,
                 marker_sensor,
                 f"walk to waypoint {self.route.waypoints[self.index].id}",
+                tuple(self._target_sensor(target) for target in self.targets),
             )
             self._set_status("Sending movement", "marker_found")
             return self._step(request)
@@ -574,7 +606,9 @@ class CaveBotFeature:
             return self._step()
         self._expire_pending(context)
         if self._mode not in ("combat", "loot"):
-            spec, _, _ = self._choose_target(context)
+            spec, _, evidence_error = self._choose_target(context)
+            if evidence_error is not None:
+                return self._fail("target_evidence_unavailable", evidence_error)
             if spec is not None:
                 cancel = self._enter_combat(context, spec)
                 step = self._tick_combat(context)

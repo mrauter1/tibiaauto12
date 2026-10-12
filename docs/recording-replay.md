@@ -23,6 +23,8 @@ For an embedded UI, pass `recorder=recorder` to `configure_client`, then call `c
 
 The default file limit is 16 MiB. Events are flushed after each write. A quota or I/O error makes the recorder unavailable; the session stops dispatching instead of silently continuing an incomplete audit. Choose the quota for the scenario being diagnosed. A trace contains configured keys, coordinates, sensor names, and settings-derived decisions, so inspect it before sharing.
 
+Custom event and frame recorder callbacks are read-only observers. They may inspect session state, but must not synchronously call `start_feature()`, `stop_feature()`, `close()`, or `tick_once()` on that session. These reentrant calls raise before changing its lifecycle; an uncaught exception fails the recorder and stops automation. Send any requested lifecycle change to the application's event loop after the recorder returns. This keeps result delivery and the recorded `deliver` flag consistent and prevents callbacks from an obsolete generation.
+
 ## Compare feature policy
 
 `load_trace()` validates the entire file before returning events. `replay_policies()` feeds the original decision snapshots and monotonic times into fresh features, supplies recorded action feedback, and compares the complete resulting `Step` values. A changed request, priority, requirement, phase, or cancellation key is a divergence.

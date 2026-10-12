@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from engine.CaveBot.routes import Route, Waypoint
 from features.cavebot import CaveBot, SessionConfig, TargetSpec
 from tibia_client import (
@@ -12,6 +14,7 @@ from tibia_client import (
     Observation,
     ObservationBatch,
     Priority,
+    Quality,
     Reading,
     Request,
     ResultState,
@@ -138,6 +141,114 @@ def test_combat_can_preempt_marker_search_before_any_movement():
     )
     assert combat.requests[0].action.point == (4, 5)
     assert combat.requests[0].key.startswith("select:")
+
+
+@pytest.mark.parametrize(
+    ("value", "quality", "observed_at", "detail", "expected"),
+    (
+        (None, Quality.ERROR, 0.0, "detector failed", "detector failed"),
+        (None, Quality.UNKNOWN, 0.0, "region unavailable", "region unavailable"),
+        (Target(0), Quality.KNOWN, 0.0, "", "unknown or stale observation"),
+        ("zero", Quality.KNOWN, 1.0, "", "invalid type str"),
+    ),
+)
+def test_navigation_fails_closed_on_unusable_target_evidence(
+    value, quality, observed_at, detail, expected
+):
+    feature = bot(
+        targets=(TargetSpec(1, "dragon"),),
+        config=SessionConfig(follow=False),
+    )
+    observations = {}
+    for sensor in feature.sensors():
+        if sensor.kind is SensorKind.MARKER:
+            observation = Observation(sensor, Marker((9, 9)), 1.0, 1, 1)
+        else:
+            observation = Observation(
+                sensor, value, observed_at, 1, 1, quality, detail
+            )
+        observations[sensor] = observation
+    step = feature.tick(
+        FeatureContext(Snapshot(observations, frame_id=1, epoch=1, created_at=1.0), 1.0)
+    )
+
+    assert step.requests == ()
+    assert step.finished
+    assert feature.failed
+    assert feature.status.reason == "target_evidence_unavailable"
+    assert "dragon" in feature.error
+    assert expected in feature.error
+
+
+def test_navigation_fails_closed_when_target_observation_is_missing():
+    feature = bot(
+        targets=(TargetSpec(1, "dragon"),),
+        config=SessionConfig(follow=False),
+    )
+    marker_sensor = feature.sensors()[0]
+    marker = Observation(marker_sensor, Marker((9, 9)), 0.0, 1, 1)
+    step = feature.tick(
+        FeatureContext(
+            Snapshot({marker_sensor: marker}, frame_id=1, epoch=1, created_at=0.0),
+            0.0,
+        )
+    )
+
+    assert step.requests == ()
+    assert step.finished
+    assert feature.status.reason == "target_evidence_unavailable"
+    assert "no observation" in feature.error
+
+
+def test_unreadable_high_priority_target_does_not_select_lower_priority_target():
+    feature = bot(
+        targets=(TargetSpec(1, "urgent"), TargetSpec(2, "ordinary")),
+        config=SessionConfig(follow=False),
+    )
+    observations = {}
+    for sensor in feature.sensors():
+        if sensor.kind is SensorKind.MARKER:
+            reading = Observation(sensor, Marker((9, 9)), 0.0, 1, 1)
+        elif sensor.name == "urgent":
+            reading = Observation(
+                sensor, None, 0.0, 1, 1, Quality.ERROR, "urgent detector failed"
+            )
+        else:
+            reading = Observation(sensor, Target(1, (20, 20)), 0.0, 1, 1)
+        observations[sensor] = reading
+
+    step = feature.tick(
+        FeatureContext(Snapshot(observations, frame_id=1, epoch=1, created_at=0.0), 0.0)
+    )
+
+    assert step.requests == ()
+    assert step.finished
+    assert "urgent detector failed" in feature.error
+
+
+def test_navigation_binds_marker_and_known_target_absence_evidence():
+    feature = bot(
+        targets=(TargetSpec(1, "urgent"), TargetSpec(2, "ordinary")),
+        config=SessionConfig(follow=False),
+    )
+    navigation = feature.tick(
+        context(
+            feature,
+            0.0,
+            marker=Marker((9, 9)),
+            targets={"urgent": Target(0), "ordinary": Target(0)},
+        )
+    ).requests[0]
+
+    assert [requirement.sensor.kind for requirement in navigation.requirements] == [
+        SensorKind.MARKER,
+        SensorKind.TARGET,
+        SensorKind.TARGET,
+    ]
+    assert [requirement.sensor.name for requirement in navigation.requirements[1:]] == [
+        "urgent",
+        "ordinary",
+    ]
 
 
 def test_selected_species_is_not_clicked_and_follow_can_be_disabled():
@@ -467,4 +578,91 @@ def test_runtime_cancels_queued_navigation_when_combat_appears():
         (20, 20)
     ]
     assert all(action.point != (10, 10) for action in adapter.actions)
+    session.close()
+
+
+def test_runtime_never_dispatches_queued_navigation_after_target_evidence_fails():
+    class Clock:
+        value = 0.0
+
+        def monotonic(self):
+            return self.value
+
+    class Adapter:
+        def __init__(self, clock):
+            self.clock = clock
+            self.unreadable = False
+            self.actions = []
+
+        def ready(self):
+            return True
+
+        def observe(self, sensors, token):
+            token.checkpoint()
+            readings = {}
+            for sensor in sensors:
+                if sensor.kind is SensorKind.MARKER:
+                    readings[sensor] = Reading(Marker((10, 10), False))
+                elif not self.unreadable:
+                    readings[sensor] = Reading(Target(0))
+                elif sensor.name == "urgent":
+                    readings[sensor] = Reading(
+                        None, Quality.ERROR, "urgent detector failed"
+                    )
+                else:
+                    readings[sensor] = Reading(Target(1, (20, 20), False))
+            return ObservationBatch(readings, self.clock.monotonic())
+
+        def execute(self, action, token):
+            token.checkpoint()
+            self.actions.append(action)
+
+        def close(self):
+            pass
+
+    class OneHeal:
+        name = "heal"
+        interval = 0.2
+
+        def __init__(self):
+            self.used = False
+
+        def sensors(self):
+            return ()
+
+        def tick(self, context):
+            if self.used:
+                return Step()
+            self.used = True
+            return Step(
+                (Request("heal", Action(ActionKind.PRESS, key="F1"), Priority.HEAL),)
+            )
+
+        def on_result(self, result):
+            pass
+
+    clock = Clock()
+    adapter = Adapter(clock)
+    feature = bot(
+        targets=(TargetSpec(1, "urgent"), TargetSpec(2, "ordinary")),
+        config=SessionConfig(follow=False),
+    )
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    session.start_feature(feature)
+    session.start_feature(OneHeal())
+
+    session.tick_once()
+    assert [(action.kind, action.key) for action in adapter.actions] == [
+        (ActionKind.PRESS, "F1")
+    ]
+
+    adapter.unreadable = True
+    clock.value = 0.2
+    session.tick_once()
+
+    assert adapter.actions == [Action(ActionKind.PRESS, key="F1")]
+    status = session.feature_status("CaveBot")
+    assert not status.active
+    assert status.phase == "Failed"
+    assert "urgent detector failed" in status.error
     session.close()

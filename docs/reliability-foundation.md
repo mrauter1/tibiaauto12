@@ -12,6 +12,10 @@ The production session loop is cancellable and all native actions are serialized
 
 Stop and replacement cancel the generation before waiting for its feature hooks to finish. That wait is bounded to one second: success means the previous hooks have returned; timeout marks the generation failed, rejects its late output, and raises an explicit error. An extension's uncooperative Python hook can still unwind later, so hooks must remain short and must never send input themselves. Explicit adapter-close errors propagate and remain retryable; a failed close prevents replacing the application's client.
 
+Readiness is checked on each working tick and again before dispatch, after recorder callbacks. Losing readiness clears the observation epoch, rejects queued commands, and reports already executed but unconfirmed commands as failed confirmation. Features wait for focus for at most `ready_timeout` (30 seconds by default). Recovery makes every active feature due for fresh observation and a new decision; old commands are never resumed. Policy deadlines continue to use elapsed monotonic time, so a policy may time out after a long interruption. Native backends still validate the target immediately before input.
+
+An injected clock must return finite monotonic timestamps. A clock failure during an active session closes the session, fails its active features, and terminalizes outstanding work. Failure reporting uses the last valid timestamp so cleanup does not depend on a working clock. An action that reached the adapter is never automatically retried because its completion timestamp failed.
+
 ## Feature contract
 
 A feature implements the small protocol in `tibia_client.ports`:
@@ -56,6 +60,8 @@ Health and mana sensors use an `(x, y)` anchor with the existing 100-pixel bar g
 Support behavior lives in `features/support.py`. Threshold, status, equipment, and timed-spell policies use SDK observations and return requests; cooldowns and deadlines use monotonic context time. Their Tk windows only validate and persist settings, start or stop a feature, and reconcile controls from SDK status.
 
 `features/cavebot.py` is an iterative state machine. Marker search, movement, arrival, target selection, follow, combat observation, and bounded loot each advance through short ticks. Operations have deadlines and attempt budgets, re-observe after interruptions, and expose a phase through the shared session. Route progress is saved only after a confirmed waypoint transition.
+
+Navigation requires fresh, known-zero observations for every configured target, and binds those observations to the movement request alongside its marker. Missing, stale, errored, or malformed target evidence fails CaveBot with the affected target and available detector detail. An unreadable higher-priority target cannot be treated as absent to select a lower-priority target. Loot also requires valid evidence for its active target.
 
 Before adding a route action, define:
 

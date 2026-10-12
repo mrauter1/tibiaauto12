@@ -201,6 +201,7 @@ class ClientSession:
         self._lifecycle_lock = threading.RLock()
         self._event_lock = threading.RLock()
         self._tick_lock = threading.Lock()
+        self._recorder_context = threading.local()
         self._records: dict[str, _FeatureRecord] = {}
         self._generations: dict[str, int] = {}
         self._feature_instances: list[weakref.ReferenceType[Any]] = []
@@ -212,6 +213,9 @@ class ClientSession:
         self._order = 0
         self._frame_id = 0
         self._epoch = 1
+        # A broken injected clock must not be consulted again while failing
+        # closed.  Keep the last validated value for terminal/status events.
+        self._last_now = time.monotonic()
         self._snapshot = Snapshot(epoch=self._epoch, created_at=self._now())
         self._closed = False
         self._closed_reason: str | None = None
@@ -226,13 +230,48 @@ class ClientSession:
         self._recorder_error: BaseException | None = None
 
     def _now(self) -> float:
-        value = self._clock.monotonic()
+        try:
+            value = self._clock.monotonic()
+        except runtime.CancelledError as exc:
+            # Cancellation belongs to runtime tokens, not the injected clock.
+            # Normalize a clock that misuses it into an ordinary clock failure
+            # so the session still fails closed with truthful feature status.
+            raise RuntimeError("clock.monotonic() raised cancellation") from exc
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("clock.monotonic() must return a real number")
         value = float(value)
         if not math.isfinite(value):
             raise ValueError("clock.monotonic() must return a finite value")
+        with self._lock:
+            self._last_now = value
         return value
+
+    def _failure_time(self, fallback: float | None = None) -> float:
+        """Return a timestamp without consulting a clock that may be broken."""
+        if (
+            fallback is not None
+            and not isinstance(fallback, bool)
+            and isinstance(fallback, (int, float))
+            and math.isfinite(float(fallback))
+        ):
+            return float(fallback)
+        with self._lock:
+            return self._last_now
+
+    def _guard_recorder_reentry(self, operation: str) -> None:
+        if getattr(self._recorder_context, "depth", 0):
+            raise RuntimeError(
+                "recorder callbacks are observer-only and cannot " + operation
+            )
+
+    @contextmanager
+    def _recorder_callback(self) -> Any:
+        depth = getattr(self._recorder_context, "depth", 0)
+        self._recorder_context.depth = depth + 1
+        try:
+            yield
+        finally:
+            self._recorder_context.depth = depth
 
     @property
     def snapshot(self) -> Snapshot:
@@ -322,14 +361,15 @@ class ClientSession:
             sink = self._recorder
             if sink is not None:
                 try:
-                    if callable(sink):
-                        sink(event)
-                    else:
-                        for method in ("record", "append", "emit"):
-                            callback = getattr(sink, method, None)
-                            if callable(callback):
-                                callback(event)
-                                break
+                    with self._recorder_callback():
+                        if callable(sink):
+                            sink(event)
+                        else:
+                            for method in ("record", "append", "emit"):
+                                callback = getattr(sink, method, None)
+                                if callable(callback):
+                                    callback(event)
+                                    break
                 except Exception as exc:
                     # Preserve the in-memory event, then prevent the next native
                     # dispatch: configured audit output must not silently develop
@@ -340,6 +380,7 @@ class ClientSession:
             return event
 
     def start_feature(self, feature: Feature) -> int:
+        self._guard_recorder_reentry("start or replace a feature")
         name = getattr(feature, "name", None)
         if not isinstance(name, str) or not name.strip():
             raise ValueError("feature.name must be non-empty text")
@@ -420,10 +461,15 @@ class ClientSession:
             feature_reference = weakref.ref(feature)
         except TypeError:
             raise TypeError("feature instances must support weak references") from None
-        if previous is not None:
-            self._invalidate_record(previous, "superseded", self._now())
-
-        now = self._now()
+        try:
+            if previous is not None:
+                self._invalidate_record(previous, "superseded", self._now())
+            now = self._now()
+        except runtime.CancelledError:
+            raise
+        except Exception as exc:
+            self._fatal(exc, self._failure_time())
+            raise
         with self._lock:
             if self._closed:
                 detail = f": {self._closed_reason}" if self._closed_reason else ""
@@ -446,6 +492,7 @@ class ClientSession:
         return generation
 
     def stop_feature(self, name: str) -> bool:
+        self._guard_recorder_reentry("stop a feature")
         if not isinstance(name, str) or not name:
             raise ValueError("feature name must be non-empty")
         with self._lock:
@@ -483,8 +530,10 @@ class ClientSession:
         )
         try:
             now = self._now()
+        except runtime.CancelledError:
+            raise
         except Exception:
-            now = time.monotonic()
+            now = self._failure_time()
         with self._lock:
             if self._records.get(record.name) is record and record.active:
                 record.phase = "Failed"
@@ -501,7 +550,14 @@ class ClientSession:
             record = self._records.get(name)
         if record is None or not record.active:
             return False
-        return self._invalidate_record(record, "stopped", self._now())
+        try:
+            now = self._now()
+        except runtime.CancelledError:
+            raise
+        except Exception as exc:
+            self._fatal(exc, self._failure_time())
+            raise
+        return self._invalidate_record(record, "stopped", now)
 
     def _invalidate_record(self, record: _FeatureRecord, reason: str, now: float) -> bool:
         with self._lock:
@@ -565,87 +621,123 @@ class ClientSession:
 
     def tick_once(self) -> Snapshot:
         """Run one deterministic scheduler iteration and return its snapshot."""
+        self._guard_recorder_reentry("run a scheduler tick")
         with self._tick_lock:
-            with self._lock:
-                if self._closed:
-                    return self._snapshot
-                has_work = any(record.active for record in self._records.values())
-                has_work = has_work or bool(self._queue) or bool(self._confirming)
-            if not has_work:
+            try:
+                return self._tick_once_locked()
+            except runtime.CancelledError:
+                raise
+            except Exception as exc:
+                self._fatal(exc, self._failure_time())
                 return self.snapshot
 
-            try:
-                now = self._now()
-            except Exception as exc:
-                self._fatal(exc, time.monotonic())
-                return self.snapshot
-            self._record("tick", now)
-            if not self._ensure_ready(now):
-                return self.snapshot
-
-            due, sensors = self._collect_due(now)
-            if sensors:
-                if not self._observe(sensors, now):
-                    return self.snapshot
-            snapshot = self.snapshot
-            now = self._now()
-            self._check_confirmations(snapshot, now)
-            self._reject_stale_queued(snapshot, now)
-            finished: list[_FeatureRecord] = []
-            for record in due:
-                if self._run_feature(record, snapshot, now):
-                    finished.append(record)
-            try:
-                dispatch_at = self._now()
-            except Exception as exc:
-                self._fatal(exc, now)
-                return self.snapshot
-            self._dispatch_one(dispatch_at)
-            for record in finished:
-                self._invalidate_record(record, "finished", self._now())
+    def _tick_once_locked(self) -> Snapshot:
+        """Run one tick while the caller holds ``_tick_lock``."""
+        with self._lock:
+            if self._closed:
+                return self._snapshot
+            has_work = any(record.active for record in self._records.values())
+            has_work = has_work or bool(self._queue) or bool(self._confirming)
+        if not has_work:
             return self.snapshot
 
+        now = self._now()
+        self._record("tick", now)
+        if not self._ensure_ready(now):
+            return self.snapshot
+
+        due, sensors = self._collect_due(now)
+        if sensors:
+            if not self._observe(sensors, now):
+                return self.snapshot
+        snapshot = self.snapshot
+        now = self._now()
+        self._check_confirmations(snapshot, now)
+        self._reject_stale_queued(snapshot, now)
+        finished: list[_FeatureRecord] = []
+        for record in due:
+            if self._run_feature(record, snapshot, now):
+                finished.append(record)
+        dispatch_at = self._now()
+        self._dispatch_one(dispatch_at)
+        for record in finished:
+            self._invalidate_record(record, "finished", self._now())
+        return self.snapshot
+
     def _ensure_ready(self, now: float) -> bool:
-        with self._lock:
-            if self._ready:
-                return True
-            if self._ready_started_at is None:
-                self._ready_started_at = now
-            started = self._ready_started_at
-            records = [record for record in self._records.values() if record.active]
-        try:
-            ready = bool(self._adapter.ready())
-        except Exception as exc:
-            self._fatal(exc, now)
-            return False
+        # Readiness is a current condition, not a successful-startup latch.
+        # Native backends still recheck their target at the input boundary.
         with self._lock:
             if self._closed:
                 return False
+        try:
+            ready = bool(self._adapter.ready())
+        except runtime.CancelledError:
+            raise
+        except Exception as exc:
+            self._fatal(exc, now)
+            return False
+
+        statuses: list[FeatureStatus] = []
+        rejected: list[_Queued] = []
+        unconfirmed: list[_Queued] = []
+        with self._lock:
+            if self._closed:
+                return False
+            was_ready = self._ready
+            self._ready = ready
+            records = [
+                record for record in self._records.values()
+                if self._is_current_locked(record)
+            ]
+            if ready:
+                self._ready_started_at = None
+                if not was_ready:
+                    for record in records:
+                        # Resume by observing and deciding again, even when the
+                        # feature's ordinary interval has not elapsed yet.
+                        record.next_due = min(record.next_due, now)
+                        record.phase = "Running"
+                        statuses.append(FeatureStatus(
+                            record.name, record.generation, True, record.phase
+                        ))
+                started = None
+            else:
+                if self._ready_started_at is None:
+                    self._ready_started_at = now
+                started = self._ready_started_at
+                if was_ready:
+                    self._epoch += 1
+                    self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+                    rejected = list(self._queue)
+                    unconfirmed = [value.queued for value in self._confirming.values()]
+                    self._queue.clear()
+                    self._confirming.clear()
+                for record in records:
+                    if record.phase != "Waiting for game focus":
+                        record.phase = "Waiting for game focus"
+                        statuses.append(FeatureStatus(
+                            record.name, record.generation, True, record.phase
+                        ))
+
+        for status in statuses:
+            self._record(
+                "status", now, status.name, status=status,
+                reason="ready" if ready else "not ready",
+            )
+        for item in rejected:
+            self._terminal(item, ResultState.REJECTED, now, "client readiness lost")
+        for item in unconfirmed:
+            # Input already happened; its outcome is now unknown. Do not imply
+            # that cancellation undid it or silently retry it on recovery.
+            self._terminal(
+                item, ResultState.FAILED, now,
+                "client readiness lost before confirmation",
+            )
         if ready:
             with self._lock:
-                self._ready = True
-                for record in records:
-                    if self._is_current_locked(record):
-                        record.phase = "Running"
-            for record in records:
-                self._record(
-                    "status", now, record.name,
-                    status=FeatureStatus(record.name, record.generation, True, "Running"),
-                    reason="ready",
-                )
-            return True
-
-        for record in records:
-            with self._lock:
-                if self._is_current_locked(record):
-                    record.phase = "Waiting for game focus"
-            self._record(
-                "status", now, record.name,
-                status=FeatureStatus(
-                    record.name, record.generation, True, "Waiting for game focus"
-                ),
-                reason="not ready",
-            )
+                return not self._closed
+        assert started is not None
         if now >= started + self._ready_timeout:
             error = TimeoutError(
                 f"game focus was not ready within {self._ready_timeout:g} seconds"
@@ -786,7 +878,8 @@ class ClientSession:
         frame_recorder = getattr(self._recorder, "record_frame", None)
         if batch.frame is not None and callable(frame_recorder):
             try:
-                frame_recorder(frame_id, batch.frame)
+                with self._recorder_callback():
+                    frame_recorder(frame_id, batch.frame)
             except Exception as exc:
                 with self._lock:
                     if self._recorder_error is None:
@@ -940,6 +1033,8 @@ class ClientSession:
         while attempts < self._queue_limit:
             try:
                 now = self._now()
+            except runtime.CancelledError:
+                raise
             except Exception as exc:
                 self._fatal(exc, now)
                 return
@@ -956,8 +1051,9 @@ class ClientSession:
                 self._terminal(item, ResultState.REJECTED, now, reason)
                 continue
             assert record is not None
+            session_token = self._session_token()
             token = _CombinedToken(
-                self._session_token(), record.cancelled, record.name, record.generation
+                session_token, record.cancelled, record.name, record.generation
             )
             self._record(
                 "dispatch", now, item.owner, request_id=item.request_id,
@@ -982,15 +1078,34 @@ class ClientSession:
                 )
                 return
             try:
-                execution_at = self._now()
-            except Exception as exc:
+                ready = self._ensure_ready(now)
+            except runtime.CancelledError:
+                self._terminal(
+                    item, ResultState.CANCELLED, self._failure_time(now),
+                    "session cancelled before execute",
+                )
+                raise
+            if not ready:
+                with self._lock:
+                    failed = self._closed
                 self._terminal(
                     item,
-                    ResultState.FAILED,
+                    ResultState.FAILED if failed else ResultState.REJECTED,
                     now,
-                    f"clock failed before execute: {type(exc).__name__}: {exc}",
+                    "session failed during readiness check"
+                    if failed else "client is not ready",
                 )
-                self._fatal(exc, now)
+                return
+            try:
+                execution_at = self._now()
+            except runtime.CancelledError:
+                self._terminal(
+                    item, ResultState.CANCELLED, self._failure_time(now),
+                    "session cancelled before execute",
+                )
+                raise
+            except Exception as exc:
+                self._fatal_popped(item, exc, now, "clock failed before execute")
                 return
             with self._lock:
                 record = self._records.get(item.owner)
@@ -1008,17 +1123,29 @@ class ClientSession:
                     self._adapter.execute(item.request.action, token)
                 token.checkpoint()
             except runtime.CancelledError:
-                self._terminal(item, ResultState.CANCELLED, self._now(), "generation cancelled")
+                self._terminal(
+                    item, ResultState.CANCELLED, self._failure_time(execution_at),
+                    "generation cancelled",
+                )
+                if session_token.cancelled:
+                    raise
                 return
             except Exception as exc:
+                failed_at = self._failure_time(execution_at)
                 self._terminal(
-                    item, ResultState.FAILED, self._now(),
+                    item, ResultState.FAILED, failed_at,
                     f"adapter execute failed: {type(exc).__name__}: {exc}",
                 )
-                self._fail_feature(record, exc, self._now())
+                self._fail_feature(record, exc, failed_at)
                 return
 
-            completed_at = self._now()
+            try:
+                completed_at = self._now()
+            except runtime.CancelledError:
+                raise
+            except Exception as exc:
+                self._fatal_popped(item, exc, execution_at, "clock failed after execute")
+                return
             with self._lock:
                 still_current = self._is_current_locked(record)
             if not still_current:
@@ -1042,6 +1169,23 @@ class ClientSession:
                         "generation cancelled", deliver=False,
                     )
             return
+
+    def _fatal_popped(
+        self,
+        item: _Queued,
+        exc: BaseException,
+        fallback: float,
+        stage: str,
+    ) -> None:
+        """Terminalize a request removed from the queue, then fail closed."""
+        at = self._failure_time(fallback)
+        self._terminal(
+            item,
+            ResultState.FAILED,
+            at,
+            f"{stage}: {type(exc).__name__}: {exc}",
+        )
+        self._fatal(exc, at)
 
     def _validate_dispatch(
         self,
@@ -1207,6 +1351,16 @@ class ClientSession:
                 record.feature.on_result(result)
             except Exception as exc:
                 self._fail_feature(record, exc, result.at)
+            with self._lock:
+                recorder_error = self._recorder_error
+            if recorder_error is not None:
+                self._fatal(
+                    RuntimeError(
+                        "event recorder failed: "
+                        f"{type(recorder_error).__name__}: {recorder_error}"
+                    ),
+                    result.at,
+                )
 
     def _is_current_locked(self, record: _FeatureRecord) -> bool:
         return (
@@ -1325,14 +1479,17 @@ class ClientSession:
 
     def close(self) -> None:
         """Cancel all generations, stop the loop, and close the adapter once."""
+        self._guard_recorder_reentry("close the session")
         with self._lifecycle_lock:
             self._close()
 
     def _close(self) -> None:
         try:
             now = self._now()
+        except runtime.CancelledError:
+            raise
         except Exception:
-            now = time.monotonic()
+            now = self._failure_time()
         with self._lock:
             already_closed = self._closed
             if already_closed:

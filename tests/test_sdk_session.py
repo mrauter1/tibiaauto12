@@ -785,3 +785,327 @@ def test_explicit_close_propagates_adapter_failure_and_can_retry():
     session.close()
     assert adapter.closed == 2
     assert session.close_error is None
+
+
+class FailableClock(Clock):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fail = False
+
+    def monotonic(self) -> float:
+        if self.fail:
+            raise OSError("clock disappeared")
+        return super().monotonic()
+
+
+@pytest.mark.parametrize("stage", ["before observe", "after observe"])
+def test_clock_failure_around_observe_fails_closed(stage):
+    clock = FailableClock()
+
+    class ClockFailingAdapter(Adapter):
+        def observe(self, sensors, token):
+            if stage == "before observe":
+                clock.fail = True
+                return super().observe(sensors, token)
+            token.checkpoint()
+            self.observed.append(tuple(sensors))
+            return ObservationBatch({HEALTH: Reading(50)}, clock.value)
+
+    def recorder(event):
+        if stage == "after observe" and event.kind == "observation":
+            clock.fail = True
+
+    adapter = ClockFailingAdapter(clock)
+    feature = Feature("clock-observe", (HEALTH,))
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert session.closed
+    status = session.feature_status(feature.name)
+    assert not status.active and status.phase == "Failed"
+    assert status.error and "clock disappeared" in status.error
+    assert adapter.closed == 1
+
+
+@pytest.mark.parametrize("stage", ["before execute", "after execute"])
+def test_clock_failure_around_execute_terminalizes_popped_request(stage):
+    clock = FailableClock()
+
+    class ClockFailingAdapter(Adapter):
+        def execute(self, action, token):
+            super().execute(action, token)
+            if stage == "after execute":
+                clock.fail = True
+
+    adapter = ClockFailingAdapter(clock)
+
+    def recorder(event):
+        if stage == "before execute" and event.kind == "dispatch":
+            clock.fail = True
+
+    feature = Feature(
+        "clock-execute", (),
+        (Step((Request("press", Action(ActionKind.PRESS, key="F1")),)),),
+    )
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert session.closed
+    assert len(adapter.actions) == (1 if stage == "after execute" else 0)
+    finals = [
+        event.data["result"]
+        for event in session.events()
+        if event.kind == "result" and event.data["result"].final
+    ]
+    assert len(finals) == 1
+    assert finals[0].state is ResultState.FAILED
+    assert stage in finals[0].reason
+    assert feature.results == finals
+
+
+def test_clock_failure_after_finished_result_does_not_leave_feature_active():
+    clock = FailableClock()
+    adapter = Adapter(clock)
+
+    class FinishingFeature(Feature):
+        def on_result(self, result):
+            super().on_result(result)
+            clock.fail = True
+
+    feature = FinishingFeature(
+        "finish-clock", (),
+        (Step(
+            (Request("press", Action(ActionKind.PRESS, key="F4")),),
+            finished=True,
+        ),),
+    )
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert adapter.actions == [Action(ActionKind.PRESS, key="F4")]
+    assert feature.results[-1].state is ResultState.EXECUTED
+    assert session.closed
+    status = session.feature_status(feature.name)
+    assert not status.active and status.phase == "Failed"
+    assert status.error and "clock disappeared" in status.error
+
+
+@pytest.mark.parametrize("operation", ["replace", "stop"])
+def test_lifecycle_clock_failure_leaves_truthful_failed_status(operation):
+    clock = FailableClock()
+    adapter = Adapter(clock)
+    feature = Feature("lifecycle-clock")
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    session.start_feature(feature)
+    clock.fail = True
+
+    with pytest.raises(OSError, match="clock disappeared"):
+        if operation == "replace":
+            session.start_feature(Feature(feature.name))
+        else:
+            session.stop_feature(feature.name)
+
+    assert session.closed
+    status = session.feature_status(feature.name)
+    assert not status.active and status.phase == "Failed"
+    assert status.error and "clock disappeared" in status.error
+    assert adapter.closed == 1
+
+
+def test_autostart_clock_failure_stops_worker_with_truthful_status():
+    clock = FailableClock()
+    ready_entered = threading.Event()
+    release_ready = threading.Event()
+    adapter_closed = threading.Event()
+
+    class BlockingReadyAdapter(Adapter):
+        def ready(self):
+            ready_entered.set()
+            assert release_ready.wait(1)
+            return True
+
+        def close(self):
+            super().close()
+            adapter_closed.set()
+
+    adapter = BlockingReadyAdapter(clock)
+    feature = Feature("worker-clock")
+    session = ClientSession(adapter, clock=clock)
+    session.start_feature(feature)
+    assert ready_entered.wait(1)
+    clock.fail = True
+    release_ready.set()
+    assert adapter_closed.wait(1)
+    worker = runtime.status(session._runtime_name)
+    assert worker is not None
+    worker["thread"].join(1)
+
+    assert session.closed and not session.running
+    status = session.feature_status(feature.name)
+    assert not status.active and status.phase == "Failed"
+    assert status.error and "clock disappeared" in status.error
+
+
+@pytest.mark.parametrize("operation", ["replace", "stop", "close", "tick"])
+def test_recorder_lifecycle_reentry_is_rejected_before_mutation(operation):
+    clock = Clock()
+    adapter = Adapter(clock)
+
+    class Recorder:
+        session = None
+
+        def __init__(self):
+            self.error = None
+
+        def record(self, event):
+            if event.kind != "result" or not event.data["deliver"]:
+                return
+            try:
+                if operation == "replace":
+                    self.session.start_feature(Feature("recorder-guard"))
+                elif operation == "stop":
+                    self.session.stop_feature("recorder-guard")
+                elif operation == "close":
+                    self.session.close()
+                else:
+                    self.session.tick_once()
+            except RuntimeError as exc:
+                self.error = exc
+
+    recorder = Recorder()
+    feature = Feature(
+        "recorder-guard", (),
+        (Step((Request("press", Action(ActionKind.PRESS, key="F2")),)),),
+    )
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    recorder.session = session
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert recorder.error is not None
+    assert "observer-only" in str(recorder.error)
+    assert feature.results[-1].state is ResultState.EXECUTED
+    assert session.is_active(feature.name)
+    assert not session.closed
+    session.close()
+
+
+def test_uncaught_recorder_reentry_preserves_delivery_truth_then_fails_closed():
+    clock = Clock()
+    adapter = Adapter(clock)
+    order = []
+
+    class ResultFeature(Feature):
+        def on_result(self, result):
+            order.append("on_result")
+            super().on_result(result)
+
+    class Recorder:
+        session = None
+
+        def record(self, event):
+            if event.kind == "result" and event.data["deliver"]:
+                order.append("recorder")
+                self.session.stop_feature("recorder-fatal")
+
+    recorder = Recorder()
+    feature = ResultFeature(
+        "recorder-fatal", (),
+        (Step((Request("press", Action(ActionKind.PRESS, key="F3")),)),),
+    )
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    recorder.session = session
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert order == ["recorder", "on_result"]
+    result_events = [event for event in session.events() if event.kind == "result"]
+    assert len(result_events) == 1
+    assert result_events[0].data["deliver"] is True
+    assert feature.results == [result_events[0].data["result"]]
+    assert session.closed
+    status = session.feature_status(feature.name)
+    assert not status.active and status.phase == "Failed"
+    assert status.error and "observer-only" in status.error
+
+
+def test_recorder_cancellation_exception_is_latched_as_audit_failure():
+    clock = Clock()
+    adapter = Adapter(clock)
+
+    def recorder(event):
+        if event.kind == "dispatch":
+            raise runtime.CancelledError("recorder cancelled itself")
+
+    feature = Feature(
+        "recorder-cancel", (),
+        (Step((Request("press", Action(ActionKind.PRESS, key="F5")),)),),
+    )
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert adapter.actions == []
+    assert session.closed
+    assert len(feature.results) == 1
+    assert feature.results[0].final
+    assert feature.results[0].state is ResultState.FAILED
+    assert session.feature_status(feature.name).phase == "Failed"
+
+
+def test_record_frame_uses_same_observer_only_recorder_contract():
+    clock = Clock()
+
+    class FrameAdapter(Adapter):
+        def observe(self, sensors, token):
+            return ObservationBatch({HEALTH: Reading(50)}, clock.value, frame=object())
+
+    class Recorder:
+        session = None
+
+        def __init__(self):
+            self.error = None
+
+        def record(self, _event):
+            pass
+
+        def record_frame(self, _frame_id, _frame):
+            try:
+                self.session.stop_feature("frame-recorder")
+            except RuntimeError as exc:
+                self.error = exc
+
+    recorder = Recorder()
+    adapter = FrameAdapter(clock)
+    feature = Feature("frame-recorder", (HEALTH,))
+    session = ClientSession(
+        adapter, clock=clock, recorder=recorder, autostart=False
+    )
+    recorder.session = session
+    session.start_feature(feature)
+
+    session.tick_once()
+
+    assert recorder.error is not None
+    assert "observer-only" in str(recorder.error)
+    assert session.is_active(feature.name)
+    session.close()
