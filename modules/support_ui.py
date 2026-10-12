@@ -1,15 +1,16 @@
-"""Small Tk helpers for support modules; all methods run on the Tk thread."""
+"""Small Tk helpers for support-module configuration windows."""
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk
-from dataclasses import dataclass
 from typing import Callable, Mapping
 
-from conf.Hotkeys import Hotkey
+from conf.Constants import Hotkeys
 from conf.conf_manager import ConfManager
-
+from tibia_client.application import get_client
+from tibia_client.models import Sensor, SensorKind
 
 _windows = {}
 
@@ -50,8 +51,7 @@ class SupportWindow:
                 if old.winfo_exists():
                     old.deiconify()
                     old.lift()
-                    self.window = old
-                    self.owner = False
+                    self.window, self.owner = old, False
                     return
             except tk.TclError:
                 pass
@@ -80,30 +80,45 @@ class SupportWindow:
         if self.owner:
             self.status_var.set(text)
 
-    def report_worker(self, manager, interval: int = 250, on_error=None) -> None:
+    def report_feature(self, client, name: str, interval: int = 250, on_inactive=None) -> None:
+        """Render SDK status on the Tk thread and reconcile unexpected stops."""
         if not self.owner:
             return
-        info = manager.Status()
-        if info and info.get("error") is not None:
-            marker = (info.get("generation"), id(info["error"]))
+        try:
+            info = client.feature_status(name)
+        except Exception as exc:
+            info = None
+            marker = ("status", str(exc))
             if getattr(self, "_reported_error", None) != marker:
                 self._reported_error = marker
-                self.status(f"Error: {info['error']}")
-                if on_error is not None:
-                    on_error(info["error"])
-        elif info and info.get("phase"):
-            phase = info["phase"]
-            if getattr(self, "_reported_phase", None) != phase:
-                self._reported_phase = phase
-                self.status(phase)
+                self.status(f"Error: {exc}")
+                if on_inactive is not None:
+                    on_inactive(exc)
+        if info is not None:
+            error = getattr(info, "error", None)
+            marker = (getattr(info, "generation", 0), error)
+            if error and getattr(self, "_reported_error", None) != marker:
+                self._reported_error = marker
+                self.status(f"Error: {error}")
+                if on_inactive is not None:
+                    on_inactive(error)
+            elif getattr(info, "active", False):
+                phase = getattr(info, "phase", "Running") or "Running"
+                if getattr(self, "_reported_phase", None) != phase:
+                    self._reported_phase = phase
+                    self.status(phase)
+            elif getattr(self, "_expected_active", False):
+                self._expected_active = False
+                if on_inactive is not None:
+                    on_inactive(None)
         try:
-            self.window.after(interval, self.report_worker, manager, interval, on_error)
+            self.window.after(interval, self.report_feature, client, name, interval, on_inactive)
         except tk.TclError:
             pass
 
 
 def hotkeys() -> tuple[str, ...]:
-    return tuple(Hotkey.Hotkeys)
+    return tuple(Hotkeys)
 
 
 def set_enabled(widgets, enabled: bool) -> None:
@@ -128,7 +143,7 @@ class EquipmentSettings:
 
 
 class EquipmentSupport:
-    """Shared UI/runtime for ring and amulet replacement."""
+    """Shared configuration UI for ring and amulet replacement."""
 
     def _equipment_init(
         self,
@@ -144,11 +159,10 @@ class EquipmentSupport:
         empty_sensor,
         worker_name,
     ):
-        from core.ThreadManager import ThreadManager
-
-        self._loader, self._empty_sensor = loader, empty_sensor
+        del mouse_option, worker_name
+        self._loader, self._sensor_kind, self._feature_name = loader, empty_sensor, key
         self._positions, self._life_location = tuple(positions), tuple(life_location)
-        self._sender, self.ThreadManager = Hotkey(mouse_option), ThreadManager(worker_name)
+        self._client = get_client()
         self._enabled = False
         self.ui = SupportWindow(key, title, self.close)
         setattr(self, key, self.ui.window)
@@ -159,10 +173,8 @@ class EquipmentSupport:
         self.item = tk.StringVar(value=data.get(f"Name{prefix}", next(iter(items))))
         self.mode = tk.IntVar(value=int(data.get("RadioButton", 0)))
         self.key = tk.StringVar(value=data.get(f"Hotkey{prefix}", "F12"))
-        self.x, self.y = (
-            tk.StringVar(value=str(data.get("TextEntryX", "0"))),
-            tk.StringVar(value=str(data.get("TextEntryY", "0"))),
-        )
+        self.x = tk.StringVar(value=str(data.get("TextEntryX", "0")))
+        self.y = tk.StringVar(value=str(data.get("TextEntryY", "0")))
         self.condition = tk.BooleanVar(value=bool(data.get("LifeBellowThan", False)))
         self.threshold = tk.StringVar(value=str(data.get("BellowThan", 30)))
         ttk.Label(self.ui.body, text=item_label).grid(row=0, column=0, sticky="w")
@@ -209,25 +221,23 @@ class EquipmentSupport:
             self.condition_widget,
             self.threshold_widget,
         )
-        self.ui.report_worker(self.ThreadManager, on_error=self._equipment_failed)
+        self.ui.report_feature(self._client, key, on_inactive=self._equipment_failed)
 
-    def _equipment_failed(self, error):
+    def _equipment_failed(self, error=None):
         del error
         self._enabled = False
-        self.button.configure(text=f"{self.__class__.__name__}: OFF")
+        self.button.configure(text=f"{self._feature_name}: OFF")
         set_enabled(self._controls, True)
 
     def _equipment_snapshot(self):
-        from engine.support import EquipmentPolicy
-
         mode = integer(self.mode.get(), "mode", 0, 1)
         threshold = integer(self.threshold.get(), "life threshold")
         source = client_point(self.x.get(), self.y.get()) if mode == 1 else (0, 0)
         if mode == 1:
-            try:
-                width, height = self._sender.MainWindowSize()
-            except Exception as exc:
-                raise ValueError(f"could not validate client-local coordinates: {exc}") from exc
+            size = ConfManager.get("conf.json").get("capture_size")
+            if not isinstance(size, list) or len(size) != 2:
+                raise ValueError("configured client size is unavailable")
+            width, height = size
             if source[0] >= width or source[1] >= height:
                 raise ValueError(f"client-local X/Y must fit inside {width} × {height}")
         prefix = "Ring" if self._loader == "RingLoader" else "Amulet"
@@ -242,7 +252,6 @@ class EquipmentSupport:
         }
         if mode == 0 and not self.key.get().strip():
             raise ValueError("select a hotkey")
-        EquipmentPolicy(self.condition.get(), threshold)
         write_loader(self._loader, values)
         return EquipmentSettings(
             self.item.get(),
@@ -255,76 +264,51 @@ class EquipmentSupport:
             threshold,
         )
 
+    def _build_feature(self, settings):
+        from features.support import EquipmentFeature
+
+        slot = (settings.slot[0] + 16, settings.slot[1] + 16)
+        return EquipmentFeature(
+            self._feature_name,
+            Sensor(self._sensor_kind, settings.slot),
+            slot,
+            hotkey=settings.hotkey if settings.mode == 0 else None,
+            source=settings.source if settings.mode == 1 else None,
+            health_sensor=Sensor(SensorKind.HEALTH, settings.life_location)
+            if settings.require_below
+            else None,
+            health_threshold=settings.threshold if settings.require_below else None,
+        )
+
     def toggle(self):
         if self._enabled:
+            self._client.stop_feature(self._feature_name)
             self._enabled = False
-            self.ThreadManager.PauseThread()
-            self.button.configure(text=f"{self.__class__.__name__}: OFF")
+            self.ui._expected_active = False
+            self.button.configure(text=f"{self._feature_name}: OFF")
             set_enabled(self._controls, True)
             self.ui.status("Stopped")
             return
         try:
             settings = self._equipment_snapshot()
-        except ValueError as exc:
+            feature = self._build_feature(settings)
+            self._client.start_feature(feature)
+        except (ValueError, RuntimeError) as exc:
             self.ui.status(f"Error: {exc}")
             return
         self._enabled = True
+        self.ui._expected_active = True
         set_enabled(self._controls, False)
-        self.button.configure(text=f"{self.__class__.__name__}: ON")
+        self.button.configure(text=f"{self._feature_name}: ON")
         self.ui.status("Armed — focus game")
-        self.ThreadManager.NewThread(lambda: self._equipment_run(settings))
-
-    def _equipment_run(self, settings):
-        from conf.Constants import LifeColor, LifeColorFull
-        from core import HookWindow, runtime
-        from engine.ScanStages import ScanStages
-        from engine.support import Cooldown, EquipmentPolicy, arm_input
-
-        arm_input(self._sender)
-        policy, cooldown = (
-            EquipmentPolicy(settings.require_below, settings.threshold),
-            Cooldown(0.5),
-        )
-        life_scan = ScanStages(f"Life from {self.__class__.__name__}")
-        while True:
-            runtime.checkpoint()
-            try:
-                with HookWindow.frame_scope():
-                    empty = self._empty_sensor(settings.slot)
-                    life = (
-                        life_scan.ScanStages(settings.life_location, LifeColor, LifeColorFull)
-                        if settings.require_below
-                        else None
-                    )
-            except runtime.CancelledError:
-                raise
-            except Exception as exc:
-                raise RuntimeError(
-                    f"equipment sensor failed; check slot/life coordinates: {exc}"
-                ) from exc
-            if settings.require_below and life is None:
-                raise RuntimeError("life sensor returned no readable bar; check its coordinates")
-            if policy.should_equip(empty, life) and cooldown.ready():
-                with runtime.input_transaction(f"equip {settings.item}"):
-                    if settings.mode == 0:
-                        self._sender.Press(settings.hotkey)
-                    else:
-                        before = self._sender.Position()
-                        self._sender.DragTo(
-                            settings.source, (settings.slot[0] + 16, settings.slot[1] + 16)
-                        )
-                        try:
-                            self._sender.MoveTo(before[0], before[1])
-                        except Exception:
-                            pass
-                cooldown.mark()
-            runtime.wait(0.1)
 
     def close(self):
         self._enabled = False
-        self.ThreadManager.KillThread()
-        if getattr(self, "ui", None) is not None and self.ui.owner:
-            try:
-                self._equipment_snapshot()
-            except Exception:
-                pass
+        try:
+            self._client.stop_feature(self._feature_name)
+        finally:
+            if getattr(self, "ui", None) is not None and self.ui.owner:
+                try:
+                    self._equipment_snapshot()
+                except Exception:
+                    pass

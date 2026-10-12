@@ -1,8 +1,6 @@
 from conf.Constants import Amulets
-from engine.ScanAmulet import ScanAmulet
+from tibia_client.models import SensorKind
 from modules.support_ui import EquipmentSupport
-
-EnabledAutoSSA = False
 
 
 class AutoSSA(EquipmentSupport):
@@ -17,6 +15,6 @@ class AutoSSA(EquipmentSupport):
             positions=AmuletPositions,
             life_location=HealthLocation,
             mouse_option=MOUSE_OPTION,
-            empty_sensor=ScanAmulet,
+            empty_sensor=SensorKind.AMULET_EMPTY,
             worker_name="ThreadAutoSSA",
         )

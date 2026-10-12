@@ -52,24 +52,37 @@ def calibrate_profile(
     template: Mapping[str, Any], frame_size: tuple[int, int], *, getters=None
 ) -> dict[str, Any]:
     """Build a complete profile in memory and validate it before any write."""
+    profile = deepcopy(template)
+    capture = None
     if getters is None:
         from core import Getters as getters
         from core.HookWindow import frame_scope
-        scope = frame_scope
-    else:
-        scope = nullcontext
+        from tibia_client.capture import CaptureProcess
 
-    profile = deepcopy(template)
-    with scope():
-        health = getters.GetHealthPosition()
-        mana = getters.GetManaPosition()
-        battle = getters.GetBattlePosition()
-        stats = getters.GetStatsPosition()
-        map_box = getters.GetMapPosition()
-        player_result = getters.GetPlayerPosition()
-        player = player_result[:2]
-        game_box = player_result[2:]
-        sqms = getters.SetSQMs(player, game_box)
+        capture = CaptureProcess(capture_size=frame_size)
+        try:
+            frame = capture.capture()
+        except Exception:
+            capture.close()
+            raise
+        scope = frame_scope(frame)
+    else:
+        scope = nullcontext()
+
+    try:
+        with scope:
+            health = getters.GetHealthPosition()
+            mana = getters.GetManaPosition()
+            battle = getters.GetBattlePosition()
+            stats = getters.GetStatsPosition()
+            map_box = getters.GetMapPosition()
+            player_result = getters.GetPlayerPosition()
+            player = player_result[:2]
+            game_box = player_result[2:]
+            sqms = getters.SetSQMs(player, game_box)
+    finally:
+        if capture is not None:
+            capture.close()
 
     _set_point(profile, "LifePosition", health)
     _set_point(profile, "ManaPosition", mana)

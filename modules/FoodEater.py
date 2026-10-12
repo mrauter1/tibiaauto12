@@ -1,28 +1,20 @@
 from __future__ import annotations
-from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk
-from conf.Hotkeys import Hotkey
-from core import runtime
-from core.ThreadManager import ThreadManager
-from engine.support import Cooldown, arm_input
+from tibia_client.application import get_client
+from tibia_client.models import Sensor, SensorKind
+from features.support import FoodFeature
 from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
-
-
-@dataclass(frozen=True)
-class _Settings:
-    positions: tuple[int, int, int, int]
-    hotkey: str
 
 
 class FoodEater:
     enabled = False
 
     def __init__(self, root, stats_positions, MOUSE_OPTION):
-        del root
+        del root, MOUSE_OPTION
         self._positions = tuple(stats_positions)
-        self._sender = Hotkey(MOUSE_OPTION)
-        self.ThreadManager = ThreadManager("ThreadFoodEater")
+        self._client = get_client()
+        self.enabled = False
         self.ui = SupportWindow("FoodEater", "Module: Food Eater", self.close)
         self.window = self.ui
         if not self.ui.owner:
@@ -40,9 +32,9 @@ class FoodEater:
         self.button = ttk.Button(self.ui.body, text="FoodEater: OFF", command=self.toggle)
         self.button.grid(row=2, column=0, columnspan=2, sticky="ew", pady=5)
         self.ui.status_label.grid(row=3, column=0, columnspan=2, sticky="w")
-        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
+        self.ui.report_feature(self._client, "FoodEater", on_inactive=self._feature_stopped)
 
-    def _worker_failed(self, error):
+    def _feature_stopped(self, error=None):
         del error
         self.enabled = False
         self.button.configure(text="FoodEater: OFF")
@@ -50,8 +42,9 @@ class FoodEater:
 
     def toggle(self):
         if self.enabled:
+            self._client.stop_feature("FoodEater")
             self.enabled = False
-            self.ThreadManager.PauseThread()
+            self.ui._expected_active = False
             set_enabled((self.key_widget,), True)
             self.button.configure(text="FoodEater: OFF")
             self.ui.status("Stopped")
@@ -59,42 +52,29 @@ class FoodEater:
         if not self.key.get().strip():
             self.ui.status("Error: select a hotkey")
             return
-        settings = _Settings(self._positions, self.key.get())
-        write_loader("FoodEaterLoader", {"HotkeyFood": settings.hotkey})
+        try:
+            write_loader("FoodEaterLoader", {"HotkeyFood": self.key.get()})
+            self._client.start_feature(
+                FoodFeature(Sensor(SensorKind.HUNGRY, self._positions), self.key.get())
+            )
+        except (ValueError, RuntimeError) as exc:
+            self.ui.status(f"Error: {exc}")
+            return
         self.enabled = True
+        self.ui._expected_active = True
         set_enabled((self.key_widget,), False)
         self.button.configure(text="FoodEater: ON")
         self.ui.status("Armed — focus game")
-        self.ThreadManager.NewThread(lambda: self._run(settings))
-
-    def _run(self, settings):
-        from core import HookWindow
-        from engine.ScanFood import scan_food
-
-        arm_input(self._sender)
-        cooldown = Cooldown(0.5)
-        while True:
-            runtime.checkpoint()
-            try:
-                with HookWindow.frame_scope():
-                    hungry = scan_food(settings.positions)
-            except runtime.CancelledError:
-                raise
-            except Exception as exc:
-                raise RuntimeError(f"food sensor failed; check stats coordinates: {exc}") from exc
-            if hungry and cooldown.ready():
-                with runtime.input_transaction("eat food"):
-                    self._sender.Press(settings.hotkey)
-                cooldown.mark()
-            runtime.wait(0.2)
 
     def close(self):
         self.enabled = False
-        self.ThreadManager.KillThread()
-        if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
-            try:
-                write_loader("FoodEaterLoader", {"HotkeyFood": self.key.get()})
-            except Exception:
-                pass
+        try:
+            self._client.stop_feature("FoodEater")
+        finally:
+            if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
+                try:
+                    write_loader("FoodEaterLoader", {"HotkeyFood": self.key.get()})
+                except Exception:
+                    pass
 
     destroy = close

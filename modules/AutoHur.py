@@ -1,27 +1,18 @@
 from __future__ import annotations
-from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk
-from conf.Hotkeys import Hotkey
-from core import runtime
-from core.ThreadManager import ThreadManager
-from engine.support import Cooldown, arm_input
+from tibia_client.application import get_client
+from tibia_client.models import Sensor, SensorKind
+from features.support import HasteFeature
 from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
-
-EnabledAutoHur = False
-
-
-@dataclass(frozen=True)
-class _Settings:
-    positions: tuple[int, int, int, int]
-    hotkey: str
 
 
 class AutoHur:
     def __init__(self, StatsPositions, MOUSE_OPTION):
+        del MOUSE_OPTION
         self._positions = tuple(StatsPositions)
-        self._sender = Hotkey(MOUSE_OPTION)
-        self.ThreadManager = ThreadManager("ThreadAutoHur")
+        self._client = get_client()
+        self._enabled = False
         self.ui = SupportWindow("AutoHur", "Module: Auto Hur", self.close)
         self.AutoHur = self.ui.window
         if not self.ui.owner:
@@ -42,20 +33,19 @@ class AutoHur:
         self.button = ttk.Button(self.ui.body, text="AutoHur: OFF", command=self.toggle)
         self.button.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5)
         self.ui.status_label.grid(row=4, column=0, columnspan=2, sticky="w")
-        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
+        self.ui.report_feature(self._client, "AutoHur", on_inactive=self._feature_stopped)
 
-    def _worker_failed(self, error):
+    def _feature_stopped(self, error=None):
         del error
-        global EnabledAutoHur
-        EnabledAutoHur = False
+        self._enabled = False
         self.button.configure(text="AutoHur: OFF")
         set_enabled((self.key_widget,), True)
 
     def toggle(self):
-        global EnabledAutoHur
-        if EnabledAutoHur:
-            EnabledAutoHur = False
-            self.ThreadManager.PauseThread()
+        if self._enabled:
+            self._client.stop_feature("AutoHur")
+            self._enabled = False
+            self.ui._expected_active = False
             set_enabled((self.key_widget,), True)
             self.button.configure(text="AutoHur: OFF")
             self.ui.status("Stopped")
@@ -63,41 +53,27 @@ class AutoHur:
         if not self.key.get().strip():
             self.ui.status("Error: select a hotkey")
             return
-        settings = _Settings(self._positions, self.key.get())
-        write_loader("HurLoader", {"HotkeyHur": settings.hotkey})
-        EnabledAutoHur = True
+        try:
+            write_loader("HurLoader", {"HotkeyHur": self.key.get()})
+            self._client.start_feature(
+                HasteFeature(Sensor(SensorKind.HASTED, self._positions), self.key.get())
+            )
+        except (ValueError, RuntimeError) as exc:
+            self.ui.status(f"Error: {exc}")
+            return
+        self._enabled = True
+        self.ui._expected_active = True
         set_enabled((self.key_widget,), False)
         self.button.configure(text="AutoHur: ON")
         self.ui.status("Armed — focus game")
-        self.ThreadManager.NewThread(lambda: self._run(settings))
-
-    def _run(self, settings):
-        from core import HookWindow
-        from engine.ScanHur import ScanHur
-
-        arm_input(self._sender)
-        cooldown = Cooldown(0.6)
-        while True:
-            runtime.checkpoint()
-            try:
-                with HookWindow.frame_scope():
-                    needed = ScanHur(settings.positions)
-            except runtime.CancelledError:
-                raise
-            except Exception as exc:
-                raise RuntimeError(f"haste sensor failed; check stats coordinates: {exc}") from exc
-            if needed and cooldown.ready():
-                with runtime.input_transaction("auto haste"):
-                    self._sender.Press(settings.hotkey)
-                cooldown.mark()
-            runtime.wait(0.2)
 
     def close(self):
-        global EnabledAutoHur
-        EnabledAutoHur = False
-        self.ThreadManager.KillThread()
-        if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
-            try:
-                write_loader("HurLoader", {"HotkeyHur": self.key.get()})
-            except Exception:
-                pass
+        self._enabled = False
+        try:
+            self._client.stop_feature("AutoHur")
+        finally:
+            if getattr(self, "ui", None) is not None and self.ui.owner and self.key.get().strip():
+                try:
+                    write_loader("HurLoader", {"HotkeyHur": self.key.get()})
+                except Exception:
+                    pass

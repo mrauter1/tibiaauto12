@@ -1,7 +1,9 @@
 import importlib.util
+import ast
 from pathlib import Path
 import sys
 import pytest
+from tibia_client.models import FeatureStatus
 
 SPEC = importlib.util.spec_from_file_location(
     "support_ui_under_test", Path(__file__).parents[1] / "modules" / "support_ui.py"
@@ -43,41 +45,67 @@ def test_write_loader_uses_atomic_update_when_available(monkeypatch):
     assert calls == [("GUILoader.json", {"Loaders": {"X": {"old": 1, "new": 2}}})]
 
 
-def test_worker_error_updates_status_and_resets_owner_once():
+def test_feature_error_updates_status_and_resets_owner_once():
     calls = []
 
     class Window:
         def after(self, *args):
             calls.append(("after", args))
 
-    class Manager:
-        def Status(self):
-            return {"generation": 3, "error": RuntimeError("capture unavailable")}
+    class Client:
+        def feature_status(self, name):
+            assert name == "AutoHeal"
+            return FeatureStatus(name, 3, False, "Stopped", "capture unavailable")
 
     ui = object.__new__(support_ui.SupportWindow)
     ui.owner, ui.window = True, Window()
     ui.status = lambda value: calls.append(("status", value))
-    ui.report_worker(Manager(), on_error=lambda error: calls.append(("reset", str(error))))
+    ui.report_feature(
+        Client(), "AutoHeal", on_inactive=lambda error: calls.append(("reset", str(error)))
+    )
     assert ("status", "Error: capture unavailable") in calls
     assert ("reset", "capture unavailable") in calls
 
 
-def test_worker_phase_is_rendered_on_tk_poll():
+def test_feature_phase_is_rendered_on_tk_poll():
     calls = []
 
     class Window:
         def after(self, *args):
             calls.append(("after", args))
 
-    class Manager:
-        def Status(self):
-            return {"generation": 2, "phase": "Waiting for game focus", "error": None}
+    class Client:
+        def feature_status(self, name):
+            return FeatureStatus(name, 2, True, "Waiting for game focus")
 
     ui = object.__new__(support_ui.SupportWindow)
     ui.owner, ui.window = True, Window()
     ui.status = lambda value: calls.append(("status", value))
-    ui.report_worker(Manager())
+    ui.report_feature(Client(), "AutoHeal")
     assert ("status", "Waiting for game focus") in calls
+
+
+def test_feature_external_stop_reenables_controls_once():
+    calls = []
+
+    class Window:
+        def after(self, *args):
+            calls.append(("after", args))
+
+    class Client:
+        def feature_status(self, name):
+            return FeatureStatus(name, 4, False, "Stopped")
+
+    ui = object.__new__(support_ui.SupportWindow)
+    ui.owner, ui.window, ui._expected_active = True, Window(), True
+    ui.status = lambda value: calls.append(("status", value))
+    ui.report_feature(
+        Client(), "AutoHeal", on_inactive=lambda error: calls.append(("reset", error))
+    )
+    ui.report_feature(
+        Client(), "AutoHeal", on_inactive=lambda error: calls.append(("reset", error))
+    )
+    assert calls.count(("reset", None)) == 1
 
 
 def test_close_destroys_window_even_when_cleanup_fails():
@@ -93,3 +121,51 @@ def test_close_destroys_window_even_when_cleanup_fails():
     with pytest.raises(OSError, match="disk failed"):
         ui.close()
     assert ui.window.destroyed
+
+
+def test_active_ui_modules_do_not_import_native_execution_layers():
+    modules = (
+        "AutoHeal.py",
+        "AutoMana.py",
+        "AutoHur.py",
+        "AutoRing.py",
+        "AutoSSA.py",
+        "FoodEater.py",
+        "TimedSpells.py",
+        "CaveBot.py",
+        "support_ui.py",
+        "Root.py",
+    )
+    forbidden = {
+        "core.ThreadManager",
+        "core.runtime",
+        "core.HookWindow",
+        "core.perception",
+        "conf.Hotkeys",
+        "engine.ScanStages",
+        "engine.CaveBot.Scanners",
+        "keyboard",
+        "pyautogui",
+        "win32api",
+        "win32gui",
+    }
+    root = Path(__file__).parents[1] / "modules"
+    for filename in modules:
+        tree = ast.parse((root / filename).read_text(encoding="utf-8"))
+        imports = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        }
+        imports.update(
+            f"{node.module}.{alias.name}"
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module
+            for alias in node.names
+        )
+        assert not any(
+            imported == prefix or imported.startswith(prefix + ".")
+            for imported in imports
+            for prefix in forbidden
+        ), filename

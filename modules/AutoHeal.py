@@ -1,14 +1,10 @@
 from __future__ import annotations
-
-from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk
-
-from conf.Constants import LifeColor, LifeColorFull
-from conf.Hotkeys import Hotkey
-from core import runtime
-from core.ThreadManager import ThreadManager
-from engine.support import Cooldown, Threshold, arm_input, choose_threshold
+from tibia_client.application import get_client
+from tibia_client.models import Sensor, SensorKind
+from features.support import HealFeature
+from engine.support import Threshold
 from modules.support_ui import (
     SupportWindow,
     hotkeys,
@@ -18,20 +14,12 @@ from modules.support_ui import (
     write_loader,
 )
 
-EnabledAutoHeal = False
-Life = None  # compatibility only; other modules obtain a fresh sample
-
-
-@dataclass(frozen=True)
-class _Settings:
-    location: tuple[int, int]
-    rules: tuple[Threshold, ...]
-
 
 class AutoHeal:
     def __init__(self, HealthLocation, MOUSE_OPTION):
-        self.ThreadManager = ThreadManager("ThreadAutoHeal")
-        self._sender, self._location = Hotkey(MOUSE_OPTION), tuple(HealthLocation)
+        del MOUSE_OPTION
+        self._client, self._location = get_client(), tuple(HealthLocation)
+        self._enabled = False
         self.ui = SupportWindow("AutoHeal", "Module: Auto Heal", self.close)
         self.AutoHeal = self.ui.window
         if not self.ui.owner:
@@ -62,12 +50,11 @@ class AutoHeal:
         self.button = ttk.Button(self.ui.body, text="AutoHealing: OFF", command=self.toggle)
         self.button.grid(row=5, column=0, columnspan=4, sticky="ew", pady=5)
         self.ui.status_label.grid(row=6, column=0, columnspan=4, sticky="w")
-        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
+        self.ui.report_feature(self._client, "AutoHeal", on_inactive=self._feature_stopped)
 
-    def _worker_failed(self, error):
+    def _feature_stopped(self, error=None):
         del error
-        global EnabledAutoHeal
-        EnabledAutoHeal = False
+        self._enabled = False
         self.button.configure(text="AutoHealing: OFF")
         set_enabled((w for v in self._vars for w in v[4]), True)
 
@@ -88,64 +75,38 @@ class AutoHeal:
                 }
             )
         write_loader("HealthLoader", values)
-        return _Settings(self._location, rules)
+        return rules
 
     def toggle(self):
-        global EnabledAutoHeal
-        if EnabledAutoHeal:
-            EnabledAutoHeal = False
-            self.ThreadManager.PauseThread()
+        if self._enabled:
+            self._client.stop_feature("AutoHeal")
+            self._enabled = False
+            self.ui._expected_active = False
             self.button.configure(text="AutoHealing: OFF")
             set_enabled((w for v in self._vars for w in v[4]), True)
             self.ui.status("Stopped")
             return
         try:
-            settings = self._snapshot()
-        except ValueError as exc:
+            rules = self._snapshot()
+            self._client.start_feature(
+                HealFeature(Sensor(SensorKind.HEALTH, self._location), rules)
+            )
+        except (ValueError, RuntimeError) as exc:
             self.ui.status(f"Error: {exc}")
             return
-        EnabledAutoHeal = True
+        self._enabled = True
+        self.ui._expected_active = True
         set_enabled((w for v in self._vars for w in v[4]), False)
         self.button.configure(text="AutoHealing: ON")
         self.ui.status("Armed — focus game")
-        self.ThreadManager.NewThread(lambda: self._run(settings))
-
-    def _run(self, settings):
-        global Life
-        from engine.ScanStages import ScanStages
-        from core import HookWindow
-
-        arm_input(self._sender)
-        scan, cooldown = ScanStages("Life"), Cooldown(0.15)
-        while True:
-            runtime.checkpoint()
-            try:
-                with HookWindow.frame_scope():
-                    value = scan.ScanStages(settings.location, LifeColor, LifeColorFull)
-            except runtime.CancelledError:
-                raise
-            except Exception as exc:
-                Life = None
-                raise RuntimeError(
-                    f"life sensor failed; check the configured life bar: {exc}"
-                ) from exc
-            if value is None:
-                Life = None
-                raise RuntimeError("life sensor returned no readable bar; check its coordinates")
-            Life = value
-            rule = choose_threshold(value, settings.rules)
-            if rule is not None and cooldown.ready():
-                with runtime.input_transaction("auto heal"):
-                    self._sender.Press(rule.hotkey)
-                cooldown.mark()
-            runtime.wait(0.05)
 
     def close(self):
-        global EnabledAutoHeal
-        EnabledAutoHeal = False
-        self.ThreadManager.KillThread()
-        if getattr(self, "ui", None) is not None and self.ui.owner:
-            try:
-                self._snapshot()
-            except Exception:
-                pass
+        self._enabled = False
+        try:
+            self._client.stop_feature("AutoHeal")
+        finally:
+            if getattr(self, "ui", None) is not None and self.ui.owner:
+                try:
+                    self._snapshot()
+                except Exception:
+                    pass

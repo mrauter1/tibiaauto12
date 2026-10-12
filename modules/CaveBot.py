@@ -10,9 +10,7 @@ from conf.Constants import Hotkeys, Priority
 from conf.MarksConf import NameMarks
 from core.GUI import GUI
 from core.GUISetter import GUISetter
-from core.ThreadManager import ThreadManager
 from core.paths import project_path
-from engine.CaveBot.CaveBotController import CaveBotController
 from engine.CaveBot.routes import (
     Route,
     RouteError,
@@ -26,10 +24,11 @@ from engine.CaveBot.routes import (
     save_checkpoint,
     save_route,
 )
-from engine.CaveBot.session import SessionConfig, TargetSpec
+from features.cavebot import CaveBot as CaveBotFeature, SessionConfig, TargetSpec
+from tibia_client.application import get_client, poll_hotkey
+from modules.support_ui import set_enabled, write_loader
 
 
-EnabledCaveBot = False
 _ACTIVE_CAVEBOT = None
 AVAILABLE_MONSTERS = sorted(
     path.stem for path in Path(project_path(Path("images") / "Targets" / "Names")).glob("*.png")
@@ -58,16 +57,15 @@ class CaveBot:
         self.CaveBot.DefaultWindow("CaveBot", [830, 634], [1.2, 2.29])
         self.window = self.CaveBot.windowID
         self.Setter = GUISetter("CaveBotLoader")
-        self.ThreadManager = ThreadManager("ThreadCaveBot")
+        self._client = get_client()
         self.map_positions = tuple(MapPositions)
         self.battle_positions = tuple(BattlePositions)
         self.sqms = tuple(SQMs)
         self.mouse_option = MOUSE_OPTION
-        self._controller = None
-        self._worker_done = True
         self._worker_message = "Idle"
         self._hotkey_down = False
         self._closed = False
+        self._enabled = False
         self._route = Route("untitled", ())
         self._editor_index = 0
 
@@ -96,12 +94,16 @@ class CaveBot:
         self.priorities = []
         for number, suffix in enumerate(("One", "Two", "Three", "Four"), start=1):
             enabled, initial_enabled = variables.Bool("Attack" + suffix)
-            monster, initial_monster = variables.Str("SelectedMonster" + ("" if number == 1 else str(number)))
+            monster, initial_monster = variables.Str(
+                "SelectedMonster" + ("" if number == 1 else str(number))
+            )
             if monster.get() not in AVAILABLE_MONSTERS and AVAILABLE_MONSTERS:
                 monster.set(AVAILABLE_MONSTERS[0])
             priority, initial_priority = variables.Int("Priority" + suffix)
             self.attack_enabled.append((enabled, initial_enabled, "Attack" + suffix))
-            self.monster_names.append((monster, initial_monster, "SelectedMonster" + ("" if number == 1 else str(number))))
+            self.monster_names.append(
+                (monster, initial_monster, "SelectedMonster" + ("" if number == 1 else str(number)))
+            )
             self.priorities.append((priority, initial_priority, "Priority" + suffix))
 
     def _build_ui(self):
@@ -109,21 +111,34 @@ class CaveBot:
         add_label("Targets (lower number attacks first)", [20, 12])
         for row in range(4):
             y = 42 + row * 38
-            self.CaveBot.addCheck(self.attack_enabled[row][0], [20, y], self.attack_enabled[row][1],
-                                  "Target {}".format(row + 1))
+            self.CaveBot.addCheck(
+                self.attack_enabled[row][0],
+                [20, y],
+                self.attack_enabled[row][1],
+                "Target {}".format(row + 1),
+            )
             self.CaveBot.addOption(self.monster_names[row][0], AVAILABLE_MONSTERS, [135, y - 5], 16)
             self.CaveBot.addOption(self.priorities[row][0], Priority, [300, y - 5], 3)
 
-        self.CaveBot.addCheck(self.follow, [20, 205], self.initial_follow, "Enable follow while fighting")
-        self.CaveBot.addCheck(self.loot_enabled, [20, 230], True,
-                              "Loot on stable target-count decrease (heuristic)")
-        add_label("Attack stance, player safety, range and unreachable rules: unavailable until verified", [20, 265])
+        self.CaveBot.addCheck(
+            self.follow, [20, 205], self.initial_follow, "Enable follow while fighting"
+        )
+        self.CaveBot.addCheck(
+            self.loot_enabled, [20, 230], True, "Loot on stable target-count decrease (heuristic)"
+        )
+        add_label(
+            "Attack stance, player safety, range and unreachable rules: unavailable until verified",
+            [20, 265],
+        )
         add_label("Depot, seller, banker and loot sorting: unavailable in CaveBot", [20, 290])
 
-        self.CaveBot.addCheck(self.hotkey_pause, [20, 330], self.initial_hotkey_pause,
-                              "Enable pause hotkey")
+        self.CaveBot.addCheck(
+            self.hotkey_pause, [20, 330], self.initial_hotkey_pause, "Enable pause hotkey"
+        )
         self.CaveBot.addOption(self.hotkey_name, Hotkeys, [190, 325], 10)
-        self.CaveBot.addCheck(self.walk_enabled, [20, 370], self.initial_walk_enabled, "Enable route walking")
+        self.CaveBot.addCheck(
+            self.walk_enabled, [20, 370], self.initial_walk_enabled, "Enable route walking"
+        )
         add_label("Stand after arrival (seconds):", [20, 405])
         self.CaveBot.addEntry([210, 405], self.stand, 5)
 
@@ -142,8 +157,11 @@ class CaveBot:
         self.route_label = add_label("Empty route", [430, 225])
         self.route_detail = add_label("", [430, 250])
 
+        self._config_controls = tuple(self.window.winfo_children())
         self.status_label = add_label("Idle", [20, 490])
-        self.toggle_button = self.CaveBot.addButton("CaveBot: OFF", self._toggle, [200, 40], [20, 535])
+        self.toggle_button = self.CaveBot.addButton(
+            "CaveBot: OFF", self._toggle, [200, 40], [20, 535]
+        )
         self.CaveBot.addButton("Close", self._close, [100, 32], [700, 575])
 
     def _set_message(self, message):
@@ -161,6 +179,7 @@ class CaveBot:
         path = route_file(name)
         try:
             import json
+
             with path.open("r", encoding="utf-8") as stream:
                 return json.load(stream)
         except Exception:
@@ -200,7 +219,9 @@ class CaveBot:
 
     def _add_waypoint(self):
         try:
-            waypoint = Waypoint("waypoint-" + uuid.uuid4().hex[:12], self.mark_name.get(), WaypointAction.WALK)
+            waypoint = Waypoint(
+                "waypoint-" + uuid.uuid4().hex[:12], self.mark_name.get(), WaypointAction.WALK
+            )
             entries = list(self._route.waypoints)
             insert_at = self._editor_index + 1 if entries else 0
             entries.insert(insert_at, waypoint)
@@ -236,8 +257,12 @@ class CaveBot:
             self.route_detail.configure(text="Walk is disabled until a waypoint exists")
             return
         waypoint = self._route.waypoints[self._editor_index]
-        self.route_label.configure(text="Waypoint {} of {}".format(self._editor_index + 1, len(self._route.waypoints)))
-        self.route_detail.configure(text="{} · {} · {}".format(waypoint.id, waypoint.mark, waypoint.action.value))
+        self.route_label.configure(
+            text="Waypoint {} of {}".format(self._editor_index + 1, len(self._route.waypoints))
+        )
+        self.route_detail.configure(
+            text="{} · {} · {}".format(waypoint.id, waypoint.mark, waypoint.action.value)
+        )
 
     def _snapshot(self):
         route_name = self._route_name()
@@ -247,7 +272,9 @@ class CaveBot:
         if not self.walk_enabled.get():
             raise RouteError("route walking must be enabled")
         targets = []
-        for enabled, monster, priority in zip(self.attack_enabled, self.monster_names, self.priorities):
+        for enabled, monster, priority in zip(
+            self.attack_enabled, self.monster_names, self.priorities
+        ):
             if enabled[0].get():
                 name = monster[0].get()
                 asset = Path(project_path(Path("images") / "Targets" / "Names" / (name + ".png")))
@@ -268,70 +295,41 @@ class CaveBot:
         }
 
     def _toggle(self):
-        global EnabledCaveBot
-        if EnabledCaveBot:
-            EnabledCaveBot = False
-            self.ThreadManager.PauseThread()
-            self._set_message("Stopping CaveBot…")
+        if self._enabled:
+            self._client.stop_feature("CaveBot")
+            self._enabled = False
+            self._set_message("Stopped")
             self._update_controls()
-            return
-        if not self._worker_done:
-            self._set_message("The previous CaveBot session is still stopping")
             return
         try:
             snapshot = self._snapshot()
-        except Exception as exc:
-            self._set_message("Cannot start: {}".format(exc))
-            return
-
-        self._worker_done = False
-        self._worker_message = "Starting"
-        EnabledCaveBot = True
-
-        def worker():
-            try:
-                from core.runtime import current_token
-                token = current_token()
-                controller = CaveBotController(
-                    self.mouse_option,
-                    snapshot["route"].name,
-                    "right",
-                    snapshot["stand"],
-                    True,
-                    snapshot["loot"],
-                    False,
-                    self.map_positions,
-                    self.battle_positions,
-                    self.sqms,
-                )
-                controller.follow_enabled = snapshot["follow"]
-                self._controller = controller
-                controller.actions.hotkey.wait_until_ready(timeout=30)
-                config = SessionConfig(
+            points = tuple(zip(self.sqms[::2], self.sqms[1::2]))
+            feature = CaveBotFeature(
+                snapshot["route"],
+                snapshot["targets"],
+                config=SessionConfig(
                     stand_seconds=snapshot["stand"],
                     follow=snapshot["follow"],
                     loot=snapshot["loot"],
-                )
-                controller.create_session(
-                    snapshot["route"],
-                    snapshot["targets"],
-                    token,
-                    config=config,
-                    start_index=snapshot["start_index"],
-                ).run()
-                self._worker_message = controller.session.status.reason
-            except BaseException as exc:
-                self._worker_message = "CaveBot stopped: {}".format(exc)
-            finally:
-                self._worker_done = True
-
-        self.ThreadManager.NewThread(worker)
+                ),
+                start_index=snapshot["start_index"],
+                map_region=self.map_positions,
+                battle_region=self.battle_positions,
+                loot_points=points,
+            )
+            self._client.start_feature(feature)
+        except Exception as exc:
+            self._set_message("Cannot start: {}".format(exc))
+            return
+        self._enabled = True
+        self._set_message("Armed — focus game")
         self._update_controls()
 
     def _update_controls(self):
         if self._closed:
             return
-        if EnabledCaveBot:
+        set_enabled(self._config_controls, not self._enabled)
+        if self._enabled:
             self.toggle_button.configure(text="CaveBot: ON", relief=tk.SUNKEN)
         else:
             self.toggle_button.configure(text="CaveBot: OFF", relief=tk.RAISED)
@@ -340,31 +338,35 @@ class CaveBot:
         pressed = False
         if self.hotkey_pause.get():
             try:
-                import keyboard
-                pressed = keyboard.is_pressed(self.hotkey_name.get().lower())
-            except Exception:
-                pressed = False
+                pressed = poll_hotkey(self.hotkey_name.get())
+            except Exception as exc:
+                self._set_message("Pause hotkey unavailable: {}".format(exc))
         if pressed and not self._hotkey_down:
             self._toggle()
         self._hotkey_down = pressed
 
     def _poll(self):
-        global EnabledCaveBot
         if self._closed:
             return
         self._poll_hotkey()
-        if self._controller is not None and self._controller.session is not None and not self._worker_done:
-            status = self._controller.session.status
-            self.status_label.configure(text="{}: {} (waypoint {})".format(
-                status.state.value, status.reason, status.waypoint_index + 1
-            ))
-        elif not self._worker_done:
-            worker_status = self.ThreadManager.Status() or {}
-            self.status_label.configure(text=worker_status.get("phase") or "Starting CaveBot")
-        elif self._worker_done and EnabledCaveBot:
-            EnabledCaveBot = False
-            self._set_message(self._worker_message)
-            self._update_controls()
+        try:
+            status = self._client.feature_status("CaveBot")
+            if status.error:
+                self._enabled = False
+                self._set_message("CaveBot stopped: {}".format(status.error))
+                self._update_controls()
+            elif status.active:
+                self._enabled = True
+                self.status_label.configure(text=status.phase or "Running")
+            elif self._enabled:
+                self._enabled = False
+                self._set_message(status.phase or "Stopped")
+                self._update_controls()
+        except Exception as exc:
+            if self._enabled:
+                self._enabled = False
+                self._set_message("CaveBot status unavailable: {}".format(exc))
+                self._update_controls()
         self.window.after(100, self._poll)
 
     def _save_preferences(self):
@@ -380,23 +382,21 @@ class CaveBot:
         values.extend((key, variable.get()) for variable, _, key in self.attack_enabled)
         values.extend((key, variable.get()) for variable, _, key in self.monster_names)
         values.extend((key, variable.get()) for variable, _, key in self.priorities)
-        for key, value in values:
-            try:
-                self.Setter.SetVariables.SetVar(key, value)
-            except Exception:
-                pass
+        write_loader("CaveBotLoader", dict(values))
 
     def _close(self):
-        global EnabledCaveBot, _ACTIVE_CAVEBOT
+        global _ACTIVE_CAVEBOT
         if self._closed:
             return
         self._closed = True
-        EnabledCaveBot = False
-        self.ThreadManager.PauseThread()
+        self._enabled = False
         try:
-            self._save_preferences()
-        except Exception:
-            pass
+            self._client.stop_feature("CaveBot")
         finally:
-            self.CaveBot.destroyWindow()
-            _ACTIVE_CAVEBOT = None
+            try:
+                self._save_preferences()
+            except Exception:
+                pass
+            finally:
+                self.CaveBot.destroyWindow()
+                _ACTIVE_CAVEBOT = None

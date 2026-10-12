@@ -1,8 +1,6 @@
 from conf.Constants import Rings
-from engine.ScanRing import ScanRing
+from tibia_client.models import SensorKind
 from modules.support_ui import EquipmentSupport
-
-EnabledAutoRing = False
 
 
 class AutoRing(EquipmentSupport):
@@ -17,6 +15,6 @@ class AutoRing(EquipmentSupport):
             positions=RingPositions,
             life_location=HealthLocation,
             mouse_option=MOUSE_OPTION,
-            empty_sensor=ScanRing,
+            empty_sensor=SensorKind.RING_EMPTY,
             worker_name="ThreadAutoRing",
         )

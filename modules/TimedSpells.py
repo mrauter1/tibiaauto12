@@ -1,11 +1,10 @@
 from __future__ import annotations
 import tkinter as tk
 from tkinter import ttk
-from conf.Hotkeys import Hotkey
-from core import runtime
-from core.ThreadManager import ThreadManager
-from engine.support import TimedSchedule, arm_input, parse_spells
+from engine.support import parse_spells
 from modules.support_ui import SupportWindow, hotkeys, read_loader, set_enabled, write_loader
+from tibia_client.application import get_client
+from features.support import TimedSpellsFeature
 
 
 class TimedSpells:
@@ -13,8 +12,8 @@ class TimedSpells:
 
     def __init__(self, root, MOUSE_OPTION):
         del root
-        self._sender = Hotkey(MOUSE_OPTION)
-        self.ThreadManager = ThreadManager("ThreadTimedSpells")
+        del MOUSE_OPTION
+        self._client = get_client()
         self.ui = SupportWindow("TimedSpells", "Module: Timed spells", self.close)
         self.window = self.ui
         if not self.ui.owner:
@@ -64,9 +63,9 @@ class TimedSpells:
             self.table,
             self.instant_widget,
         )
-        self.ui.report_worker(self.ThreadManager, on_error=self._worker_failed)
+        self.ui.report_feature(self._client, "TimedSpells", on_inactive=self._worker_failed)
 
-    def _worker_failed(self, error):
+    def _worker_failed(self, error=None):
         del error
         self.enabled = False
         self.button.configure(text="TimedSpells: OFF")
@@ -107,7 +106,8 @@ class TimedSpells:
     def toggle(self):
         if self.enabled:
             self.enabled = False
-            self.ThreadManager.PauseThread()
+            self._client.stop_feature("TimedSpells")
+            self.ui._expected_active = False
             set_enabled(self._controls, True)
             self.button.configure(text="TimedSpells: OFF")
             self.ui.status("Stopped")
@@ -121,25 +121,24 @@ class TimedSpells:
         set_enabled(self._controls, False)
         self.button.configure(text="TimedSpells: ON")
         self.ui.status("Armed — focus game")
-        self.ThreadManager.NewThread(lambda: self._run(spells, instant))
-
-    def _run(self, spells, instant):
-        arm_input(self._sender)
-        schedule = TimedSchedule(spells, immediate=instant, spacing=0.15)
-        while True:
-            runtime.checkpoint()
-            spell = schedule.due()
-            if spell is not None:
-                with runtime.input_transaction("timed spell"):
-                    self._sender.Press(spell.hotkey)
-            runtime.wait(schedule.wait_time())
+        try:
+            self._client.start_feature(TimedSpellsFeature(spells, immediate=instant, spacing=0.15))
+        except (ValueError, RuntimeError) as exc:
+            self.enabled = False
+            set_enabled(self._controls, True)
+            self.button.configure(text="TimedSpells: OFF")
+            self.ui.status(f"Error: {exc}")
+            return
+        self.ui._expected_active = True
 
     def close(self):
         self.enabled = False
-        self.ThreadManager.KillThread()
         try:
-            self._snapshot()
-        except Exception:
-            pass
+            self._client.stop_feature("TimedSpells")
+        finally:
+            try:
+                self._snapshot()
+            except Exception:
+                pass
 
     destroy = close

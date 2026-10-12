@@ -251,5 +251,8 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         root_module.OpenCaveBot()
         gui_module.application_root().update_idletasks()
     finally:
+        from tibia_client.application import close_client
+
+        close_client()
         runtime.stop_all(0.5)
         gui_module.shutdown()

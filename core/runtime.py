@@ -88,6 +88,26 @@ def current_token() -> Optional[CancellationToken]:
     return getattr(_worker_local, "token", None)
 
 
+@contextmanager
+def use_token(token) -> Iterator[None]:
+    """Temporarily expose *token* through the legacy runtime helpers.
+
+    SDK actions have cancellation scopes narrower than their shared worker.
+    Adapters receive that token directly, while this binding also makes older
+    input facades which call :func:`checkpoint` observe the same scope.
+    Nested bindings restore the previous worker token on every exit path.
+    """
+    previous_token = getattr(_worker_local, "token", None)
+    previous_name = getattr(_worker_local, "name", None)
+    _worker_local.token = token
+    _worker_local.name = getattr(token, "name", previous_name)
+    try:
+        yield
+    finally:
+        _worker_local.token = previous_token
+        _worker_local.name = previous_name
+
+
 def checkpoint() -> None:
     """Raise :class:`CancelledError` if the current worker was cancelled."""
     token = current_token()
@@ -331,5 +351,6 @@ __all__ = [
     "start",
     "status",
     "stop_all",
+    "use_token",
     "wait",
 ]

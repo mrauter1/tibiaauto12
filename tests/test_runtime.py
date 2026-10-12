@@ -5,7 +5,6 @@ import uuid
 import math
 
 from core import runtime
-from core.ThreadManager import ThreadManager
 
 
 def _name(prefix):
@@ -231,9 +230,8 @@ class RuntimeTests(unittest.TestCase):
         thread.join(1)
         self.assertFalse(thread.is_alive())
 
-    def test_one_hundred_pause_restart_cycles_never_overlap(self):
+    def test_one_hundred_cancel_restart_cycles_never_overlap(self):
         name = _name("toggle")
-        manager = ThreadManager(name)
         lock = threading.Lock()
         active = 0
         maximum = 0
@@ -252,15 +250,15 @@ class RuntimeTests(unittest.TestCase):
                 with lock:
                     active -= 1
 
-        manager.NewThread(target)
+        runtime.start(name, target)
         for _ in range(100):
-            self.assertTrue(manager.PauseThread(timeout=0.2))
-            manager.UnPauseThread()
+            self.assertTrue(runtime.cancel(name, timeout=0.2))
+            runtime.start(name, target)
             self.assertTrue(_eventually(
                 lambda: (runtime.status(name) or {}).get("alive", False),
                 timeout=0.2,
             ))
-        self.assertTrue(manager.KillThread(timeout=1))
+        self.assertTrue(runtime.cancel(name, timeout=1, forget=True))
         self.assertEqual(maximum, 1)
         self.assertGreaterEqual(starts, 100)
 

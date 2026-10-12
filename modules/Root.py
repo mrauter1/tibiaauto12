@@ -1,9 +1,11 @@
 """Main module launcher and current profile state."""
+
 from __future__ import annotations
 
 from conf.conf_manager import ConfManager
 from core.Getters import validate_calibration
 from core.GUI import GUI, shutdown
+from tibia_client.application import close_client, configure_client
 
 MOUSE_OPTION = None
 ItemsSquare = 32
@@ -52,8 +54,11 @@ def load_profile(filename: str) -> dict:
     AmuletPositions[:] = _values(data, "Boxes", "AmuletBox", ("x", "y", "w", "h"))
     MapPositions[:] = _values(data, "Boxes", "MapBox", ("x", "y", "w", "h"))
     gameWindow[:] = _values(data, "Boxes", "GameWindowBox", ("x", "y", "w", "h"))
-    SQMs[:] = [coordinate for number in range(1, 10)
-        for coordinate in _values(data, "SQM", f"SQM{number}", ("x", "y"))]
+    SQMs[:] = [
+        coordinate
+        for number in range(1, 10)
+        for coordinate in _values(data, "SQM", f"SQM{number}", ("x", "y"))
+    ]
     paths = data.get("Paths", {})
     MainPath = paths.get("MainPath")
     ItemsPath = paths.get("ItemsPath")
@@ -65,6 +70,7 @@ def load_profile(filename: str) -> dict:
 
 def _open(module_name, class_name, *args):
     import importlib
+
     constructor = getattr(importlib.import_module(module_name), class_name)
     return constructor(*args)
 
@@ -82,11 +88,27 @@ def OpenAutoMana():
 
 
 def OpenAutoRing():
-    return _open("modules.AutoRing", "AutoRing", _active_root, RingPositions, HealthLocation, MOUSE_OPTION, ItemsPath)
+    return _open(
+        "modules.AutoRing",
+        "AutoRing",
+        _active_root,
+        RingPositions,
+        HealthLocation,
+        MOUSE_OPTION,
+        ItemsPath,
+    )
 
 
 def OpenAutoSSA():
-    return _open("modules.AutoSSA", "AutoSSA", _active_root, AmuletPositions, HealthLocation, MOUSE_OPTION, ItemsPath)
+    return _open(
+        "modules.AutoSSA",
+        "AutoSSA",
+        _active_root,
+        AmuletPositions,
+        HealthLocation,
+        MOUSE_OPTION,
+        ItemsPath,
+    )
 
 
 def OpenCaveBot():
@@ -105,6 +127,7 @@ class root:
     def __init__(self, CharName, LoadedJson):
         global _active_root
         load_profile(LoadedJson)
+        configure_client(MOUSE_OPTION)
         self.root = GUI("root", "TibiaAuto V12")
         self.root.MainWindow("Main", [357, 530], [2, 2.36])
         self.root.deiconify()
@@ -112,19 +135,30 @@ class root:
         self.root.addMinimalLabel(f"Logged as: {CharName}", [14, 14])
 
         unavailable = (
-            ("Healer Friend", [23, 56]), ("Color Change", [23, 108]),
-            ("Ammo Restack", [23, 135]), ("Auto Looter", [23, 160]),
-            ("Auto Grouping", [23, 236]), ("Sort Loot", [23, 262]),
-            ("Auto Banker", [23, 288]), ("Auto Seller", [23, 340]),
-            ("FPS Changer", [23, 366]), ("Auto Fish", [245, 83]),
-            ("Auto Login", [245, 135]), ("Creature Info", [147, 188]),
-            ("Monsters", [245, 188]), ("Show Map", [147, 290]),
-            ("Load Config", [147, 340]), ("Save Config", [245, 340]),
-            ("Adjust Config", [147, 366]), ("Modules", [245, 366]),
+            ("Healer Friend", [23, 56]),
+            ("Color Change", [23, 108]),
+            ("Ammo Restack", [23, 135]),
+            ("Auto Looter", [23, 160]),
+            ("Auto Grouping", [23, 236]),
+            ("Sort Loot", [23, 262]),
+            ("Auto Banker", [23, 288]),
+            ("Auto Seller", [23, 340]),
+            ("FPS Changer", [23, 366]),
+            ("Auto Fish", [245, 83]),
+            ("Auto Login", [245, 135]),
+            ("Creature Info", [147, 188]),
+            ("Monsters", [245, 188]),
+            ("Show Map", [147, 290]),
+            ("Load Config", [147, 340]),
+            ("Save Config", [245, 340]),
+            ("Adjust Config", [147, 366]),
+            ("Modules", [245, 366]),
             ("Python Scripts", [245, 392]),
         )
         for text, position in unavailable:
-            self.root.addButton(f"{text} (N/A)", lambda: None, [92, 23], position).configure(state="disabled")
+            self.root.addButton(f"{text} (N/A)", lambda: None, [92, 23], position).configure(
+                state="disabled"
+            )
 
         self.root.addButton("Food Eater", OpenFoodEater, [92, 23], [23, 210])
         self.root.addButton("Auto Life", OpenAutoHeal, [92, 23], [147, 56])
@@ -134,12 +168,15 @@ class root:
         self.root.addButton("Auto Ring", OpenAutoRing, [92, 23], [245, 108])
         self.root.addButton("Timed Spells", OpenTimedSpells, [92, 23], [147, 135])
         self.root.addButton("Cave Bot", OpenCaveBot, [92, 23], [245, 290])
-        self.root.addButton("General Options (N/A)", lambda: None, [213, 23], [134, 426]).configure(state="disabled")
+        self.root.addButton("General Options (N/A)", lambda: None, [213, 23], [134, 426]).configure(
+            state="disabled"
+        )
 
         def close():
-            from core.runtime import stop_all
-            stop_all(1.0)
-            shutdown()
+            try:
+                close_client()
+            finally:
+                shutdown()
 
         self.root.addButton("Exit", close, [92, 23], [10, 498])
         self.root.Protocol(close)
