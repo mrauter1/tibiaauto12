@@ -20,6 +20,7 @@ from core.perception import CaptureError, Frame, as_frame, validate_region
 from engine.CaveBot import Scanners
 from engine.ScanStages import ScanStages
 from tibia_client.capture import CaptureProcess
+from tibia_client.diagnostics import AdapterCapabilities
 from tibia_client.models import (
     Action,
     ActionKind,
@@ -69,6 +70,7 @@ class DesktopAdapter:
         if isinstance(mouse_mode, bool) or mouse_mode not in (0, 1):
             raise ValueError("mouse_mode must be 0 (message) or 1 (physical)")
         self.mouse_mode = int(mouse_mode)
+        native_hotkey = hotkey is None
         self.hotkey = hotkey if hotkey is not None else Hotkey(self.mouse_mode)
         if capture_provider is None:
             # Configuration has already been calibrated by the composition
@@ -80,6 +82,13 @@ class DesktopAdapter:
             self.capture_provider = CaptureProcess(capture_size=capture_size)
         else:
             self.capture_provider = capture_provider
+        self._evidence_source = (
+            "live"
+            if native_hotkey
+            and isinstance(self.capture_provider, CaptureProcess)
+            and getattr(self.capture_provider, "provider", object()) is None
+            else "simulation"
+        )
         self._system_clock = clock is None or clock is time
         self.clock = clock if clock is not None else time
         if not callable(getattr(self.clock, "monotonic", None)):
@@ -87,6 +96,45 @@ class DesktopAdapter:
         if not callable(self.capture_provider) and not callable(getattr(self.capture_provider, "capture", None)):
             raise TypeError("capture_provider must be callable or expose capture()")
         self._closed = False
+        configured_size = getattr(self.capture_provider, "capture_size", None)
+        self._capture_size: tuple[int, int] | None = (
+            tuple(configured_size) if configured_size is not None else None
+        )
+        self._last_capture_at: float | None = None
+        self._capture_error: str | None = None
+        self._last_cursor_transition: (
+            tuple[tuple[int, int], tuple[int, int]] | None
+        ) = None
+
+    @property
+    def evidence_source(self) -> str:
+        """Report provenance only; this does not claim a probe passed."""
+
+        return self._evidence_source
+
+    @property
+    def last_cursor_transition(
+        self,
+    ) -> tuple[tuple[int, int], tuple[int, int]] | None:
+        return self._last_cursor_transition
+
+    def capabilities(self) -> AdapterCapabilities:
+        """Declare implementation support without claiming live verification."""
+
+        operations = [
+            "press",
+            "modified_press",
+            "left_click",
+            "right_click",
+            "drag",
+            "battle_list_click",
+        ]
+        if self.mouse_mode == 1:
+            operations.append("cursor_restore")
+        return AdapterCapabilities(
+            operations=tuple(operations),
+            sensors=tuple(sorted(kind.value for kind in SensorKind)),
+        )
 
     def _backend_check(self, name: str) -> bool:
         backend = getattr(self.hotkey, "SendToClient", None)
@@ -109,6 +157,9 @@ class DesktopAdapter:
                 or len(size) != 2
                 or any(isinstance(item, bool) or not isinstance(item, Integral) or item <= 0 for item in size)
             ):
+                return False
+            actual_size = (int(size[0]), int(size[1]))
+            if self._capture_size is not None and actual_size != self._capture_size:
                 return False
             if self.mouse_mode == 0:
                 return self._backend_check("IsReady")
@@ -241,6 +292,10 @@ class DesktopAdapter:
             # ScanStages reads x+5 through x+100 inclusive on one row.
             validate_region((anchor_x + 5, anchor_y, anchor_x + 101, anchor_y + 1), frame.size)
             return
+        if sensor.kind is SensorKind.FRAME_VALID:
+            if sensor.region or sensor.name:
+                raise ValueError("frame_valid sensor does not take a region or name")
+            return
         if sensor.kind in (
             SensorKind.RING_EMPTY,
             SensorKind.AMULET_EMPTY,
@@ -261,6 +316,8 @@ class DesktopAdapter:
 
     @classmethod
     def _read(cls, sensor: Sensor, frame: Frame) -> Reading:
+        if sensor.kind is SensorKind.FRAME_VALID:
+            return Reading(True)
         if sensor.kind in (SensorKind.HEALTH, SensorKind.MANA):
             return cls._bar(sensor, frame)
         if sensor.kind is SensorKind.RING_EMPTY:
@@ -287,9 +344,25 @@ class DesktopAdapter:
         try:
             frame = self._capture(token)
         except Exception as exc:
+            self._capture_error = f"{type(exc).__name__}: {exc}"
             if _cancelled(token):
                 raise
             raise CaptureError(f"desktop observation capture failed: {exc}") from exc
+        if self._capture_size is None:
+            self._capture_size = frame.size
+        elif frame.size != self._capture_size:
+            self._capture_error = (
+                "capture geometry changed from "
+                f"{self._capture_size[0]}x{self._capture_size[1]} to "
+                f"{frame.size[0]}x{frame.size[1]}"
+            )
+            raise CaptureError(self._capture_error + "; recalibrate the client profile")
+        # An exactly uniform black PrintWindow result is an observable capture
+        # failure.  This check says nothing about a static or frozen upstream
+        # source; non-black identical frames remain explicitly unverified.
+        if not bool(frame.pixels.any()):
+            self._capture_error = "capture returned an exactly uniform black frame"
+            raise CaptureError(self._capture_error)
         if isinstance(self.capture_provider, CaptureProcess) and self._system_clock:
             capture_started = self.capture_provider.last_observed_at
             returned_at = float(self.clock.monotonic())
@@ -300,6 +373,8 @@ class DesktopAdapter:
             ):
                 raise CaptureError("capture process returned an invalid observation timestamp")
             observed_at = capture_started
+        self._last_capture_at = observed_at
+        self._capture_error = None
         token.checkpoint()
 
         readings: dict[Sensor, Reading] = {}
@@ -340,7 +415,7 @@ class DesktopAdapter:
         token.checkpoint()
         return ObservationBatch(readings=readings, observed_at=observed_at, frame=frame)
 
-    def _restore_cursor(self, point: object, token: Any) -> None:
+    def _restore_cursor(self, point: object, token: Any, *, screen: bool) -> None:
         if _cancelled(token):
             return
         if (
@@ -350,8 +425,14 @@ class DesktopAdapter:
         ):
             return
         try:
-            width, height = self.hotkey.MainWindowSize()
             x, y = int(point[0]), int(point[1])
+            if screen:
+                if not _cancelled(token):
+                    self.hotkey.RestoreScreenPosition((x, y))
+                return
+            # Compatibility for small injected test/third-party facades that
+            # predate the dedicated screen-coordinate restore API.
+            width, height = self.hotkey.MainWindowSize()
             if not _cancelled(token) and 0 <= x < int(width) and 0 <= y < int(height):
                 self.hotkey.MoveTo(x, y)
         except Exception:
@@ -365,13 +446,34 @@ class DesktopAdapter:
         if not isinstance(action, Action):
             raise TypeError("execute action must be an Action value")
         token.checkpoint()
+        self._last_cursor_transition = None
+        # Revalidate the live input binding immediately before entering the
+        # native transaction.  A moved/recreated window or geometry change must
+        # not inherit coordinates from an earlier capture.
+        if not self.ready():
+            raise DesktopAdapterError(
+                "input target is no longer ready or its geometry changed; recalibrate"
+            )
+        token.checkpoint()
         previous = None
         preserve = self.mouse_mode == 1 and action.kind is not ActionKind.PRESS
+        restore_support = getattr(self.hotkey, "SupportsScreenRestore", None)
+        if callable(restore_support):
+            screen_restore = preserve and bool(restore_support())
+        else:
+            screen_restore = preserve and all(
+                callable(getattr(self.hotkey, name, None))
+                for name in ("ScreenPosition", "RestoreScreenPosition")
+            )
         try:
             with runtime.input_transaction(f"desktop {action.kind.value}"):
                 token.checkpoint()
                 if preserve:
-                    previous = self.hotkey.Position()
+                    previous = (
+                        self.hotkey.ScreenPosition()
+                        if screen_restore
+                        else self.hotkey.Position()
+                    )
                     token.checkpoint()
                 try:
                     if action.kind is ActionKind.PRESS:
@@ -387,7 +489,30 @@ class DesktopAdapter:
                     token.checkpoint()
                 finally:
                     if preserve and previous is not None:
-                        self._restore_cursor(previous, token)
+                        self._restore_cursor(previous, token, screen=screen_restore)
+                        if not _cancelled(token):
+                            try:
+                                final = (
+                                    self.hotkey.ScreenPosition()
+                                    if screen_restore
+                                    else self.hotkey.Position()
+                                )
+                            except Exception:
+                                final = None
+                            if (
+                                isinstance(previous, (tuple, list))
+                                and isinstance(final, (tuple, list))
+                                and len(previous) == len(final) == 2
+                                and all(
+                                    not isinstance(value, bool)
+                                    and isinstance(value, Integral)
+                                    for value in (*previous, *final)
+                                )
+                            ):
+                                self._last_cursor_transition = (
+                                    (int(previous[0]), int(previous[1])),
+                                    (int(final[0]), int(final[1])),
+                                )
         except Exception as exc:
             if _cancelled(token):
                 raise

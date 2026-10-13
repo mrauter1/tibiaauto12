@@ -32,7 +32,12 @@ class FoodEater:
         self.button = ttk.Button(self.ui.body, text="FoodEater: OFF", command=self.toggle)
         self.button.grid(row=2, column=0, columnspan=2, sticky="ew", pady=5)
         self.ui.status_label.grid(row=3, column=0, columnspan=2, sticky="w")
+        self.ui.bind_loader("FoodEaterLoader", self._apply_settings)
         self.ui.report_feature(self._client, "FoodEater", on_inactive=self._feature_stopped)
+
+    def _apply_settings(self, data):
+        self.key.set(data["HotkeyFood"])
+        self._feature_stopped()
 
     def _feature_stopped(self, error=None):
         del error

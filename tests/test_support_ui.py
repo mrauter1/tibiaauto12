@@ -18,6 +18,21 @@ client_point, integer, write_loader = (
 )
 
 
+def test_support_hotkey_choices_are_action_keys_not_the_cavebot_pause_shortcut():
+    from conf.Constants import Hotkeys as pause_hotkeys
+    from conf.Hotkeys import Hotkey
+
+    choices = support_ui.hotkeys()
+    assert choices == tuple(Hotkey.Hotkeys)
+    assert len(choices) == len(set(choices)) == 36
+    assert all(
+        f"{modifier}F{number}" in choices
+        for modifier in ("", "Ctrl + ", "Shift + ")
+        for number in range(1, 13)
+    )
+    assert not set(choices).intersection(pause_hotkeys)
+
+
 @pytest.mark.parametrize("value", ("", "x", 101, -1))
 def test_percentage_validation(value):
     with pytest.raises(ValueError):

@@ -181,6 +181,7 @@ class CaveBotFeature:
         self._loot_cursor = 0
         self._loot_started: float | None = None
         self._after_loot = "combat"
+        self._pre_pause_status: CaveBotStatus | None = None
 
     @staticmethod
     def _region(region: Iterable[int], name: str) -> tuple[int, ...]:
@@ -237,6 +238,61 @@ class CaveBotFeature:
         if self.config.follow:
             sensors.append(Sensor(SensorKind.FOLLOW))
         return tuple(sensors)
+
+    def required_operations(self) -> tuple[str, ...]:
+        if not self.route.waypoints:
+            return ()
+        operations: list[str] = []
+        if self.route.waypoints or (self.targets and self.config.follow):
+            operations.append("left_click")
+        if self.targets:
+            operations.append("battle_list_click")
+        # Looting is only reachable after combat.  A walking-only route has no
+        # transition into the loot phase, even when the default loot setting
+        # and calibrated loot points are present.
+        if self.targets and self.config.loot and self.loot_points:
+            operation = "right_click" if self.config.loot_button == "right" else "left_click"
+            if operation not in operations:
+                operations.append(operation)
+        return tuple(operations)
+
+    def on_pause(self) -> None:
+        """Discard any old request intent while retaining route progress."""
+
+        if self._pre_pause_status is None:
+            self._pre_pause_status = self._status
+        self._pending = None
+        self._set_status("Paused", "navigation_paused")
+
+    def on_resume(self, *, paused_for: float = 0.0) -> None:
+        """Restore the phase and preserve the remaining time on every timer."""
+
+        previous = self._pre_pause_status
+        if (
+            not isinstance(paused_for, Real)
+            or isinstance(paused_for, bool)
+            or not math.isfinite(paused_for)
+            or paused_for < 0
+        ):
+            raise ValueError("paused_for must be a finite non-negative number")
+        self._pre_pause_status = None
+        elapsed = float(paused_for)
+        self._mode_started = self._shift_time(self._mode_started, elapsed)
+        self._deadline = self._shift_time(self._deadline, elapsed)
+        self._combat_deadline = self._shift_time(self._combat_deadline, elapsed)
+        self._loot_started = self._shift_time(self._loot_started, elapsed)
+        if self._selected_wait is not None:
+            target, frame, ready_at = self._selected_wait
+            self._selected_wait = (target, frame, ready_at + elapsed)
+        if self._follow_wait is not None:
+            frame, ready_at = self._follow_wait
+            self._follow_wait = (frame, ready_at + elapsed)
+        if previous is not None:
+            self._status = previous
+
+    @staticmethod
+    def _shift_time(value: float | None, elapsed: float) -> float | None:
+        return None if value is None else value + elapsed
 
     def _set_status(self, phase: str, reason: str, **changes: Any) -> None:
         self._status = replace(self._status, phase=phase, reason=reason, **changes)

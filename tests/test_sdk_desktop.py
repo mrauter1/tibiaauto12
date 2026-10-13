@@ -1,13 +1,17 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import time
 
-from core.perception import Frame, Match
+from conf.Hotkeys import Hotkey
+from core.perception import CaptureError, Frame, Match
 from tibia_client import desktop
 from tibia_client.desktop import DesktopAdapter, DesktopAdapterError
 from tibia_client.capture import CaptureProcess
-from tibia_client.models import Action, ActionKind, Marker, Quality, Sensor, SensorKind, Target
+from tibia_client.models import (
+    Action, ActionKind, Marker, Quality, Reading, Sensor, SensorKind, Target,
+)
 
 
 class Token:
@@ -39,7 +43,9 @@ class Provider:
         self.calls += 1
         if self.clock is not None:
             self.clock.value += 7
-        return Frame(np.zeros((120, 180, 3), dtype=np.uint8))
+        pixels = np.zeros((120, 180, 3), dtype=np.uint8)
+        pixels[0, 0, 0] = 1
+        return Frame(pixels)
 
     def close(self):
         self.closed = True
@@ -89,9 +95,41 @@ class FakeHotkey:
         self.events.append(("drag", start, end))
 
 
+class ScreenHotkey(FakeHotkey):
+    def __init__(self, token=None):
+        super().__init__(token)
+        self.screen_cursor = (-40, 160)
+        self.fail_action = False
+        self.lose_focus = False
+
+    def ScreenPosition(self):
+        if not self.focused:
+            raise RuntimeError("focus lost")
+        self.events.append(("screen_position",))
+        return self.screen_cursor
+
+    def RestoreScreenPosition(self, position):
+        if not self.focused:
+            raise RuntimeError("focus lost")
+        self.events.append(("screen_restore", tuple(position)))
+        self.screen_cursor = tuple(position)
+
+    def RightClick(self, x, y):
+        self.events.append(("right", x, y))
+        self.screen_cursor = (x + 100, y + 200)
+        if self.token is not None:
+            self.token.cancelled = True
+        if self.lose_focus:
+            self.focused = False
+        if self.fail_action:
+            raise RuntimeError("click failed")
+
+
 def moderately_slow_provider():
     time.sleep(0.08)
-    return np.zeros((3, 4, 3), dtype=np.uint8)
+    pixels = np.zeros((3, 4, 3), dtype=np.uint8)
+    pixels[0, 0, 0] = 1
+    return pixels
 
 
 def test_ready_is_read_only_and_mode_specific():
@@ -106,6 +144,44 @@ def test_ready_is_read_only_and_mode_specific():
     adapter = DesktopAdapter(0, hotkey=message, capture_provider=Provider())
     assert adapter.ready()
     assert message.events == [("size",), ("ready",)]
+
+
+def test_capabilities_declare_implemented_input_and_sensors_only():
+    message = DesktopAdapter(0, hotkey=FakeHotkey(), capture_provider=Provider())
+    physical = DesktopAdapter(1, hotkey=FakeHotkey(), capture_provider=Provider())
+
+    assert "battle_list_click" in message.capabilities().operations
+    assert "cursor_restore" not in message.capabilities().operations
+    assert "cursor_restore" in physical.capabilities().operations
+    assert set(message.capabilities().sensors) == {kind.value for kind in SensorKind}
+    assert message.evidence_source == "simulation"
+
+
+def test_live_evidence_provenance_requires_default_native_composition(monkeypatch):
+    class Process:
+        provider = None
+        capture_size = (180, 120)
+
+        def __init__(self, *, capture_size):
+            self.capture_size = tuple(capture_size)
+
+        def capture(self):
+            pixels = np.ones((120, 180, 3), dtype=np.uint8)
+            return Frame(pixels)
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(desktop, "CaptureProcess", Process)
+    monkeypatch.setattr(desktop, "Hotkey", lambda _mode: FakeHotkey())
+    monkeypatch.setattr(
+        "conf.conf_manager.ConfManager.get",
+        lambda *_args, **_kwargs: {"capture_size": [180, 120]},
+    )
+
+    adapter = DesktopAdapter(0)
+    assert adapter.evidence_source == "live"
+    adapter.close()
 
 
 def test_default_process_uses_exact_calibrated_capture_size(monkeypatch):
@@ -224,6 +300,22 @@ def test_observed_at_is_capture_start_and_detector_errors_fail_closed(monkeypatc
     assert "ring_empty detector failed" in batch.readings[sensor].detail
 
 
+def test_frame_valid_is_capture_backed_and_exact_black_fails_transport():
+    sensor = Sensor(SensorKind.FRAME_VALID)
+    batch = DesktopAdapter(
+        0, hotkey=FakeHotkey(), capture_provider=Provider()
+    ).observe([sensor], Token())
+    assert batch.readings[sensor] == Reading(True)
+
+    class BlackProvider:
+        def capture(self):
+            return Frame(np.zeros((120, 180, 3), dtype=np.uint8))
+
+    adapter = DesktopAdapter(0, hotkey=FakeHotkey(), capture_provider=BlackProvider())
+    with pytest.raises(CaptureError, match="uniform black"):
+        adapter.observe([sensor], Token())
+
+
 def test_process_timestamp_excludes_lazy_startup_but_includes_capture_delay(monkeypatch):
     capture = CaptureProcess(moderately_slow_provider, timeout=5, capture_size=(4, 3))
     original_start = capture._start
@@ -277,6 +369,103 @@ def test_execute_maps_only_public_actions_and_restores_valid_physical_cursor():
     assert ("right", 4, 5) in hotkey.events
     assert ("drag", (1, 2), (8, 9)) in hotkey.events
     assert hotkey.events.count(("move", 17, 23)) == 2
+    assert adapter.last_cursor_transition == ((17, 23), (17, 23))
+
+
+def test_hotkey_facade_falls_back_when_wrapped_backend_lacks_screen_restore():
+    class LegacyBackend:
+        def __init__(self):
+            self.cursor = (17, 23)
+            self.events = []
+
+        def MainWindowSize(self):
+            return 180, 120
+
+        def IsFocused(self):
+            return True
+
+        def Position(self):
+            return self.cursor
+
+        def RightClick(self, position):
+            self.events.append(("right", position))
+            self.cursor = tuple(position)
+
+        def MoveTo(self, x, y):
+            self.events.append(("move", x, y))
+            self.cursor = (x, y)
+
+    backend = LegacyBackend()
+    hotkey = Hotkey(1, backend=backend)
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert not hotkey.SupportsScreenRestore()
+    assert backend.events == [("right", (4, 5)), ("move", 17, 23)]
+    assert adapter.last_cursor_transition == ((17, 23), (17, 23))
+
+
+@pytest.mark.parametrize(
+    "screen_cursor",
+    ((-1, 240), (1000, 240), (240, -1), (240, 1000)),
+)
+def test_physical_cursor_restore_uses_screen_coordinates_outside_client(screen_cursor):
+    hotkey = ScreenHotkey()
+    hotkey.screen_cursor = screen_cursor
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert ("screen_restore", screen_cursor) in hotkey.events
+    assert hotkey.screen_cursor == screen_cursor
+    assert adapter.last_cursor_transition == (screen_cursor, screen_cursor)
+
+
+def test_failed_action_still_restores_screen_cursor():
+    hotkey = ScreenHotkey()
+    hotkey.fail_action = True
+    original = hotkey.screen_cursor
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    with pytest.raises(DesktopAdapterError, match="click failed"):
+        adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert ("screen_restore", original) in hotkey.events
+    assert hotkey.screen_cursor == original
+
+
+def test_focus_loss_during_action_prevents_screen_cursor_restore():
+    hotkey = ScreenHotkey()
+    hotkey.lose_focus = True
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
+    assert adapter.last_cursor_transition is None
+
+
+def test_cancelled_action_prevents_screen_cursor_restore():
+    token = Token()
+    hotkey = ScreenHotkey(token)
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    with pytest.raises(RuntimeError, match="cancelled"):
+        adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), token)
+
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
+
+
+def test_dispatch_rejects_geometry_changed_after_capture():
+    hotkey = FakeHotkey()
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+    adapter.observe([], Token())
+    hotkey.size = (181, 120)
+
+    with pytest.raises(DesktopAdapterError, match="geometry changed"):
+        adapter.execute(Action(ActionKind.PRESS, key="F1"), Token())
+    assert ("press", "F1") not in hotkey.events
 
 
 def test_cancelled_mouse_action_never_restores_cursor():

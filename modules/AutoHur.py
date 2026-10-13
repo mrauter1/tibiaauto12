@@ -33,7 +33,12 @@ class AutoHur:
         self.button = ttk.Button(self.ui.body, text="AutoHur: OFF", command=self.toggle)
         self.button.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5)
         self.ui.status_label.grid(row=4, column=0, columnspan=2, sticky="w")
+        self.ui.bind_loader("HurLoader", self._apply_settings)
         self.ui.report_feature(self._client, "AutoHur", on_inactive=self._feature_stopped)
+
+    def _apply_settings(self, data):
+        self.key.set(data["HotkeyHur"])
+        self._feature_stopped()
 
     def _feature_stopped(self, error=None):
         del error

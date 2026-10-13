@@ -61,3 +61,28 @@ Each observation call consumes one recorded capture. Only sensors actually sampl
 The UTF-8 JSONL format starts with format name `tibia-client-trace`, version `1`, and mode `observations`. Model and enum tags are allowlisted; maps encode key/value pairs so `Sensor` keys round-trip without string conversion. No pickle, dynamic import, or executable payload is accepted.
 
 Events have contiguous sequence numbers. A final footer records the event count and SHA-256 of the encoded event lines. The reader rejects unknown versions/tags, duplicate keys, nonfinite numbers, inconsistent model identities, size/count overruns, checksum mismatch, missing completion, and truncated lines. The checksum detects corruption; it is not an authenticity signature. A process crash or a recording error leaves an incomplete file which may be inspected manually but is not accepted as a complete replay.
+
+## Inspect a trace
+
+The trace viewer validates the entire trace with the same bounded reader used by
+replay, then presents an inert timeline. It does not initialize a desktop
+adapter, execute actions, follow paths found in event payloads, or invoke policy
+code. The terminal view works without a display:
+
+```console
+python -m tools.trace_viewer session.jsonl
+python -m tools.trace_viewer session.jsonl --kind result --owner CaveBot
+python -m tools.trace_viewer session.jsonl --request heal --limit 200 --json
+```
+
+Use `python -m tools.trace_viewer session.jsonl --gui` for the Tk timeline. The
+main application also exposes the same viewer for its current session. Kind,
+owner, and request filters affect only the bounded presentation; the statistics
+continue to describe the complete validated file.
+
+The embedded viewer can inspect the session's current in-memory event history.
+That history is bounded and older events eventually roll off. Export produces a
+normal trace-v1 file only while event 1 and every following event are still
+retained. If history has rolled over, export is rejected rather than creating a
+partial file that looks complete. For long sessions, attach `JsonlRecorder` at
+session startup as shown above.

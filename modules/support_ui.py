@@ -6,13 +6,25 @@ from dataclasses import dataclass
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Mapping
+from weakref import WeakValueDictionary
 
-from conf.Constants import Hotkeys
+from conf.HexMapKeys import ACTION_HOTKEYS
 from conf.conf_manager import ConfManager
 from tibia_client.application import get_client
 from tibia_client.models import Sensor, SensorKind
 
 _windows = {}
+_loader_windows = WeakValueDictionary()
+
+
+def refresh_loader_windows(loaders: Mapping[str, Mapping[str, object]]) -> None:
+    """Refresh open settings on the Tk thread after a successful import write."""
+    for name, values in loaders.items():
+        ui = _loader_windows.get(name)
+        if ui is not None and ui.window.winfo_exists():
+            ui._apply_settings(values)
+            ui._expected_active = False
+            ui.status("Imported settings applied — stopped")
 
 
 def read_loader(name: str) -> dict:
@@ -73,8 +85,17 @@ class SupportWindow:
         try:
             self._on_close()
         finally:
+            loader = getattr(self, "_loader", None)
+            if _loader_windows.get(loader) is self:
+                _loader_windows.pop(loader, None)
             _windows.pop(next((k for k, v in _windows.items() if v is self.window), ""), None)
             self.window.destroy()
+
+    def bind_loader(self, name: str, apply_settings: Callable[[Mapping], None]) -> None:
+        """Keep this window's editable values aligned with explicit pack imports."""
+        if self.owner:
+            self._loader, self._apply_settings = name, apply_settings
+            _loader_windows[name] = self
 
     def status(self, text: str) -> None:
         if self.owner:
@@ -118,7 +139,7 @@ class SupportWindow:
 
 
 def hotkeys() -> tuple[str, ...]:
-    return tuple(Hotkeys)
+    return ACTION_HOTKEYS
 
 
 def set_enabled(widgets, enabled: bool) -> None:

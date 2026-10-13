@@ -25,6 +25,13 @@ from tibia_client.models import (
     Target,
 )
 from tibia_client.session import ClientSession
+from tibia_client.diagnostics import (
+    ActionDiagnostic,
+    AdapterCapabilities,
+    CaptureHealth,
+    ResultDiagnostic,
+    SessionDiagnostics,
+)
 
 __all__ = [
     "Action",
@@ -50,4 +57,9 @@ __all__ = [
     "Step",
     "Target",
     "ClientSession",
+    "ActionDiagnostic",
+    "AdapterCapabilities",
+    "CaptureHealth",
+    "ResultDiagnostic",
+    "SessionDiagnostics",
 ]

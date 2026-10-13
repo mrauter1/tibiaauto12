@@ -144,4 +144,16 @@ Construct production sessions through `configure_client(mouse_mode)` and retriev
 
 See [the engineering contract](docs/reliability-foundation.md) for native-boundary rules, calibration constraints, route migration, and remaining live-client checks, and [recording and replay](docs/recording-replay.md) for diagnostic workflows.
 
-The [feature roadmap](docs/feature-roadmap.md) compares primary bot references and proposes staged route-authoring, supply, refill/depot, combat, and supervision improvements. It distinguishes planned capabilities from implemented behavior and specifies their validation gates.
+The [feature roadmap](docs/feature-roadmap.md) targets OT servers using the official client through the original OBS capture and foreground-input integration. It starts with M0 desktop compatibility, profile/alignment checks, capture-health diagnostics and operator controls, followed by route-authoring, supply, refill/depot, combat and supervision improvements. It distinguishes planned capabilities from implemented behavior, defines offline/live validation gates, and permits M1's offline work to proceed alongside M0.
+
+
+### Desktop testing and Hunt Studio
+
+The launcher now provides **Test client**, **Hunt Console**, **Trace viewer** and
+**STOP ALL**. Automation requires a matching compatibility profile and a fresh
+current-window binding check; installing this update does not mark an existing
+client configuration verified. Follow the [desktop compatibility guide](docs/desktop-compatibility.md).
+
+CaveBot includes a route editor and portable hunt-pack import/export with an
+explicit local binding step. See [Hunt Studio](docs/hunt-studio.md) and the
+[trace viewer guide](docs/recording-replay.md#inspect-a-trace) for offline tools.

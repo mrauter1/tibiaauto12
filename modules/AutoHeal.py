@@ -50,7 +50,15 @@ class AutoHeal:
         self.button = ttk.Button(self.ui.body, text="AutoHealing: OFF", command=self.toggle)
         self.button.grid(row=5, column=0, columnspan=4, sticky="ew", pady=5)
         self.ui.status_label.grid(row=6, column=0, columnspan=4, sticky="w")
+        self.ui.bind_loader("HealthLoader", self._apply_settings)
         self.ui.report_feature(self._client, "AutoHeal", on_inactive=self._feature_stopped)
+
+    def _apply_settings(self, data):
+        for label, enabled, percent, key, _ in self._vars:
+            enabled.set(data[f"LifeCheckStage{label}"])
+            percent.set(str(data[f"LifePercentageStage{label}"]))
+            key.set(data[f"LifeHotkeyStage{label}"])
+        self._feature_stopped()
 
     def _feature_stopped(self, error=None):
         del error
@@ -58,12 +66,12 @@ class AutoHeal:
         self.button.configure(text="AutoHealing: OFF")
         set_enabled((w for v in self._vars for w in v[4]), True)
 
-    def _snapshot(self):
+    def _snapshot(self, *, require_enabled=True):
         rules = tuple(
             Threshold(v[1].get(), integer(v[2].get(), f"stage {i} threshold"), v[3].get())
             for i, v in enumerate(self._vars, 1)
         )
-        if not any(r.enabled for r in rules):
+        if require_enabled and not any(r.enabled for r in rules):
             raise ValueError("enable at least one healing stage")
         values = {}
         for label, e, p, k, _ in self._vars:
@@ -107,6 +115,6 @@ class AutoHeal:
         finally:
             if getattr(self, "ui", None) is not None and self.ui.owner:
                 try:
-                    self._snapshot()
+                    self._snapshot(require_enabled=False)
                 except Exception:
                     pass

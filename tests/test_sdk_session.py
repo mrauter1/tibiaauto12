@@ -239,6 +239,42 @@ def test_stop_cancels_generation_queue_and_replacement_never_gets_old_results():
     session.close()
 
 
+def test_delayed_generation_stop_cannot_cancel_replacement():
+    clock = Clock()
+    adapter = Adapter(clock)
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    first = Feature("same")
+    first_generation = session.start_feature(first)
+    release_stop = threading.Event()
+    outcome = []
+
+    def delayed_stop():
+        assert release_stop.wait(1)
+        outcome.append(
+            session.stop_feature(
+                "same", expected_generation=first_generation
+            )
+        )
+
+    delayed = threading.Thread(target=delayed_stop)
+    delayed.start()
+    replacement = Feature("same")
+    replacement_generation = session.start_feature(replacement)
+    release_stop.set()
+    delayed.join(1)
+
+    assert not delayed.is_alive()
+    assert outcome == [False]
+    current = session._records["same"]
+    assert current.feature is replacement
+    assert current.active and not current.cancelled.is_set()
+    assert session.stop_feature(
+        "same", expected_generation=replacement_generation
+    )
+    assert not session.is_active("same")
+    session.close()
+
+
 def test_confirmation_samples_sensor_while_feature_is_not_due():
     clock = Clock()
     adapter = Adapter(clock, readings=[

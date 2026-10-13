@@ -217,6 +217,8 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         CavebotScriptsPath="scripts/",
     )
     gui_loader = ConfManager.get("GUILoader.json")
+    # Existing backend-supported bindings outside the suggestion palette survive.
+    gui_loader["Loaders"]["HealthLoader"]["LifeHotkeyStageOne"] = "enter"
 
     def resolve(filename): return tmp_path / str(filename)
     monkeypatch.setattr(manager_module, "scripts_path", resolve)
@@ -241,14 +243,38 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
     import modules.Root as root_module
     try:
         root_module.root("Smoke Client", "Smoke.json")
-        root_module.OpenAutoHeal()
-        root_module.OpenAutoMana()
-        root_module.OpenAutoHur()
-        root_module.OpenAutoRing()
-        root_module.OpenAutoSSA()
-        root_module.OpenFoodEater()
-        root_module.OpenTimedSpells()
-        root_module.OpenCaveBot()
+        support_windows = (
+            root_module.OpenAutoHeal(),
+            root_module.OpenAutoMana(),
+            root_module.OpenAutoHur(),
+            root_module.OpenAutoRing(),
+            root_module.OpenAutoSSA(),
+            root_module.OpenFoodEater(),
+            root_module.OpenTimedSpells(),
+        )
+        from conf.HexMapKeys import ACTION_HOTKEYS
+
+        assert support_windows[0]._vars[0][3].get() == "enter"
+        for support in support_windows:
+            key_widgets = (
+                [stage[4][2] for stage in support._vars]
+                if hasattr(support, "_vars") else [support.key_widget]
+            )
+            for widget in key_widgets:
+                assert tuple(widget.cget("values")) == ACTION_HOTKEYS
+                widget.set("Ctrl + F12")
+                assert widget.get() == "Ctrl + F12"
+        cavebot = root_module.OpenCaveBot()
+        # Exercise the real route-list selection and a reversible reorder. No
+        # Save is pressed, so the smoke gate cannot modify a route fixture.
+        if len(cavebot._route.waypoints) > 1:
+            cavebot.route_table.selection_set("0")
+            cavebot._select_waypoint()
+            cavebot._move_waypoint_down()
+            assert cavebot._editor.selected_index == 1
+        root_module.OpenCompatibility()
+        root_module.OpenTraceViewer()
+        root_module.OpenHuntConsole()
         gui_module.application_root().update_idletasks()
     finally:
         from tibia_client.application import close_client

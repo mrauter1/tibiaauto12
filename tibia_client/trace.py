@@ -11,7 +11,9 @@ from dataclasses import dataclass, fields
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import stat
 import threading
 from typing import Any
 
@@ -237,9 +239,19 @@ def load_trace(
     digest = hashlib.sha256()
     total = 0
     try:
-        with Path(path).open("rb") as stream:
-            header = stream.readline(_MAX_LINE + 1)
+        # Check and parse the same open file, even if a log is replaced while
+        # being inspected. Nonblocking open lets us reject a FIFO before reading.
+        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
+        with os.fdopen(os.open(Path(path), flags), "rb") as stream:
+            info = os.fstat(stream.fileno())
+            if not stat.S_ISREG(info.st_mode):
+                raise TraceError("trace source must be a regular file")
+            if info.st_size > max_bytes:
+                raise TraceError("trace size limit exceeded")
+            header = stream.readline(min(_MAX_LINE, max_bytes) + 1)
             total += len(header)
+            if len(header) > _MAX_LINE or total > max_bytes:
+                raise TraceError("trace size limit exceeded")
             schema = _parse(header)
             if schema != _SCHEMA or type(schema.get("version")) is not int:
                 raise TraceError("unsupported trace schema or mode")
@@ -266,6 +278,8 @@ def load_trace(
                     raise TraceError("trace event limit exceeded")
                 events.append(event)
                 digest.update(line)
+    except OSError as exc:
+        raise TraceError(f"cannot read trace: {exc}") from exc
     except (ValueError, TypeError, KeyError, AttributeError, RecursionError, OverflowError) as exc:
         if isinstance(exc, TraceError):
             raise

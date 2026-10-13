@@ -1,8 +1,8 @@
 # Feature roadmap: from CaveBot to a complete hunting assistant
 
-Research date: **2026-10-12**. Code baseline: **`f4c8212`**, on `reliability/client-foundation`.
+Research date: **2026-10-12**. Roadmap implementation update: **2026-10-13 (UTC)**. Research baseline: **`01699e7`**; runtime-code baseline: **`f4c8212`**, on `reliability/client-foundation`.
 
-**Status: product and engineering proposal, not implemented functionality.** This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
+**Status: M0 software and M1 authoring/inspection tools implemented; environment-specific live validation and later milestones remain open.** This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
 
 ## Product direction
 
@@ -11,6 +11,18 @@ Make one hunting trip work exceptionally well: configure a hunt, reach it, fight
 The strongest opportunity is the combination of a complete hunt lifecycle and an excellent assisted mode. Route editing, diagnostics, manual handoffs, and useful stop reasons can ship before every interaction is autonomous. Each completed slice should remove a real interruption from a hunting session.
 
 Keep the shared SDK. The recent architecture already supplies coherent observations, request ownership, priorities, cancellation, and replay. The next investment is better game-state evidence and useful workflows built on those contracts.
+
+### Target and integration boundary
+
+The primary target is **unofficial OT servers using the official Tibia client with BattlEye**, as specified by the project owner. Preserve the original TibiaAuto12 integration: OBS Game Capture presents a projector image; TibiaAuto captures that window with `PrintWindow`, interprets its pixels, and controls the foreground game window through desktop keyboard/mouse input. The original README documents this path. Its support claim is historical evidence, not a current-client compatibility result. [T1]
+
+- **Primary capture:** an OBS projector selected separately from the game input window. Direct client capture is an optional, separately validated profile.
+- **Primary input:** foreground physical input using the existing `SetCursorPos`, `keybd_event` and `mouse_event` API family. Window-message input is a separately tested option; an OT server does not imply that the official client accepts those messages. The original implementation itself warned about that limitation. [T2]
+- **Game state:** visual observations with explicit known/unknown/error results. No game-process memory reader/writer, custom injected automation, binary patching or packet interception is part of this roadmap.
+- **OBS boundary:** OBS Game Capture uses an OBS-owned capture hook. Do not describe the end-to-end pipeline as hook-free. Keep OBS as a normal capture dependency; its documented anti-cheat compatibility can vary by version and game. [B1–B2]
+- **Extensions:** the SDK can support other adapters later, but OTClient APIs and memory-derived competitor features are not prerequisites or shortcuts for this target. Port their user workflows only where visual evidence supports them.
+
+Server policy and client compatibility are separate questions. This roadmap does not establish that an OT deployment permits automation or that a particular client/BattlEye configuration accepts it. Milestone 0 records scoped technical evidence; it cannot certify immunity from detection or future compatibility.
 
 ## What the benchmarks contribute
 
@@ -26,11 +38,12 @@ These are complementary references, not interchangeable products. Features docum
 
 The recurring lesson is that value comes from connecting modules. A supply threshold should select the return route; arrival should enable a confirmed shop interaction; replenishment should enable the trip back. Merely adding a refill button does not complete that experience.
 
-## Starting point in this repository
+## Baseline before this implementation
 
 | Already implemented | Remaining gap |
 |---|---|
-| Shared session, immutable observations, fresh-evidence requirements, prioritized requests, bounded native operations | Broader observations: inventory, containers, shops, floor changes, and individual creatures |
+| Separate capture/input windows, `PrintWindow` capture, physical and message input backends | Recorded compatibility evidence for the intended OBS/client profile and verified visual/input alignment |
+| Shared session, immutable observations, fresh-evidence requirements, prioritized requests, bounded capture/message operations and serialized physical input | Broader observations: inventory, containers, shops, floor changes, and individual creatures |
 | Healing, mana, haste, food, ring, amulet, timed spells | Shared cooldown groups, condition-aware rules, richer presets and rule explanations |
 | Marker navigation and observed marker arrival, Walk waypoints with configurable stand-after-arrival, target species priorities, follow | Movement-progress history, explicit recovery branches, tools, travel and richer combat positioning |
 | Bounded looting triggered by a target-count drop | Corpse/container recognition and confirmed loot transfer; a disappeared target is not a confirmed kill |
@@ -39,32 +52,101 @@ The recurring lesson is that value comes from connecting modules. A supply thres
 
 `ActionResult.EXECUTED` means the native call ran. It does not prove the game accepted a spell, bought an item, or changed floors. Existing marker arrival is already an observed outcome; additional workflows need similarly explicit evidence.
 
+Current observation timestamps measure the local capture operation. A frozen OBS projector can still produce newly captured screenshots, so this freshness contract does not establish upstream game-frame freshness. M0 must expose and handle that distinction.
+
+## Implementation status — 2026-10-13
+
+The M0 software workflow and M1's parallel authoring/inspection tools are now
+implemented. This is an implementation status, not a real-client compatibility
+claim: the live evidence gate below remains open for each intended environment.
+
+| Available now | Remaining validation or scope |
+|---|---|
+| Operator-started compatibility studio, captured preview, separate dispatch/confirmation records, bounded evidence export | Collect actual client/OBS operation, alignment and visible-change evidence |
+| Context-bound profiles, capability requirements and current-session window-binding gate | Verify each chosen client build, renderer, input mode and OBS configuration |
+| Shared capture health, runtime console, navigation pause/resume and Stop All | Exercise native focus, resize, capture failure and interruption scenarios |
+| Route list editing, marker preview, stable waypoint IDs, portable hunt packs and local binding | M1 movement-progress detection/recovery and richer waypoint actions remain planned |
+| Read-only filtered trace timeline, statistics and CLI inspection | Real detector fixtures and environment-specific replay cases depend on collected evidence |
+
+Start with the [desktop compatibility guide](desktop-compatibility.md), then use
+[Hunt Studio](hunt-studio.md) and the [trace tools](recording-replay.md). The M2+
+feature sequence stays gated on M0 live acceptance; offline authoring does not
+imply that supply, refill/depot, OCR or advanced combat have been implemented.
+
 ## Delivery sequence
+
+### M0 — Desktop compatibility and observability
+
+**User outcome:** establish a reproducible OBS/foreground-input configuration, see what has actually been verified, and stop automation predictably when its required evidence or readiness fails.
+
+Implement a narrow compatibility tool first, collect evidence, then build the profile and runtime checks around what the intended client demonstrates. Reuse the current capture, input, cancellation and trace machinery; do not create a second scheduler or redesign the SDK.
+
+| Order | Deliverable | Required behavior |
+|---:|---|---|
+| 1 | Operator-started compatibility tool | Exercise one selected operation at a time; show intended target/coordinates; record OS dispatch separately from the observed game response |
+| 2 | Validated desktop profile and small capability declaration | Bind capture/input selection, calibration, geometry, input mode and tested operations; reject unsupported feature requirements before activation |
+| 3 | Capture-health handling | Separate transport success, capture age, visual validity and upstream freshness evidence; invalidate affected observations when a failure is established |
+| 4 | Runtime diagnostics and controls | Explain readiness/blocking reasons; provide distinct Pause navigation and Stop all automation through the shared application/session boundary |
+
+**Compatibility operations and evidence**
+
+- Verify the original OBS projector path with the intended game window in the foreground. Check direct client capture or message input only as separate configurations, never as an automatic fallback.
+- Test plain and modified hotkeys, left/right clicks, dragging, cursor restoration and battle-list target selection individually. Require only the operations a profile enables; record other operations as unverified rather than blocking unrelated features.
+- Use an operator-triggered visible change to demonstrate that the captured view updates and belongs to the intended game window. Verify mapped points across the view; equal window dimensions alone do not prove alignment.
+- Exercise focus loss, window movement, resizing, capture-window closure, capture failure and Stop. Include an interrupted or frozen relay scenario and record what can and cannot be detected from the available evidence.
+- Export environment/profile metadata, a bounded action trace and opt-in selected frame files. Trace v1 remains observation-only; do not silently embed images or change its schema. Record automatic confirmation and operator confirmation distinctly, with pass/fail/unverified outcomes.
+- Use these frames as detector fixtures and build replay cases from the recorded observations. Saved-image tests verify perception against those images; they do not prove current live compatibility.
+
+**Profile and activation contract**
+
+Record client build, OT server, Windows version, renderer where known, OBS version and source/projector configuration, DPI/scaling, layout, capture/input dimensions, input mode and test date. Record the reported or observed BattlEye state with its provenance; an installed component is not proof that protection is active. Keep credentials out of the bundle.
+
+Window handles are runtime bindings, not durable client identities. Rebind and validate both windows at startup. Calibration must refer to the captured content and its mapping into game-client coordinates, with no unnoticed scaling, cropping or letterboxing. The first supported profile requires a 1:1 mapping; arbitrary rescaling is not an M0 requirement. Invalidate calibration on relevant geometry changes and mark compatibility evidence for revalidation after relevant client, OBS, renderer or input-mode changes.
+
+Declare the small set of sensors and actions the active adapter/profile supports. Track implementation support separately from observed compatibility results; an OS call returning successfully cannot promote an operation to verified. Gate activation on the selected profile's required calibration, readiness and operation checks, with an actionable explanation for missing evidence.
+
+**Capture health and bounded failure**
+
+Expose local screenshot age separately from any evidence about the game's source image. Detect observable failures such as failed capture, invalid layout, changed geometry or a failed expected visual transition. Cancel dependent queued actions when their evidence is invalidated; retain independently valid feature behavior only where its own requirements remain satisfied. Use bounded outcome waits and retries rather than repeatedly issuing an action from unchanged visual state.
+
+Identical frames alone cannot distinguish a frozen relay from a static game scene. An initial visible-change check does not guarantee continuous liveness. If upstream freshness cannot be established, expose it as unverified; never fabricate a source timestamp from the local capture time. M0's gate requires honest diagnostics and handling of detectable failures, not a claim of perfect freeze detection.
+
+The minimal status view shows active capture/input mode, profile/alignment status, capture health, target readiness, last action/result and blocking reason. Add a shared Stop all automation control through the application/session lifecycle, reusing existing feature cancellation and closure primitives to prevent new dispatch, cancel queued work and disable feature generations. An OS call already executing may finish. Restart is explicit and rechecks the profile/readiness/evidence. Pause navigation has narrower scope and clearly indicates which support features remain active.
+
+**Compatibility differences to check, not blindly revert**
+
+The rewrite changed battle-list click placement, duplicate-match suppression, message-mode modifier delivery/timing, capture failure handling and coordinate transforms. Check the intended client response before altering them. Preserve client-local coordinates, validated window ownership, serialized input, bounded waits and the absence of automatic focus stealing. Historical magic offsets and unbounded retries are not the integration contract.
+
+**Exit gate:** one declared OBS/client configuration demonstrates aligned capture and accepted input for its enabled operations. Focus loss, capture failure and Stop prevent further affected dispatch once observed; resize invalidates calibration; recovery requires fresh evidence. The evidence bundle distinguishes local capture freshness from source freshness, includes reproducible failure cases, and lists unsupported/unverified operations. This is a scoped compatibility result for the recorded environment, not a BattlEye guarantee.
+
+**Offline versus live:** the tool, profile contracts, diagnostic UI, fixtures and cancellation/error scenarios can be implemented offline. Actual capture quality, alignment, detector accuracy, input acceptance and timing require controlled checks on the intended installation.
+
+**Parallel work:** M1's hunt-pack schema, route editor, trace browser and replay scenarios can proceed while M0 is being built or awaiting live evidence. M0 gates live feature rollout for each profile; it does not block all roadmap coding. Inventory perception, depot workflows, advanced combat and alternative adapters are outside this prerequisite milestone.
 
 ### M1 — Route Studio and Hunt Console
 
 **User outcome:** configure, inspect, run and diagnose an existing hunt without editing files or guessing why it stopped.
 
 - Duplicate, reorder, validate and import/export routes; preview waypoint markers and their calibrated regions.
-- Add a guided setup check with capture previews and detected-region overlays. Explain incorrect geometry, missing templates and unreadable sensors before activation. Any input probe is a separate operator-started step; a successful OS call alone does not establish client acceptance.
-- Introduce an explicit adapter capability declaration before enabling capability-dependent packs. The current adapter protocol has no such API; file validation alone cannot prove runtime support.
+- Integrate M0's guided setup checks, capture previews and compatibility evidence into the route workflow; add route-specific marker and region overlays.
+- Use M0's adapter/profile capability declaration to validate hunt-pack requirements. File validation alone cannot prove runtime support.
 - Package the route, target list, support settings, supply policy and required capabilities as a versioned **hunt pack**. Keep machine-specific window identities and calibration bindings outside portable packs; require explicit local binding on import.
-- Show the current phase, waypoint, last recognized evidence, pending action, cooldown, timeout/retry budget and reason for waiting. Add a small read-only diagnostics contract or feature projections: existing `FeatureStatus` and events do not expose all these fields.
-- Provide distinct **Pause navigation** and **Stop all automation** controls, so users can choose whether valid support features continue. Stopping cancels future work across the session; an OS call already in progress may finish. Restart requires explicit activation and fresh evidence.
+- Extend M0's read-only diagnostics with the current phase, waypoint, last recognized evidence, pending action, cooldown and timeout/retry budget. Use feature projections where needed; existing `FeatureStatus` and events do not expose all these fields.
+- Integrate M0's **Pause navigation** and **Stop all automation** controls, preserving their scope and explicit restart behavior.
 - Add pause-after-step and resume-from-recognized-anchor. Ambiguous anchors require operator selection; proximity in a list is not evidence of location.
-- Export a bounded diagnostic trace and optional selected frames. Trace v1 is observation-only; frame files are a separate opt-in diagnostic artifact, not screenshots embedded in existing JSONL. Recorder callbacks remain read-only; UI commands go through the application/session boundary.
+- Add a user-facing timeline over M0's diagnostic export. Frame files remain separate opt-in artifacts. Recorder callbacks remain read-only; UI commands go through the application/session boundary.
 - Add navigation progress detection and bounded recovery. Distinguish waiting for combat, movement still progressing, missing marker and no progress. Retry or take a configured fallback only when supported by fresh evidence.
 - Begin assisted route recording from recognized landmarks and operator annotations. Automatic recording of doors, tools and transitions waits for the corresponding detectors.
 
-**Exit gate:** one existing hunt can be set up and diagnosed through the UI; invalid packs are rejected before activation; interruptions, missing markers and recovery limits have deterministic replay cases. Controlled live checks establish whether progress detection works on the selected client profile.
+**Exit gate:** on a profile that passed M0 for the required operations, one existing hunt can be set up and diagnosed through the UI; invalid packs are rejected before activation; interruptions, missing markers and recovery limits have deterministic replay cases. Controlled live checks establish whether progress detection works on that profile.
 
-**Offline work available now:** capability and diagnostics contracts, route/preset UI, schema validation, status presentation, trace browser, replay scenarios and progress policies over fixtures. Live capture is needed to validate the new detectors, not to design these workflows.
+**Offline work available in parallel with M0:** route/preset UI, schema validation, status presentation, trace browser, replay scenarios and progress policies over fixtures. Live capture is needed to validate new detectors and release the profile, not to design these workflows.
 
 ### M2 — Supply-aware hunts and verified looting
 
 **User outcome:** the bot knows when supplies are running low and can finish a hunt deliberately.
 
-- Read the minimum useful inventory state: selected consumable counts, available capacity where readable, container identity and open/closed state. Add fields only for the first supported workflow.
+- Read the minimum useful inventory state from captured pixels, using templates or OCR as appropriate: selected consumable counts, available capacity where readable, container identity and open/closed state. Add fields only for the first supported workflow; unsupported observations remain unavailable rather than triggering memory/API access.
 - Configure a refill target, return threshold and emergency reserve per supply. Separate optional supplies from required ones; use hysteresis to prevent repeated return/continue decisions.
 - Keep **observed**, **estimated** and **unknown** quantities distinct. Confirmed consumption can support forecasts; missing observations never become zero. An estimate can advise an early return but cannot authorize a purchase or transfer.
 - Provide **Return after this fight**, **Return now**, and **Stop after return** intents. These select a verified exit route; they do not promise that any location is safe. If the route cannot be established, stop affected movement and report the problem while preserving independently valid support behavior.
@@ -129,9 +211,9 @@ Ship healing-rule UX and configured cooldown groups earlier when they help M1–
 - Party healing/follow requires unambiguous member identity, fresh health/position evidence and self-preservation priority.
 - Reconnect/login recovery requires recognized client states, bounded attempts and a deliberate credential design. A network error must not cause blind clicks through unknown screens.
 - Multiple clients require independent configuration, calibration, ownership and sessions. Physical input needs explicit focus arbitration; separate sessions alone do not make simultaneous control correct.
-- If the intended client offers a supported extension interface, evaluate a structured adapter for inventory, positions and events while retaining the desktop adapter.
+- Optionally evaluate a structured adapter for a different client with a publisher-supported interface or an owned/authorized OTClient build. This is a separate future target; it does not replace the OBS/foreground-input path or supply hidden prerequisites for the current roadmap.
 
-**Early decision gate:** investigate structured-client access before investing heavily in complex pixel inventory/combat perception. A small read-only capability experiment may change M2–M4 effort substantially. If the real target client offers no suitable interface, continue with the pixel plan. Do not assume an OTClient module can run in an unrelated client.
+**Scope boundary:** the early decision gate is M0's desktop compatibility evidence. Structured-client access is not on the critical path. Features in M2–M5 must be feasible through validated visual observations and desktop actions on the intended official-client/OT-server configuration; narrow or defer features whose required evidence cannot be obtained reliably.
 
 ## Minimal architecture changes
 
@@ -145,7 +227,8 @@ The UI edits configuration and displays state. It should not become a second dec
 
 | Change | Add when | Avoid |
 |---|---|---|
-| Client capability declaration | Hunt packs need to state their prerequisites | A promise that every adapter supports every feature |
+| Desktop profile and capability declaration | M0 validates the selected integration; M1 checks hunt-pack prerequisites | Equating implemented support, OS dispatch and observed client acceptance |
+| Capture health and read-only diagnostics | M0 needs readiness, blocking reasons and truthful freshness reporting | Treating local screenshot time as a source-frame timestamp |
 | Inventory/container observations | M2 needs the first counts and container identity | A universal item database or fabricated inventory truth |
 | Marker positions and floor fingerprints | Navigation recovery and transition steps need them | Invented absolute world coordinates or temporal policy inside the adapter |
 | Entity observations | Instance targeting and positioning are ready to use them | Treating species count as creature identity |
@@ -163,14 +246,15 @@ Start route logic with typed data: move to recognized anchor, interact, wait for
 
 | Order | Investment | Expected value | Principal dependency |
 |---:|---|---|---|
-| 1 | Hunt Console, portable presets, route editing and trace inspection | Immediate reduction in setup and troubleshooting effort | Existing SDK/UI integration |
+| 0 | Compatibility tool, desktop profile, capture health and operator controls | Establishes the usable OBS/input path and exposes its limits | Existing SDK plus evidence from the intended client |
+| 1 | Hunt Console, portable presets, route editing and trace inspection | Immediate reduction in setup and troubleshooting effort | M0 contracts; M0 verification before live activation |
 | 2 | Navigation progress and bounded recovery | Fewer unexplained interruptions; enables trustworthy return routes | Live marker/progress fixtures |
 | 3 | Supply awareness, verified loot and return intent | Longer useful sessions with deliberate termination | Inventory/container perception |
 | 4 | Refill/depot/return cycle | Largest increase in end-to-end autonomy | Confirmed interactions and resumable phases |
 | 5 | Combat rules, offensive rotation and positioning | Better hunting efficiency | Increasingly rich combat observations |
 | 6 | Analytics, supervision and extensions | Better decisions and reuse across hunts | Stable events, verified data and capability contracts |
 
-This orders dependencies and user value, not calendar estimates. Perception work dominates uncertainty, so schedule estimates should follow a capability experiment on the intended client.
+This orders dependencies and user value, not calendar estimates. Perception work dominates uncertainty, so schedule estimates should follow M0's compatibility checks and visual fixtures from the intended client. M1's offline work can run in parallel.
 
 Defer an unrestricted script marketplace, broad automatic client detection, multi-client farming, speculative adaptive combat and unattended login recovery. They would expand the failure surface before the core hunt experience is complete. A language model could eventually help draft hunt packs, but runtime decisions should remain bounded and replayable; generated plans still require validation.
 
@@ -180,19 +264,21 @@ The primary measure is **manual interventions per completed hunt trip**, reporte
 
 Offline gates include schema/import migration, pure-policy tests with virtual time, replay consistency and detector fixtures. For each stateful workflow exercise success, unknown/error/stale evidence, cancellation, readiness loss, timeout, exhausted retries and restart reconciliation.
 
-Live release gates declare the actual client version, layout, DPI, capture and input mode. Exercise both success and deliberately ambiguous/failing situations. Verify no new dispatch is authorized after readiness loss is observed; an OS call already in progress cannot always be interrupted. Require bounded attempts and visible failure reasons, and inspect traces for confirmed transitions. Offline tests cannot establish live-client compatibility.
+Live release gates extend M0's profile evidence with the feature-specific checks. Declare the actual client/OBS version, renderer where known, OT server, layout, DPI, capture and input mode. Exercise both success and deliberately ambiguous/failing situations. Verify no new dispatch is authorized after readiness loss is observed; an OS call already in progress cannot always be interrupted. Require bounded attempts and visible failure reasons, and inspect traces for confirmed transitions. Report source-freshness uncertainty explicitly. Offline tests cannot establish live-client compatibility.
 
 ## Recommended next implementation slice
 
-Build **M1 plus the smallest navigation-progress slice**, while collecting the observations needed for M2:
+Build **M0**, starting with the smallest useful operation probe and evidence export:
 
-1. Adapter capability declarations, then hunt-pack schema and import/export with local calibration binding.
-2. Read-only diagnostics contract, Hunt Console, trace timeline and clearly scoped pause/stop controls.
-3. Route editing and recognized-anchor resume.
-4. Explicit progress/no-progress states with bounded recovery.
-5. Saved-image fixture collection for supply counts and open-container state.
+1. Operator-started capture/input checks and a reproducible evidence bundle.
+2. Collect evidence on the intended installation; resolve only the compatibility differences it exposes.
+3. Desktop profile, capability declaration and visual/input alignment checks informed by that evidence.
+4. Capture-health diagnostics, explicit source-freshness limits and clearly scoped pause/stop controls.
+5. Validate the enabled operation set and interruption/recovery behavior for one profile.
 
-This delivers useful functionality immediately and resolves the largest uncertainty in the full-cycle roadmap. The next slice is supply-aware return; then the first complete refill/depot loop.
+When live-client access is unavailable, continue building the offline portions and M1's route/preset/trace UI while leaving compatibility results unverified. Do not invent successful checks or block unrelated offline progress.
+
+After M0 validation, deliver M1 with the smallest navigation-progress slice. Then add supply-aware return, followed by the first complete refill/depot loop. Verified looting remains a parallel track.
 
 ## Primary sources
 
@@ -216,3 +302,7 @@ All sources below were consulted for this roadmap on 2026-10-12. Vendor descript
 - **N4:** [nExBot SmartHunt](https://github.com/mCodex/nExBot/blob/main/docs/SMARTHUNT.md) — analysis and the documented sources of its metrics.
 - **W1:** [WindBot feature catalog](https://www.tibiawindbot.com/features.html).
 - **W2:** [WindBot changelog](https://www.tibiawindbot.com/change-log.html) — historical status.
+- **T1:** [Original TibiaAuto12 README at `0261932`](https://github.com/mrauter1/tibiaauto12/blob/02619320f03a6d5bd30623f73056d8714276043e/README.md) — OBS projector setup and physical-input path.
+- **T2:** [Original message-input implementation at `0261932`](https://github.com/mrauter1/tibiaauto12/blob/02619320f03a6d5bd30623f73056d8714276043e/core/SendToClient.py) — historical client limitation.
+- **B1:** [OBS Game Capture Source](https://obsproject.com/kb/game-capture-source) — capture modes and OBS-owned hook.
+- **B2:** [OBS Capture Hook Certificate Update](https://obsproject.com/kb/capture-hook-certificate-update) — version/game-specific anti-cheat compatibility; not a Tibia validation result.

@@ -55,6 +55,7 @@ def finite(value: float, name: str, *, positive: bool = False) -> float:
 
 
 class SensorKind(str, Enum):
+    FRAME_VALID = "frame_valid"
     HEALTH = "health"
     MANA = "mana"
     RING_EMPTY = "ring_empty"

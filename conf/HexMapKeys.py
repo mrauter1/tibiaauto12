@@ -1,3 +1,14 @@
+"""Native-free key definitions shared by input backends and configuration UIs."""
+
+# Suggested action bindings, separate from CaveBot's global pause shortcut.
+# This is a UI palette, not a restriction on other backend-supported saved keys.
+ACTION_HOTKEYS = tuple(
+    f"{modifier}F{number}"
+    for modifier in ("", "Ctrl + ", "Shift + ")
+    for number in range(1, 13)
+)
+
+
 KeyToHex = {
     'backspace': 0x08,
     'tab': 0x09,

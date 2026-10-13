@@ -86,7 +86,7 @@ class Route:
     def __post_init__(self) -> None:
         object.__setattr__(self, "name", _safe_name(self.name))
         object.__setattr__(self, "waypoints", tuple(self.waypoints))
-        if isinstance(self.version, bool) or self.version != ROUTE_VERSION:
+        if type(self.version) is not int or self.version != ROUTE_VERSION:
             raise RouteError("unsupported route version: {}".format(self.version))
         if any(not isinstance(waypoint, Waypoint) for waypoint in self.waypoints):
             raise RouteError("route waypoints must be Waypoint values")
@@ -139,7 +139,7 @@ def route_from_data(name: str, data: Any, *, validate_assets: bool = True) -> Ro
         else:
             entries = data
     elif isinstance(data, dict):
-        if isinstance(data.get("version"), bool) or data.get("version") != ROUTE_VERSION:
+        if type(data.get("version")) is not int or data.get("version") != ROUTE_VERSION:
             raise RouteError("unsupported or missing route version")
         if data.get("name") not in (None, clean_name):
             raise RouteError("route name does not match its file name")
@@ -230,7 +230,7 @@ def load_checkpoint(route: Route) -> int:
             data = json.load(stream)
         if not isinstance(data, Mapping):
             raise RouteError("checkpoint document must be an object")
-        if isinstance(data.get("version"), bool) or data.get("version") != ROUTE_VERSION:
+        if type(data.get("version")) is not int or data.get("version") != ROUTE_VERSION:
             raise RouteError("unsupported checkpoint version")
         if data.get("route") != route.name:
             raise RouteError("checkpoint belongs to another route")

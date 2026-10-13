@@ -63,7 +63,17 @@ class TimedSpells:
             self.table,
             self.instant_widget,
         )
+        self.ui.bind_loader("TimedSpellsLoader", self._apply_settings)
         self.ui.report_feature(self._client, "TimedSpells", on_inactive=self._worker_failed)
+
+    def _apply_settings(self, data):
+        spells = parse_spells(data["Spells"])
+        self.instant.set(data["InstantExecute"])
+        for item in self.table.get_children():
+            self.table.delete(item)
+        for spell in spells:
+            self.table.insert("", "end", values=(spell.hotkey, spell.interval))
+        self._worker_failed()
 
     def _worker_failed(self, error=None):
         del error

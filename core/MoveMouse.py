@@ -217,6 +217,31 @@ class MoveMouse:
             hwnd = self._active_window()
             return self.backend.screen_to_client(hwnd, self.backend.cursor_position())
 
+    def ScreenPosition(self):
+        """Snapshot the cursor in screen coordinates for later restoration."""
+
+        with input_transaction("physical screen cursor position"):
+            self._active_window()
+            position = self.backend.cursor_position()
+            if (not isinstance(position, (tuple, list)) or len(position) != 2
+                    or any(isinstance(value, bool) or not isinstance(value, Integral)
+                           for value in position)):
+                raise InputUnavailableError("could not read a valid cursor position")
+            return int(position[0]), int(position[1])
+
+    def RestoreScreenPosition(self, position):
+        """Restore a screen snapshot while the configured client stays focused."""
+
+        if (not isinstance(position, (tuple, list)) or len(position) != 2
+                or any(isinstance(value, bool) or not isinstance(value, Integral)
+                       for value in position)):
+            raise ValueError("screen position must contain two integral coordinates")
+        with input_transaction("physical screen cursor restore"):
+            hwnd = self._active_window()
+            self._ensure_active(hwnd)
+            checkpoint()
+            self.backend.set_cursor_position((int(position[0]), int(position[1])))
+
     def Press(self, Key):
         code = self._key_code(Key)
         with input_transaction(f"physical key {Key}"):
