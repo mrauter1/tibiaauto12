@@ -692,6 +692,9 @@ class HuntWorkflowController:
     def acknowledge_manual(self, *, operator_reconciled: bool = False) -> None:
         if type(operator_reconciled) is not bool:
             raise ValueError("operator_reconciled must be boolean")
+        if not operator_reconciled:
+            self.request_recheck()
+            return
         with self._lock:
             generation = self._generation
         if generation is None or not self.session.feature_command(
@@ -701,6 +704,28 @@ class HuntWorkflowController:
             operator_reconciled=operator_reconciled,
         ):
             raise RuntimeError("the original hunt workflow generation is not active")
+
+    def request_recheck(self) -> None:
+        with self._lock:
+            generation = self._generation
+        if generation is None or not self.session.feature_command(
+            "CaveBot", generation, "request_recheck"
+        ):
+            raise RuntimeError("the workflow has no active recovery or reconciliation to re-check")
+
+    def select_recovery_anchor(self, waypoint_index: int) -> None:
+        if type(waypoint_index) is not int or waypoint_index < 0:
+            raise ValueError("waypoint_index must be a non-negative integer")
+        with self._lock:
+            generation = self._generation
+        if generation is None:
+            raise RuntimeError("the original hunt workflow generation is not active")
+        if not self.session.feature_command(
+            "CaveBot", generation, "select_recovery_anchor", waypoint_index=waypoint_index
+        ):
+            raise RuntimeError(
+                "the workflow is no longer awaiting this anchor; refresh the recovery status"
+            )
 
     def stop(self) -> bool:
         with self._lock:
@@ -810,12 +835,14 @@ class HuntWorkflowController:
                 "quality": value.quality.value,
                 "value": value.value,
                 "detail": value.detail,
+                "diagnostics": value.diagnostics,
             }
         if isinstance(value, Reading):
             return {
                 "quality": value.quality.value,
                 "value": value.value,
                 "detail": value.detail,
+                "diagnostics": value.diagnostics,
             }
         if value is None:
             return {"quality": Quality.UNKNOWN.value, "value": None, "detail": "no observation"}

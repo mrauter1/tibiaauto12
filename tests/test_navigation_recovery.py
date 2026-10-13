@@ -265,6 +265,28 @@ def test_exit_waits_until_combat_and_loot_state_are_clear():
     assert bot.status.completed_waypoints == 0
 
 
+def test_immediate_abort_cancels_pending_combat_request_without_waiting_for_clear():
+    bot = make_bot(
+        targets=(TargetSpec(1, "dragon"),),
+        config=SessionConfig(follow=False, loot=False),
+    )
+    active = {"dragon": Target(1, (50, 60), False)}
+    selecting = bot.tick(
+        context(bot, 0.0, marker=Marker((10, 10)), targets=active, frame=1)
+    ).requests[0]
+    assert selecting.key.startswith("select:")
+
+    bot.request_abort()
+    stopped = bot.tick(
+        context(bot, 0.1, marker=Marker((10, 10)), targets=active, frame=2)
+    )
+
+    assert stopped.finished
+    assert stopped.cancel_keys == (selecting.key,)
+    assert stopped.requests == ()
+    assert bot.status.reason == "abort_requested"
+
+
 def test_finite_route_finishes_last_waypoint_while_default_still_loops():
     route = Route("finite", (Waypoint("first", "Flag"), Waypoint("last", "Star")))
     saved = []

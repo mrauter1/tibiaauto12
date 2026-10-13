@@ -8,6 +8,7 @@ import pytest
 
 from core.perception import Frame
 from tibia_client.models import Quality, Sensor, SensorKind
+import tibia_client.visual as visual
 from tibia_client.visual import VisualProfile, VisualProfileError
 
 
@@ -133,6 +134,107 @@ def test_template_absence_is_unknown_without_unique_context(tmp_path):
     ambiguous = profile.read(sensor, Frame(missing))
     assert ambiguous.quality is Quality.UNKNOWN
     assert "ambiguous" in ambiguous.detail
+
+
+def test_context_overlap_below_iou_limit_remains_ambiguous(tmp_path):
+    # The first and last columns are equal, so these exact 3x3 placements can
+    # overlap by one column. Their IoU is 0.2 and both must remain candidates.
+    context = np.asarray(
+        [
+            [[10, 20, 30], [40, 50, 60], [10, 20, 30]],
+            [[70, 80, 90], [100, 110, 120], [70, 80, 90]],
+            [[130, 140, 150], [160, 170, 180], [130, 140, 150]],
+        ],
+        dtype=np.uint8,
+    )
+    target = np.asarray([[[240, 10, 20]]], dtype=np.uint8)
+    _save(tmp_path / "overlap-context.png", context)
+    _save(tmp_path / "single-target.png", target)
+    profile = VisualProfile(
+        {
+            "overlap": {
+                "kind": "template",
+                "template": "single-target.png",
+                "context": {
+                    "template": "overlap-context.png",
+                    "region": [0, 0, 8, 5],
+                    "score": 0.999,
+                },
+                "search_region": [8, 0, 10, 5],
+                "score": 0.999,
+            }
+        },
+        base_path=tmp_path,
+    )
+    pixels = np.full((8, 14, 3), 25, dtype=np.uint8)
+    _put(pixels, context, 1, 1)
+    _put(pixels, context, 3, 1)
+
+    reading = profile.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 10, 5), "overlap"), Frame(pixels)
+    )
+
+    assert reading.quality is Quality.UNKNOWN
+    assert reading.value is None
+    assert "competing boxes" in reading.detail
+    assert "(1, 1, 4, 4)" in reading.detail
+    assert "(3, 1, 6, 4)" in reading.detail
+    assert dict(reading.diagnostics) == {
+        "type": "visual_ambiguity",
+        "scope": "context",
+        "boxes": ((1, 1, 4, 4), (3, 1, 6, 4)),
+        "scores": (pytest.approx(1.0), pytest.approx(1.0)),
+    }
+
+
+def test_target_overflow_reports_bounded_absolute_competing_boxes(tmp_path):
+    context, target = _patterns(tmp_path)
+    profile = VisualProfile(
+        {
+            "overflow": {
+                "kind": "template",
+                "template": "target.png",
+                "context": _context_config(),
+                "search_region": [8, 0, 32, 16],
+                "score": 0.999,
+                "max_matches": 1,
+            }
+        },
+        base_path=tmp_path,
+    )
+    sensor = Sensor(SensorKind.VISUAL, (10, 5, 42, 21), "overflow")
+    pixels = np.full((30, 50, 3), 33, dtype=np.uint8)
+    _put(pixels, context, 11, 6)
+    _put(pixels, target, 20, 8)
+    _put(pixels, target, 30, 14)
+
+    reading = profile.read(sensor, Frame(pixels))
+
+    assert reading.quality is Quality.UNKNOWN
+    assert reading.value is None
+    assert reading.diagnostics["type"] == "visual_ambiguity"
+    assert reading.diagnostics["scope"] == "target"
+    assert reading.diagnostics["boxes"] == ((20, 8, 23, 10), (30, 14, 33, 16))
+    assert len(reading.diagnostics["scores"]) == 2
+
+
+def test_match_suppression_uses_iou_rule_for_ties_and_noisy_score_map(monkeypatch):
+    template = visual._Template(bytes(3 * 3 * 3), 3, 3, "unused")
+    scores = np.full((4, 9), 0.51, dtype=np.float32)
+    scores[1, 1] = 1.0
+    scores[1, 2] = 0.999  # IoU 0.5 with x=1: the same apparent object.
+    scores[1, 3] = 1.0  # IoU 0.2 with x=1: a distinct valid placement.
+    scores[1, 7] = 1.0
+    monkeypatch.setattr(visual, "_score_map", lambda _haystack, _template: scores)
+
+    matches, best = visual._find_matches(
+        np.zeros((6, 11, 3), dtype=np.uint8), template, 0.99, limit=2
+    )
+
+    # Equal scores use OpenCV's deterministic top-left order. Processing is
+    # capped at limit+1 distinct matches so callers can report overflow.
+    assert [(match.x, match.y) for match in matches] == [(1, 1), (3, 1), (7, 1)]
+    assert best == pytest.approx(1.0)
 
 
 def test_rgb_template_does_not_accept_same_luminance_impostor(tmp_path):

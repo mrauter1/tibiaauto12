@@ -61,6 +61,20 @@ class CyclePhase(str, Enum):
     FAILED = "failed"
 
 
+class RecoveryOrigin(str, Enum):
+    WARM_PAUSE = "warm_pause"
+    CHECKPOINT = "checkpoint"
+
+
+@dataclass
+class RecoveryState:
+    origin: RecoveryOrigin
+    baseline_frame: int
+    reason: str
+    candidates: tuple[int, ...] = ()
+    selected_anchor: int | None = None
+
+
 @dataclass(frozen=True)
 class HuntCycleStatus:
     phase: str
@@ -77,6 +91,8 @@ class HuntCycleStatus:
     finished: bool = False
     failed: bool = False
     error: str | None = None
+    recovery_reason: str | None = None
+    recovery_candidates: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "supply_counts", MappingProxyType(dict(self.supply_counts)))
@@ -95,6 +111,7 @@ class _PendingAction:
     extra: tuple[tuple[str, ConditionField, ConditionOp], ...] = ()
     loot_item: str | None = None
     matched_count_delta: tuple[str, str] | None = None
+    dispatch_unknown: bool = False
 
 
 class HuntCheckpointError(ValueError):
@@ -173,7 +190,8 @@ class HuntCycleFeature:
         self._loot_started: float | None = None
         self._loot_evidence_wait_started: float | None = None
         self._paused = False
-        self._needs_resume_observation = False
+        self._last_frame_id = -1
+        self._recovery: RecoveryState | None = None
         self._resume_pending: dict[str, Any] | None = None
         self._manual_origin: CyclePhase | None = None
         self._manual_reason: str | None = None
@@ -219,6 +237,8 @@ class HuntCycleFeature:
             "finished": status.finished,
             "failed": status.failed,
             "error": status.error,
+            "recovery_reason": status.recovery_reason,
+            "recovery_candidates": status.recovery_candidates,
         }
 
     def _set_status(self, reason: str, **changes: Any) -> None:
@@ -237,6 +257,8 @@ class HuntCycleFeature:
             "finished": self._phase is CyclePhase.FINISHED,
             "failed": self._phase is CyclePhase.FAILED,
             "error": None,
+            "recovery_reason": self._recovery.reason if self._recovery else None,
+            "recovery_candidates": self._recovery.candidates if self._recovery else (),
         }
         values.update(changes)
         self._status = HuntCycleStatus(**values)
@@ -254,7 +276,7 @@ class HuntCycleFeature:
         result = list(self.bindings[sensor_id] for sensor_id in self.plan.sensor_ids())
         if self._inner is not None:
             result.extend(self._inner.sensors())
-            if self._needs_resume_observation and self._phase in (
+            if self._recovery is not None and self._recovery.origin is RecoveryOrigin.CHECKPOINT and self._phase in (
                 CyclePhase.OUTBOUND,
                 CyclePhase.HUNT,
                 CyclePhase.RETURN,
@@ -267,12 +289,78 @@ class HuntCycleFeature:
             raise ValueError("now must be boolean")
         if self._phase in (CyclePhase.FINISHED, CyclePhase.FAILED):
             return
-        self._return_requested = True
-        self._return_mode = "now" if now else "after_fight"
+        if self._phase in (
+            CyclePhase.PREPARE,
+            CyclePhase.DEPOSIT,
+            CyclePhase.SELL,
+            CyclePhase.REFILL,
+        ):
+            self._set_status("return_already_at_destination")
+            return
+        self._upgrade_return_intent("now" if now else "after_fight")
         if self._phase is CyclePhase.HUNT and self._inner is not None:
-            self._inner.request_exit()
-        self._set_status("operator_return_requested")
+            if self._return_mode == "now":
+                self._inner.request_abort()
+            else:
+                self._inner.request_exit()
+        if self._phase in (
+            CyclePhase.RETURN_BEFORE,
+            CyclePhase.RETURN,
+            CyclePhase.RETURN_AFTER,
+        ):
+            reason = "return_already_in_progress"
+        elif self._phase in (
+            CyclePhase.OUTBOUND_BEFORE,
+            CyclePhase.OUTBOUND,
+            CyclePhase.OUTBOUND_AFTER,
+        ):
+            reason = "return_queued_until_outbound_route_complete"
+        else:
+            reason = "operator_return_requested"
+        self._set_status(reason)
         self._save_checkpoint()
+
+    def _upgrade_return_intent(self, mode: str) -> None:
+        rank = {None: 0, "after_fight": 1, "now": 2}
+        if mode not in ("after_fight", "now"):
+            raise ValueError("return mode is invalid")
+        self._return_requested = True
+        if rank[mode] > rank[self._return_mode]:
+            self._return_mode = mode
+
+    def select_recovery_anchor(self, waypoint_index: int) -> bool:
+        """Choose a currently observed anchor for checkpoint reconstruction."""
+
+        if not isinstance(waypoint_index, int) or isinstance(waypoint_index, bool):
+            raise ValueError("waypoint_index must be an integer")
+        recovery = self._recovery
+        if recovery is None or recovery.origin is not RecoveryOrigin.CHECKPOINT:
+            return False
+        if waypoint_index not in recovery.candidates:
+            recovery.selected_anchor = None
+            recovery.reason = (
+                "route_anchor_waiting_for_fresh_evidence"
+                if not recovery.candidates
+                else "route_anchor_ambiguous_select_candidate"
+            )
+            self._set_status("route_anchor_selection_rejected")
+            return False
+        recovery.selected_anchor = waypoint_index
+        recovery.reason = "route_anchor_selection_pending_fresh_evidence"
+        self._set_status("route_anchor_selection_pending_fresh_evidence")
+        return True
+
+    def request_recheck(self) -> bool:
+        """Request an immediate read-only recovery or reconciliation poll."""
+
+        if self._phase is CyclePhase.MANUAL:
+            self._manual_check_requested = True
+            self._set_status("manual_ack_waiting_for_fresh_checks")
+            return True
+        if self._recovery is not None:
+            self._set_status("recovery_recheck_requested")
+            return True
+        return False
 
     def acknowledge_manual(self, *, operator_reconciled: bool = False) -> bool:
         if type(operator_reconciled) is not bool:
@@ -280,9 +368,7 @@ class HuntCycleFeature:
         if self._phase is not CyclePhase.MANUAL:
             return False
         if not operator_reconciled:
-            self._manual_check_requested = True
-            self._set_status("manual_ack_waiting_for_fresh_checks")
-            return True
+            return self.request_recheck()
         origin = self._manual_origin or CyclePhase.PREPARE
         self._phase = origin
         self._manual_origin = None
@@ -291,13 +377,40 @@ class HuntCycleFeature:
             pending = self._pending
             self._pending = None
             self._complete_pending_effect(pending)
-        self._needs_resume_observation = True
+        recovery_origin = (
+            RecoveryOrigin.CHECKPOINT
+            if self._inner is None
+            and origin in (CyclePhase.OUTBOUND, CyclePhase.HUNT, CyclePhase.RETURN)
+            else RecoveryOrigin.WARM_PAUSE
+        )
+        self._recovery = RecoveryState(
+            recovery_origin,
+            self._last_frame_id,
+            "operator_reconciliation_fresh_observation_required",
+        )
         self._set_status("operator_reconciled")
         self._save_checkpoint()
         return True
 
-    def on_pause(self) -> None:
+    def on_pause(
+        self, *, cancelled_before_dispatch: tuple[str, ...] = ()
+    ) -> None:
+        if not isinstance(cancelled_before_dispatch, tuple) or any(
+            not isinstance(key, str) or not key
+            for key in cancelled_before_dispatch
+        ):
+            raise ValueError(
+                "cancelled_before_dispatch must contain non-empty request keys"
+            )
         self._paused = True
+        if self._pending is not None:
+            if self._pending.request_key in cancelled_before_dispatch:
+                self._pending = None
+            elif self._pending.dispatched_at is None:
+                # The native call runs outside the feature callback lock.  If
+                # the session did not prove this key was still queued, missing
+                # feedback leaves its effect uncertain and it must not retry.
+                self._pending.dispatch_unknown = True
         if self._inner is not None:
             self._inner.on_pause()
         self._set_status("paused")
@@ -316,7 +429,12 @@ class HuntCycleFeature:
             self._pending.deadline += float(paused_for)
         if self._inner is not None:
             self._inner.on_resume(paused_for=paused_for)
-        self._needs_resume_observation = True
+        if self._recovery is None or self._recovery.origin is RecoveryOrigin.WARM_PAUSE:
+            self._recovery = RecoveryState(
+                RecoveryOrigin.WARM_PAUSE,
+                self._last_frame_id,
+                "warm_resume_waiting_for_new_frame",
+            )
         self._set_status("resuming_fresh_observation_required")
 
     def on_stop(self) -> None:
@@ -549,6 +667,18 @@ class HuntCycleFeature:
         if pending is None:
             return self._step()
         if pending.dispatched_at is None:
+            if pending.dispatch_unknown:
+                confirmed = self._pending_confirmed(context, pending)
+                if confirmed is True:
+                    self._pending = None
+                    self._complete_pending_effect(pending)
+                    self._set_status("machine_confirmed_after_uncertain_dispatch")
+                    self._save_checkpoint()
+                    return self._step()
+                if context.now - pending.issued_at >= max(1.0, self.interval * 4):
+                    return self._manual("dispatch_result_unknown")
+                self._set_status("reconciling_uncertain_dispatch")
+                return self._step()
             if context.now - pending.issued_at >= max(1.0, self.interval * 4):
                 return self._manual("dispatch_result_unknown")
             self._set_status("waiting_for_dispatch_result")
@@ -572,6 +702,17 @@ class HuntCycleFeature:
             return self._manual("confirmation_unknown_after_timeout")
         if not unchanged:
             return self._manual("postcondition_changed_unexpectedly")
+        if (
+            self._phase is CyclePhase.HUNT
+            and self._return_requested
+            and self._return_mode == "now"
+            and pending.loot_item is not None
+        ):
+            self._pending = None
+            self._clear_loot_state()
+            self._set_status("immediate_return_suppressed_loot_retry")
+            self._save_checkpoint()
+            return self._step()
         if pending.attempts <= pending.action.retries:
             action = pending.action
             attempts = pending.attempts + 1
@@ -722,16 +863,22 @@ class HuntCycleFeature:
         return Step(step.requests, step.cancel_keys, self._status.phase, False, step.error)
 
     def _return_due(self) -> tuple[bool, str]:
-        if self._return_requested:
-            return True, "operator_return"
+        emergencies = []
+        thresholds = []
         for supply in self.plan.supplies:
             count = self._supply_counts[supply.id]
             if count is not None and count <= supply.emergency_reserve:
-                self._return_mode = "now"
-                return True, f"emergency_reserve:{supply.id}"
-            if count is not None and count < supply.return_below:
-                self._return_mode = "after_fight"
-                return True, f"return_threshold:{supply.id}"
+                emergencies.append(supply.id)
+            elif count is not None and count < supply.return_below:
+                thresholds.append(supply.id)
+        if emergencies:
+            self._upgrade_return_intent("now")
+            return True, f"emergency_reserve:{emergencies[0]}"
+        if thresholds:
+            self._upgrade_return_intent("after_fight")
+            return True, f"return_threshold:{thresholds[0]}"
+        if self._return_requested:
+            return True, "operator_return"
         return False, ""
 
     def _loot_wait(self, context: FeatureContext, reason: str) -> Step:
@@ -884,7 +1031,10 @@ class HuntCycleFeature:
             self._set_status("hunt_starting")
             return self._step()
         if due:
-            self._inner.request_exit()
+            if self._return_mode == "now":
+                self._inner.request_abort()
+            else:
+                self._inner.request_exit()
             self._set_status(reason)
         before_target = self._inner.status.target
         step = self._inner.tick(context)
@@ -1004,29 +1154,73 @@ class HuntCycleFeature:
                 else "interrupted_mutation_ambiguous"
             )
             return self._manual(reason)
-        if not self._needs_resume_observation:
+        recovery = self._recovery
+        if recovery is None:
             return None
+        if context.snapshot.frame_id <= recovery.baseline_frame:
+            recovery.reason = "resume_waiting_for_new_frame"
+            self._set_status(recovery.reason)
+            return self._step()
         if not self._supply_observations(context):
-            self._set_status("resume_waiting_for_fresh_observations")
+            recovery.reason = "resume_waiting_for_fresh_observations"
+            self._set_status(recovery.reason)
+            return self._step()
+        if recovery.origin is RecoveryOrigin.WARM_PAUSE:
+            if self._inner is not None:
+                for sensor in self._inner.sensors():
+                    if sensor.kind not in (SensorKind.MARKER, SensorKind.TARGET):
+                        continue
+                    try:
+                        context.require(sensor, self._MAX_AGE)
+                    except ObservationUnavailable:
+                        recovery.reason = "resume_waiting_for_fresh_route_evidence"
+                        self._set_status(recovery.reason)
+                        return self._step()
+            self._recovery = None
+            self._set_status("resume_observations_reconciled")
             return self._step()
         if self._phase in (CyclePhase.OUTBOUND, CyclePhase.HUNT, CyclePhase.RETURN):
+            if (
+                self._phase is CyclePhase.HUNT
+                and self._return_requested
+                and self._return_mode == "now"
+            ):
+                self._recovery = None
+                self._enter(CyclePhase.RETURN_BEFORE, "checkpoint_immediate_return_continuing")
+                return self._step()
             if self._inner is None:
                 self._inner = self._new_inner(self._phase)
-                return self._step()
             candidates = self._inner.recognized_anchor_candidates(context)
-            if len(candidates) != 1:
-                return self._manual("route_anchor_missing_or_ambiguous")
-            self._inner.resume_from_recognized_anchor(context, waypoint_index=candidates[0])
-        self._needs_resume_observation = False
+            recovery.candidates = candidates
+            selected = recovery.selected_anchor
+            if selected is not None and selected not in candidates:
+                recovery.reason = "selected_route_anchor_not_currently_recognized"
+                self._set_status(recovery.reason)
+                return self._step()
+            if selected is None and len(candidates) != 1:
+                recovery.reason = (
+                    "route_anchor_waiting_for_fresh_evidence"
+                    if not candidates
+                    else "route_anchor_ambiguous_select_candidate"
+                )
+                self._set_status(recovery.reason)
+                return self._step()
+            anchor = selected if selected is not None else candidates[0]
+            self._inner.resume_from_recognized_anchor(context, waypoint_index=anchor)
+        self._recovery = None
         self._set_status("resume_observations_reconciled")
         return self._step()
 
     def tick(self, context: FeatureContext) -> Step:
+        self._last_frame_id = max(self._last_frame_id, context.snapshot.frame_id)
         if self._paused or self._stopped:
             return self._step()
         if self._phase is CyclePhase.MANUAL:
-            if self._manual_check_requested and self._pending is not None:
+            if self._manual_check_requested:
                 self._manual_check_requested = False
+                if self._pending is None:
+                    self._set_status("manual_recheck_has_no_machine_reconcilable_effect")
+                    return self._step()
                 confirmed = self._pending_confirmed(context, self._pending)
                 if confirmed is True:
                     origin = self._manual_origin or CyclePhase.PREPARE
@@ -1043,6 +1237,15 @@ class HuntCycleFeature:
             return self._step()
         if self._phase in (CyclePhase.FINISHED, CyclePhase.FAILED):
             return self._step()
+        if self._phase is CyclePhase.HUNT:
+            # Supply urgency must remain live while a guarded loot effect is
+            # pending.  Unknown counts never authorize a threshold, but known
+            # emergency evidence can still upgrade an existing return intent.
+            self._supply_observations(context)
+            self._return_due()
+        cancelled = self._cancel_queued_loot_for_immediate_return()
+        if cancelled is not None:
+            return cancelled
         resumed = self._tick_resume(context)
         if resumed is not None:
             return resumed
@@ -1053,6 +1256,30 @@ class HuntCycleFeature:
         if self._phase is CyclePhase.HUNT:
             return self._tick_hunt(context)
         return self._tick_action_phase(context)
+
+    def _cancel_queued_loot_for_immediate_return(self) -> Step | None:
+        pending = self._pending
+        if not (
+            self._phase is CyclePhase.HUNT
+            and self._return_requested
+            and self._return_mode == "now"
+            and pending is not None
+            and pending.loot_item is not None
+            and pending.dispatched_at is None
+            and not pending.dispatch_unknown
+        ):
+            return None
+        self._pending = None
+        self._clear_loot_state()
+        self._set_status("immediate_return_cancelled_queued_loot")
+        self._save_checkpoint()
+        return self._step(cancel_keys=(pending.request_key,))
+
+    def _clear_loot_state(self) -> None:
+        self._looting = False
+        self._loot_opened = False
+        self._loot_started = None
+        self._loot_evidence_wait_started = None
 
     def on_result(self, result: ActionResult) -> None:
         if self._pending is not None and result.key == self._pending.request_key:
@@ -1260,7 +1487,11 @@ class HuntCycleFeature:
             self._return_requested = return_requested
             self._return_mode = mode
             self._resume_pending = checked_pending
-            self._needs_resume_observation = self._resume_pending is None
+            self._recovery = RecoveryState(
+                RecoveryOrigin.CHECKPOINT,
+                -1,
+                "checkpoint_fresh_observation_required",
+            )
             self._set_status("checkpoint_loaded_fresh_observation_required")
         except HuntCheckpointError:
             raise
@@ -1268,4 +1499,11 @@ class HuntCycleFeature:
             raise HuntCheckpointError(f"invalid checkpoint {path}: {exc}") from exc
 
 
-__all__ = ["CyclePhase", "HuntCheckpointError", "HuntCycleFeature", "HuntCycleStatus"]
+__all__ = [
+    "CyclePhase",
+    "HuntCheckpointError",
+    "HuntCycleFeature",
+    "HuntCycleStatus",
+    "RecoveryOrigin",
+    "RecoveryState",
+]

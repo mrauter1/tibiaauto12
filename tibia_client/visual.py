@@ -38,6 +38,8 @@ MAX_VISUAL_WORK_PIXELS = 8_000_000
 MAX_DIGITS = 9
 MAX_MATCHES = 9
 MIN_MATCH_SCORE = 0.5
+_MAX_MATCH_IOU_NUMERATOR = 3
+_MAX_MATCH_IOU_DENOMINATOR = 10
 
 _SPEC_ID = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 
@@ -48,6 +50,15 @@ class VisualProfileError(ValueError):
 
 class _UnknownVisual(RuntimeError):
     """Pixels did not provide unambiguous evidence on this frame."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        diagnostics: Mapping[str, object] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.diagnostics = {} if diagnostics is None else dict(diagnostics)
 
 
 @dataclass(frozen=True, slots=True)
@@ -489,23 +500,58 @@ def _find_matches(
     selected: list[_Match] = []
     work = scores.copy()
     height, width = template.pixels.shape[:2]
-    # At most limit+1 score maxima are examined. Suppression makes the bound
-    # independent of the number of above-threshold pixels in a noisy frame.
+    # At most limit+1 distinct score maxima are examined. Suppression uses the
+    # same 0.3 IoU rule as acceptance, so a nearby valid placement is not
+    # erased merely because its box shares a few pixels with an accepted one.
+    # The bound remains independent of above-threshold noise in the frame.
     for _ in range(limit + 1):
         _, maximum, _, position = cv2.minMaxLoc(work)
         if maximum < threshold:
             break
         candidate = _Match(position[0], position[1], width, height, float(maximum))
-        if all(_iou(candidate, accepted) <= 0.3 for accepted in selected):
-            selected.append(candidate)
-            if len(selected) > limit:
-                break
+        # Every placement over the overlap bound was suppressed when its
+        # conflicting match was selected, so this is a distinct placement.
+        selected.append(candidate)
+        if len(selected) > limit:
+            break
+
         x, y = position
-        left, top = max(0, x - width + 1), max(0, y - height + 1)
-        right = min(work.shape[1], x + width)
-        bottom = min(work.shape[0], y + height)
-        work[top:bottom, left:right] = -1.0
+        top, bottom = max(0, y - height + 1), min(work.shape[0], y + height)
+        for other_y in range(top, bottom):
+            overlap_height = height - abs(other_y - y)
+            # For t=n/d, IoU > t iff (d+n)*intersection > 2*n*area.
+            # Integer arithmetic preserves placements exactly on the bound.
+            minimum_width = (
+                2 * _MAX_MATCH_IOU_NUMERATOR * width * height
+                // ((_MAX_MATCH_IOU_DENOMINATOR + _MAX_MATCH_IOU_NUMERATOR) * overlap_height)
+                + 1
+            )
+            if minimum_width > width:
+                continue
+            horizontal_offset = width - minimum_width
+            left = max(0, x - horizontal_offset)
+            right = min(work.shape[1], x + horizontal_offset + 1)
+            work[other_y, left:right] = -1.0
     return selected, best_score
+
+
+def _box(match: _Match, *, offset: tuple[int, int] = (0, 0)) -> tuple[int, int, int, int]:
+    left, top = offset[0] + match.x, offset[1] + match.y
+    return left, top, left + match.width, top + match.height
+
+
+def _ambiguity_diagnostics(
+    scope: str,
+    matches: Sequence[_Match],
+    *,
+    offset: tuple[int, int],
+) -> dict[str, object]:
+    return {
+        "type": "visual_ambiguity",
+        "scope": scope,
+        "boxes": tuple(_box(match, offset=offset) for match in matches),
+        "scores": tuple(match.score for match in matches),
+    }
 
 
 def _absolute_region(
@@ -541,7 +587,12 @@ def _context_match(
     if not matches:
         raise _UnknownVisual("configured visual context is absent")
     if len(matches) != 1:
-        raise _UnknownVisual("configured visual context is ambiguous")
+        diagnostics = _ambiguity_diagnostics("context", matches, offset=region[:2])
+        raise _UnknownVisual(
+            f"configured visual context is ambiguous; competing boxes: "
+            f"{diagnostics['boxes']!r}",
+            diagnostics=diagnostics,
+        )
     found = matches[0]
     return _Match(
         region[0] + found.x,
@@ -625,7 +676,12 @@ def read_visual(
                 _crop(frame, search), spec.template, spec.score, limit=spec.max_matches
             )
             if len(matches) > spec.max_matches:
-                raise _UnknownVisual("template match count exceeds the configured bound")
+                diagnostics = _ambiguity_diagnostics("target", matches, offset=search[:2])
+                raise _UnknownVisual(
+                    "template match count exceeds the configured bound; competing boxes: "
+                    f"{diagnostics['boxes']!r}",
+                    diagnostics=diagnostics,
+                )
             best = max(matches, key=lambda item: item.score) if matches else None
             position = None if best is None else (
                 search[0] + best.center[0], search[1] + best.center[1]
@@ -650,7 +706,7 @@ def read_visual(
             }
         )
     except _UnknownVisual as exc:
-        return Reading(None, Quality.UNKNOWN, str(exc))
+        return Reading(None, Quality.UNKNOWN, str(exc), diagnostics=exc.diagnostics)
 
 
 __all__ = [

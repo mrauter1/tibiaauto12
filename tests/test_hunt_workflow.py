@@ -220,7 +220,13 @@ def test_start_installs_profile_at_one_epoch_and_routes_commands(controller, tmp
     service.request_return(now=True)
     service.acknowledge_manual(operator_reconciled=False)
     assert session.calls[-2][-1] == {"now": True}
-    assert session.calls[-1][-1] == {"operator_reconciled": False}
+    assert session.calls[-1] == ("command", "CaveBot", 7, "request_recheck", {})
+    service.acknowledge_manual(operator_reconciled=True)
+    assert session.calls[-1][-1] == {"operator_reconciled": True}
+    service.select_recovery_anchor(2)
+    assert session.calls[-1] == (
+        "command", "CaveBot", 7, "select_recovery_anchor", {"waypoint_index": 2}
+    )
     assert service.stop()
     assert not service.status()["active"]
 
@@ -240,6 +246,8 @@ def test_paused_original_is_active_but_replacement_cannot_be_controlled(controll
     assert not service.status()["active"]
     with pytest.raises(RuntimeError, match="original hunt workflow generation"):
         service.request_return()
+    with pytest.raises(RuntimeError, match="no longer awaiting this anchor"):
+        service.select_recovery_anchor(1)
     assert not service.stop()
 
 

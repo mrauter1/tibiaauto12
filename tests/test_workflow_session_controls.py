@@ -51,6 +51,12 @@ class Feature:
     def acknowledge_manual(self, *, operator_reconciled=False):
         return operator_reconciled
 
+    def request_recheck(self):
+        self.commands.append("recheck")
+
+    def select_recovery_anchor(self, *, waypoint_index):
+        self.commands.append(("anchor", waypoint_index))
+
 
 def test_detector_install_is_idle_only_and_invalidates_prepared_starts():
     adapter = Adapter()
@@ -186,4 +192,24 @@ def test_operator_command_does_not_coerce_boolean_generation():
     with pytest.raises(ValueError, match="generation"):
         session.feature_command(feature.name, True, "request_return")
     assert feature.commands == []
+    session.close()
+
+
+def test_recovery_commands_remain_bound_to_the_original_generation():
+    session = ClientSession(Adapter(), autostart=False)
+    first, replacement = Feature(), Feature()
+    generation = session.start_feature(first)
+    assert session.feature_command(first.name, generation, "request_recheck")
+    assert session.feature_command(
+        first.name, generation, "select_recovery_anchor", waypoint_index=2
+    )
+    assert first.commands == ["recheck", ("anchor", 2)]
+    new_generation = session.start_feature(replacement)
+    for command, options in (
+        ("request_recheck", {}), ("select_recovery_anchor", {"waypoint_index": 2})
+    ):
+        assert not session.feature_command(first.name, generation, command, **options)
+    assert replacement.commands == []
+    session.stop_all()
+    assert not session.feature_command(replacement.name, new_generation, "request_recheck")
     session.close()

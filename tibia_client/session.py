@@ -133,6 +133,7 @@ class _FeatureRecord:
     paused: bool = False
     paused_at: float | None = None
     transition: str | None = None
+    command_dispatch_holds: int = 0
 
 
 @dataclass(frozen=True)
@@ -719,7 +720,9 @@ class ClientSession:
         self._guard_recorder_reentry("change a feature's operator intent")
         if type(generation) is not int or generation < 0:
             raise ValueError("generation must be a non-negative integer")
-        if command not in {"request_return", "acknowledge_manual"}:
+        if command not in {
+            "request_return", "acknowledge_manual", "request_recheck", "select_recovery_anchor"
+        }:
             raise ValueError("unsupported feature command")
         with self._lock:
             record = self._records.get(name)
@@ -727,17 +730,42 @@ class ClientSession:
                     or not record.active or record.generation != generation
                     or record.transition is not None or record.cancelled.is_set()):
                 return False
-        with self._callback_barrier(record, command):
-            with self._lock:
-                if (self._closed or self._stopping_all or self._records.get(name) is not record
-                        or not record.active or record.generation != generation
-                        or record.transition is not None or record.cancelled.is_set()):
-                    return False
-            callback = getattr(record.feature, command, None)
-            if not callable(callback):
-                raise ValueError(f"feature does not support {command}")
-            result = callback(**options)
-            return result is not False
+            hold_dispatch = command == "request_return" and options.get("now") is True
+            if hold_dispatch:
+                # Publish before waiting for a running tick. Queued input must
+                # not slip through while the immediate-return command waits.
+                record.command_dispatch_holds += 1
+        # Commands must land between scheduler steps. Otherwise a tick that
+        # already collected its due policies could dispatch old queued input
+        # after accepting an immediate-return intent. Keep the same lock order
+        # as tick_once: scheduler first, then the feature callback barrier.
+        acquired = False
+        try:
+            acquired = self._tick_lock.acquire(timeout=self._CALLBACK_QUIESCE_TIMEOUT)
+            if not acquired:
+                raise RuntimeError("client is still completing a scheduler step; retry the command")
+            with self._callback_barrier(record, command):
+                with self._lock:
+                    if (self._closed or self._stopping_all or self._records.get(name) is not record
+                            or not record.active or record.generation != generation
+                            or record.transition is not None or record.cancelled.is_set()):
+                        return False
+                callback = getattr(record.feature, command, None)
+                if not callable(callback):
+                    raise ValueError(f"feature does not support {command}")
+                result = callback(**options)
+                if result is not False:
+                    with self._lock:
+                        # Re-evaluate before any subsequent dispatch, even if
+                        # the ordinary feature polling interval has not elapsed.
+                        record.next_due = min(record.next_due, self._last_now)
+                return result is not False
+        finally:
+            if hold_dispatch:
+                with self._lock:
+                    record.command_dispatch_holds -= 1
+            if acquired:
+                self._tick_lock.release()
 
     def start_probe(self, feature: Feature, *, expected_stop_epoch: int | None = None) -> int:
         """Start the one concrete compatibility probe in exclusive mode."""
@@ -1069,7 +1097,10 @@ class ClientSession:
                     self._terminal(
                         item, ResultState.CANCELLED, now, "navigation paused", deliver=False
                     )
-                self._call_feature_hook(record.feature, "on_pause", at=now)
+                self._call_feature_hook(
+                    record.feature, "on_pause", at=now,
+                    cancelled_before_dispatch=tuple(item.request.key for item in removed),
+                )
         except Exception:
             with self._lock:
                 if self._records.get(record.name) is record and record.active:
@@ -1176,7 +1207,7 @@ class ClientSession:
         return True
 
     @staticmethod
-    def _call_feature_hook(feature: Feature, name: str, **metadata: float) -> None:
+    def _call_feature_hook(feature: Feature, name: str, **metadata: Any) -> None:
         """Invoke an optional hook, supplying only metadata it opts into."""
 
         callback = getattr(feature, name, None)
@@ -1502,7 +1533,7 @@ class ClientSession:
                         )
                     observations[sensor] = Observation(
                         sensor, reading.value, observed_at, frame_id, epoch,
-                        reading.quality, reading.detail,
+                        reading.quality, reading.detail, reading.diagnostics,
                     )
             for sensor in watched.difference(observations):
                 previous = previous_snapshot.observations.get(sensor)
@@ -1937,6 +1968,8 @@ class ClientSession:
             or record.generation != item.generation
         ):
             return "owner generation is inactive"
+        if record.command_dispatch_holds:
+            return "immediate-return command is awaiting policy evaluation"
         if now > item.deadline:
             return "request ttl expired"
         for binding in item.bindings:

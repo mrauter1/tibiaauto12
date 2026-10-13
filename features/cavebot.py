@@ -194,6 +194,7 @@ class CaveBotFeature:
         self._last_progress_position: tuple[int, int] | None = None
         self._last_progress_at: float | None = None
         self._exit_requested = False
+        self._abort_requested = False
         self._selected_wait: tuple[str, int, float] | None = None
         self._follow_wait: tuple[int, float] | None = None
         self._active_target: str | None = None
@@ -265,6 +266,12 @@ class CaveBotFeature:
         if not self._status.finished:
             self._exit_requested = True
 
+    def request_abort(self) -> None:
+        """Stop immediately, cancelling this feature's outstanding request."""
+
+        if not self._status.finished:
+            self._abort_requested = True
+
     def anchor_sensors(self) -> tuple[Sensor, ...]:
         """Sensors an orchestrator may request while recovering route position."""
 
@@ -327,6 +334,7 @@ class CaveBotFeature:
         self._last_progress_position = None
         self._last_progress_at = None
         self._exit_requested = False
+        self._abort_requested = False
         self._active_target = None
         self._combat_deadline = None
         self._selected_wait = None
@@ -529,18 +537,19 @@ class CaveBotFeature:
             marker_position=position,
         )
 
-    def _finish_exit(self) -> Step:
+    def _finish_exit(self, *, immediate: bool = False) -> Step:
         cancel = ()
-        if self._pending is not None and self._pending.kind == "navigate":
+        if self._pending is not None and (immediate or self._pending.kind == "navigate"):
             cancel = (self._pending.key,)
             self._pending = None
         self._arrival_failures = 0
         self._last_progress_position = None
         self._last_progress_at = None
         self._exit_requested = False
+        self._abort_requested = False
         self._set_status(
             "Finished",
-            "exit_requested",
+            "abort_requested" if immediate else "exit_requested",
             target=None,
             finished=True,
             failed=False,
@@ -884,6 +893,8 @@ class CaveBotFeature:
         if not self.route.waypoints:
             self._set_status("Stopped: empty route", "empty_route", finished=True)
             return self._step()
+        if self._abort_requested:
+            return self._finish_exit(immediate=True)
         if self._exit_requested and self._mode not in ("combat", "loot"):
             return self._finish_exit()
         self._expire_pending(context)

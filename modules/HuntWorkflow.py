@@ -8,10 +8,12 @@ deliberately offline: it crops an image file previously saved by Compatibility.
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
 import re
+import tempfile
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Mapping
@@ -34,6 +36,17 @@ _WINDOWS: dict[int, "HuntWorkflow"] = {}
 
 class WorkflowEditorError(ValueError):
     """A bounded UI value cannot be represented in the workflow document."""
+
+
+@dataclass(frozen=True)
+class CropIntent:
+    """The immutable editor context in which an offline crop was requested."""
+
+    detector_id: str
+    purpose: str
+    document_revision: int
+    binding_id: str | None = None
+    binding_region: tuple[int, int, int, int] | None = None
 
 
 def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -244,11 +257,27 @@ def status_text(status: Mapping[str, Any] | None) -> str:
         supply_text = "unknown"
     pending = value.get("pending_confirmation") or value.get("action_id") or "none"
     manual = value.get("manual_reason") if value.get("manual_required") else "no"
-    return (
+    text = (
         f"Phase: {phase}  |  Reason: {reason}\n"
         f"Supplies: {supply_text}  |  Pending confirmation: {pending}\n"
         f"Manual reconciliation: {manual}"
     )
+    recovery = value.get("recovery_reason")
+    if recovery:
+        guidance = {
+            "route_anchor_waiting_for_fresh_evidence": "Waiting for a reached route marker; checking automatically.",
+            "route_anchor_ambiguous_select_candidate": "Several route steps match. Select the waypoint you are at, then Resume here.",
+            "route_anchor_selection_pending_fresh_evidence": "Checking the selected waypoint against fresh evidence.",
+            "selected_route_anchor_not_currently_recognized": "The selected waypoint is no longer visible; select a current candidate or wait for it to reappear.",
+            "warm_resume_waiting_for_new_frame": "Refreshing observations before continuing the paused run.",
+            "resume_waiting_for_new_frame": "Waiting for a new frame; checking automatically.",
+            "resume_waiting_for_fresh_observations": "Waiting for readable supply counts; checking automatically.",
+            "resume_waiting_for_fresh_route_evidence": "Waiting for readable route or combat evidence; checking automatically.",
+        }.get(str(recovery), str(recovery).replace("_", " "))
+        text += f"\nRecovery: {guidance}"
+    if value.get("paused"):
+        text += "\nNavigation is paused. Resume it in Hunt Console to continue or use Stop workflow."
+    return text
 
 
 def inspection_text(status: Mapping[str, Any] | None) -> str:
@@ -275,22 +304,27 @@ def inspection_text(status: Mapping[str, Any] | None) -> str:
 class _CropDialog:
     """Select one crop from a saved image; it never reads the live client."""
 
-    def __init__(self, owner: "HuntWorkflow", source: Path) -> None:
-        self.owner, self.source = owner, source
+    def __init__(self, owner: "HuntWorkflow", source: Path, intent: CropIntent) -> None:
+        self.owner, self.source, self.intent = owner, source, intent
         try:
             with Image.open(source) as opened:
                 self.image = opened.convert("RGB")
         except (OSError, UnidentifiedImageError) as exc:
             raise WorkflowEditorError(f"saved capture is not a readable image: {exc}") from exc
         self.window = tk.Toplevel(owner.window)
-        self.window.title("Offline template crop")
+        binding_label = intent.binding_id or "unattached"
+        self.window.title(f"Offline crop — {intent.detector_id} — {intent.purpose}")
         self.window.transient(owner.window)
         self.window.geometry("860x650")
         self.canvas = tk.Canvas(self.window, background="#202020", cursor="crosshair")
         self.canvas.pack(fill="both", expand=True, padx=8, pady=8)
         foot = ttk.Frame(self.window, padding=(8, 0, 8, 8))
         foot.pack(fill="x")
-        ttk.Label(foot, text="Drag a box over the saved capture. This does not verify live pixels.").pack(side="left")
+        ttk.Label(
+            foot,
+            text=(f"{intent.purpose} for {intent.detector_id}; binding: {binding_label}. "
+                  "Drag over the saved capture. This does not verify live pixels."),
+        ).pack(side="left")
         ttk.Button(foot, text="Save crop…", command=self.save).pack(side="right")
         self.canvas.bind("<Configure>", self._render)
         self.canvas.bind("<Button-1>", self._begin)
@@ -351,7 +385,7 @@ class _CropDialog:
             messagebox.showerror("Crop template", str(exc), parent=self.window)
             return
         base = self.owner.base_dir
-        detector_id = self.owner.visual_vars["id"].get().strip()
+        detector_id = self.intent.detector_id
         safe_detector = re.sub(r"[^A-Za-z0-9_.-]+", "_", detector_id).strip("._-")
         if not safe_detector:
             messagebox.showerror(
@@ -360,7 +394,7 @@ class _CropDialog:
             return
         initial = base / "templates" / safe_detector
         initial.mkdir(parents=True, exist_ok=True)
-        target = self.owner.crop_target.get()
+        target = self.intent.purpose
         initial_name = (
             "context.png" if target == "Context template" else
             f"{target[-1]}.png" if target.startswith("Digit ") else "template.png"
@@ -387,37 +421,23 @@ class _CropDialog:
             )
             return
         try:
+            update = self.owner._prepare_crop_update(self.intent, destination, box)
             destination.parent.mkdir(parents=True, exist_ok=True)
-            self.image.crop(box).save(destination, format="PNG")
-        except OSError as exc:
+            with tempfile.NamedTemporaryFile(
+                dir=destination.parent, prefix=f".{destination.stem}.", suffix=".png", delete=False,
+            ) as temporary:
+                temporary_path = Path(temporary.name)
+            try:
+                self.image.crop(box).save(temporary_path, format="PNG")
+                os.replace(temporary_path, destination)
+            finally:
+                temporary_path.unlink(missing_ok=True)
+            self.owner._apply_crop_update(update)
+        except (OSError, WorkflowEditorError) as exc:
             messagebox.showerror("Crop template", f"Could not save crop: {exc}", parent=self.window)
             return
-        relative = relative_template_path(destination, self.owner.filename)
-        if target == "Context template":
-            self.owner.visual_vars["context_template"].set(relative)
-        elif target.startswith("Digit "):
-            self.owner.visual_vars["digits_dir"].set(str(Path(relative).parent).replace("\\", "/"))
-        else:
-            self.owner.visual_template.set(relative)
-        if target in {"Context template", "Match template"}:
-            selected = self.owner._selected_binding_value()
-            if selected is not None:
-                _binding_id, binding = selected
-                region = binding.get("region")
-                if isinstance(region, (list, tuple)) and len(region) == 4:
-                    left, top, right, bottom = (int(value) for value in region)
-                    if box[0] >= left and box[1] >= top and box[2] <= right and box[3] <= bottom:
-                        relative_box = [box[0] - left, box[1] - top, box[2] - left, box[3] - top]
-                        target_field = "context_region" if target == "Context template" else "region"
-                        self.owner.visual_vars[target_field].set(display_region(relative_box))
-                    else:
-                        self.owner.message.set(
-                            f"Crop saved at client box {box}, outside the selected binding; enter its relative region manually."
-                        )
-                        self.window.destroy()
-                        return
         self.owner.message.set(
-            f"Offline crop saved from client box {box}. Add/update the detector, then Inspect live evidence."
+            update["message"]
         )
         self.window.destroy()
 
@@ -452,8 +472,11 @@ class HuntWorkflow:
         self._busy: str | None = None
         self._pending_epoch: Any | None = None
         self._control_serial = 0
+        self._document_revision = 0
+        self._form_state: dict[str, dict[str, Any]] = {}
         self._config_widgets: list[tk.Widget] = []
         self._last_inspection_frame: Any = None
+        self._inspection_readings: dict[str, Any] = {}
         self._inspection_photo: Any = None
 
         self.window = tk.Toplevel(getattr(parent, "windowID", parent))
@@ -501,6 +524,262 @@ class HuntWorkflow:
         self.capture_file = tk.StringVar()
         self.crop_target = tk.StringVar(value="Match template")
 
+    def _form_values(self, name: str) -> dict[str, Any]:
+        if name == "route":
+            return {"phase": self.route_phase.get(), "route": self.route_name.get()}
+        variables = getattr(self, f"{name}_vars")
+        values = {key: variable.get() for key, variable in variables.items()}
+        if name == "supply":
+            values["optional"] = bool(self.supply_optional.get())
+        elif name == "action":
+            values["mutating"] = bool(self.action_mutating.get())
+        return values
+
+    def _bind_form(self, name: str, origin: Any = None) -> None:
+        if not hasattr(self, "_document_revision"):
+            self._document_revision = 0
+        if not hasattr(self, "_form_state"):
+            self._form_state = {}
+        self._form_state[name] = {
+            "revision": self._document_revision,
+            "origin": deepcopy(origin),
+            "baseline": self._form_values(name),
+        }
+
+    def _clear_form(self, name: str) -> None:
+        defaults: dict[str, Any]
+        if name == "route":
+            defaults = {"phase": "outbound", "route": ""}
+            self.route_phase.set(defaults["phase"])
+            self.route_name.set(defaults["route"])
+        else:
+            defaults = {
+                "supply": {"optional": False},
+                "action": {
+                    "group": "prepare", "kind": "press", "field": "present", "op": "eq",
+                    "timeout": "2", "retries": "1", "mutating": True,
+                },
+                "binding": {},
+                "visual": {"kind": "template", "score": "0.95", "context_score": "0.95"},
+            }[name]
+            for key, variable in getattr(self, f"{name}_vars").items():
+                variable.set(defaults.get(key, ""))
+            if name == "supply":
+                self.supply_optional.set(defaults["optional"])
+            elif name == "action":
+                self.action_mutating.set(defaults["mutating"])
+        self._bind_form(name)
+
+    def _reset_entity_forms(self) -> None:
+        self._document_revision = getattr(self, "_document_revision", 0) + 1
+        self._form_state = {}
+        for tree_name in ("route_tree", "supply_tree", "action_tree", "binding_tree", "visual_tree"):
+            tree = getattr(self, tree_name, None)
+            if tree is not None:
+                selected = tree.selection()
+                if selected:
+                    tree.selection_remove(*selected)
+        for name in ("route", "supply", "action", "binding", "visual"):
+            if name == "route" or hasattr(self, f"{name}_vars"):
+                self._clear_form(name)
+
+    def _advance_document_revision(self) -> None:
+        self._document_revision = getattr(self, "_document_revision", 0) + 1
+        for state in getattr(self, "_form_state", {}).values():
+            state["revision"] = self._document_revision
+
+    def _form_dirty(self, name: str) -> bool:
+        state = getattr(self, "_form_state", {}).get(name)
+        return bool(
+            state
+            and state["revision"] == getattr(self, "_document_revision", 0)
+            and state["baseline"] != self._form_values(name)
+        )
+
+    def _tree_iid_for_origin(self, name: str, origin: Any) -> str | None:
+        if name == "route" and isinstance(origin, (tuple, list)) and len(origin) == 2:
+            phase, index = str(origin[0]), int(origin[1])
+            row = 0
+            for candidate_phase in ("outbound", "return"):
+                values = self._travel_lists()[candidate_phase]
+                if candidate_phase == phase and 0 <= index < len(values):
+                    return str(row + index)
+                row += len(values)
+            return None
+        if name == "supply":
+            supplies = _plan(self.data).get("supplies", [])
+            if isinstance(supplies, list):
+                for index, item in enumerate(supplies):
+                    if isinstance(item, Mapping) and item.get("id") == origin:
+                        return str(index)
+            return None
+        if name == "action" and isinstance(origin, (tuple, list)) and len(origin) == 2:
+            group, action_id = str(origin[0]), str(origin[1])
+            for row, (candidate_group, _index, item) in enumerate(self._all_actions()):
+                if candidate_group == group and item.get("id") == action_id:
+                    return str(row)
+            return None
+        if name in {"binding", "visual"}:
+            values = self.data.get("bindings" if name == "binding" else "visual")
+            return str(origin) if isinstance(values, Mapping) and origin in values else None
+        return None
+
+    def _switch_form_selection(self, name: str, tree: Any, target_origin: Any) -> bool:
+        state = getattr(self, "_form_state", {}).get(name)
+        if state and state.get("revision") == self._document_revision and state.get("origin") == target_origin:
+            # Tree refreshes can queue a duplicate selection event.  Do not let
+            # that late event replace edits made after the first event.
+            return False
+        if self._form_dirty(name):
+            previous_origin = deepcopy(state.get("origin")) if state else None
+            try:
+                self._commit_forms((name,))
+            except Exception as exc:
+                self._show_error(exc)
+                previous_iid = self._tree_iid_for_origin(name, previous_origin)
+                if previous_iid is not None:
+                    tree.selection_set(previous_iid)
+                return False
+            target_iid = self._tree_iid_for_origin(name, target_origin)
+            if target_iid is not None:
+                tree.selection_set(target_iid)
+        return True
+
+    @staticmethod
+    def _rename_binding_references(document: dict[str, Any], old: str, new: str) -> None:
+        plan = _plan(document)
+        supplies = plan.get("supplies")
+        if isinstance(supplies, list):
+            for supply in supplies:
+                if isinstance(supply, dict) and supply.get("sensor") == old:
+                    supply["sensor"] = new
+        for group in available_action_groups(document):
+            for action in action_group(document, group):
+                if not isinstance(action, dict):
+                    continue
+                for key in ("target", "destination"):
+                    if action.get(key) == old:
+                        action[key] = new
+                required = action.get("require_present")
+                if isinstance(required, list):
+                    action["require_present"] = [new if value == old else value for value in required]
+                confirmation = action.get("confirmation")
+                if isinstance(confirmation, dict) and confirmation.get("sensor") == old:
+                    confirmation["sensor"] = new
+        loot = plan.get("loot")
+        if isinstance(loot, dict):
+            for key in ("corpse", "container", "backpack", "capacity", "destination_count"):
+                if loot.get(key) == old:
+                    loot[key] = new
+            items = loot.get("items")
+            if isinstance(items, list):
+                loot["items"] = [new if value == old else value for value in items]
+
+    @staticmethod
+    def _rename_visual_references(document: dict[str, Any], old: str, new: str) -> None:
+        bindings = document.get("bindings")
+        if isinstance(bindings, dict):
+            for binding in bindings.values():
+                if isinstance(binding, dict) and binding.get("name") == old:
+                    binding["name"] = new
+
+    def _sync_open_form_rename(self, name: str, old: str, new: str) -> None:
+        def replace_value(form_name: str, key: str, transform: Any) -> None:
+            state = getattr(self, "_form_state", {}).get(form_name)
+            variables = getattr(self, f"{form_name}_vars", None)
+            if state is None or not isinstance(variables, Mapping) or key not in variables:
+                return
+            variables[key].set(transform(str(variables[key].get())))
+            if key in state["baseline"]:
+                state["baseline"][key] = transform(str(state["baseline"][key]))
+
+        exact = lambda value: new if value == old else value
+        if name == "binding":
+            replace_value("supply", "sensor", exact)
+            for key in ("target", "destination", "sensor"):
+                replace_value("action", key, exact)
+
+            def required(value: str) -> str:
+                return ", ".join(new if item.strip() == old else item.strip()
+                                 for item in value.split(",") if item.strip())
+
+            replace_value("action", "requires", required)
+        elif name == "visual":
+            replace_value("binding", "name", exact)
+
+    @staticmethod
+    def _route_action_group(group: str) -> tuple[str, int, str] | None:
+        parts = group.split(".")
+        if len(parts) != 3 or parts[0] not in {"outbound", "return"} or parts[2] not in {"before", "after"}:
+            return None
+        try:
+            return parts[0], int(parts[1]), parts[2]
+        except ValueError:
+            return None
+
+    def _sync_open_action_route_move(
+        self, old: tuple[str, int], new: tuple[str, int],
+    ) -> None:
+        state = getattr(self, "_form_state", {}).get("action")
+        if state is None:
+            return
+
+        def moved(group: str) -> str:
+            parsed = self._route_action_group(group)
+            if parsed is None or old == new:
+                return group
+            phase, index, position = parsed
+            if (phase, index) == old:
+                return f"{new[0]}.{new[1]}.{position}"
+            if old[0] != new[0] and phase == old[0] and index > old[1]:
+                return f"{phase}.{index - 1}.{position}"
+            return group
+
+        self.action_vars["group"].set(moved(str(self.action_vars["group"].get())))
+        state["baseline"]["group"] = moved(str(state["baseline"].get("group", "")))
+        origin = state.get("origin")
+        if isinstance(origin, (tuple, list)) and len(origin) == 2:
+            state["origin"] = (moved(str(origin[0])), origin[1])
+
+    def _sync_open_action_route_swap(self, phase: str, first: int, second: int) -> None:
+        state = getattr(self, "_form_state", {}).get("action")
+        if state is None:
+            return
+
+        def swapped(group: str) -> str:
+            parsed = self._route_action_group(group)
+            if parsed is None or parsed[0] != phase:
+                return group
+            index = second if parsed[1] == first else first if parsed[1] == second else parsed[1]
+            return f"{phase}.{index}.{parsed[2]}"
+
+        self.action_vars["group"].set(swapped(str(self.action_vars["group"].get())))
+        state["baseline"]["group"] = swapped(str(state["baseline"].get("group", "")))
+        origin = state.get("origin")
+        if isinstance(origin, (tuple, list)) and len(origin) == 2:
+            state["origin"] = (swapped(str(origin[0])), origin[1])
+
+    def _sync_open_action_route_remove(self, phase: str, index: int) -> None:
+        state = getattr(self, "_form_state", {}).get("action")
+        if state is None:
+            return
+        origin = state.get("origin")
+        parsed_origin = self._route_action_group(str(origin[0])) if isinstance(origin, (tuple, list)) and len(origin) == 2 else None
+        if parsed_origin is not None and parsed_origin[:2] == (phase, index):
+            self._clear_form("action")
+            return
+
+        def removed(group: str) -> str:
+            parsed = self._route_action_group(group)
+            if parsed is not None and parsed[0] == phase and parsed[1] > index:
+                return f"{phase}.{parsed[1] - 1}.{parsed[2]}"
+            return group
+
+        self.action_vars["group"].set(removed(str(self.action_vars["group"].get())))
+        state["baseline"]["group"] = removed(str(state["baseline"].get("group", "")))
+        if isinstance(origin, (tuple, list)) and len(origin) == 2:
+            state["origin"] = (removed(str(origin[0])), origin[1])
+
     def _build(self) -> None:
         body = ttk.Frame(self.window, padding=10)
         body.pack(fill="both", expand=True)
@@ -536,6 +815,20 @@ class HuntWorkflow:
         ttk.Label(
             body, textvariable=self.runtime, justify="left", wraplength=1060,
         ).pack(fill="x")
+        self.recovery_panel = ttk.Frame(body)
+        ttk.Label(self.recovery_panel, text="Current waypoint:").pack(side="left")
+        self.recovery_choice = tk.StringVar()
+        self._recovery_candidates: dict[str, int] = {}
+        self.recovery_selector = ttk.Combobox(
+            self.recovery_panel, textvariable=self.recovery_choice,
+            state="readonly", width=24,
+        )
+        self.recovery_selector.pack(side="left", padx=5)
+        self.recovery_button = ttk.Button(
+            self.recovery_panel, text="Resume here", command=self.resume_at_selected_anchor,
+            state="disabled",
+        )
+        self.recovery_button.pack(side="left")
         ttk.Label(
             body,
             text=("Manual reconciliation means you personally checked and corrected the client state. "
@@ -770,12 +1063,265 @@ class HuntWorkflow:
         self._refresh_supply_tree()
         self._refresh_action_tree()
         self._refresh_visual_trees()
+        self._reset_entity_forms()
         self._refresh_json(collect=False)
+
+    def _apply_form(self, document: dict[str, Any], name: str, origin: Any) -> Any:
+        if name == "route":
+            phase, route = self.route_phase.get(), self.route_name.get().strip()
+            if phase not in {"outbound", "return"} or not route:
+                raise WorkflowEditorError("Travel phase and saved route are required")
+            plan = _plan(document)
+            travel = plan.setdefault("travel", {})
+            if not isinstance(travel, dict):
+                raise WorkflowEditorError("plan.travel must be an object")
+            for key in ("outbound", "return"):
+                raw = travel.setdefault(key, [])
+                if isinstance(raw, dict):
+                    travel[key] = [raw]
+                elif not isinstance(raw, list) or any(not isinstance(item, dict) for item in raw):
+                    raise WorkflowEditorError(f"plan.travel.{key} must be a list of route segments")
+            segment = None
+            insert_at = None
+            if isinstance(origin, (tuple, list)) and len(origin) == 2:
+                old_phase, old_index = str(origin[0]), int(origin[1])
+                old_values = travel.get(old_phase)
+                if isinstance(old_values, list) and 0 <= old_index < len(old_values):
+                    segment = old_values.pop(old_index)
+                    if old_phase == phase:
+                        insert_at = old_index
+            if segment is None:
+                segment = {"before": [], "after": []}
+            segment["route"] = route
+            if insert_at is None:
+                travel[phase].append(segment)
+                insert_at = len(travel[phase]) - 1
+            else:
+                travel[phase].insert(insert_at, segment)
+            return phase, insert_at
+
+        if name == "supply":
+            item = {"id": self.supply_vars["id"].get().strip(),
+                    "sensor": self.supply_vars["sensor"].get().strip(),
+                    "optional": bool(self.supply_optional.get())}
+            if not item["id"]:
+                raise WorkflowEditorError("Supply ID is required")
+            numeric_fields = (
+                ("emergency_reserve", "Emergency reserve"),
+                ("return_below", "Return below"),
+                ("refill_to", "Refill target"),
+            )
+            for key, label in numeric_fields:
+                raw = self.supply_vars[key].get().strip()
+                if raw:
+                    item[key] = parse_integer(raw, label)
+            if all(key in item for key, _label in numeric_fields) and not (
+                item["emergency_reserve"] <= item["return_below"] <= item["refill_to"]
+            ):
+                raise WorkflowEditorError("Emergency reserve must be <= return threshold <= refill target")
+            supplies = _plan(document).setdefault("supplies", [])
+            if not isinstance(supplies, list):
+                raise WorkflowEditorError("plan.supplies must be a list")
+            if isinstance(origin, str) and origin != item["id"] and any(
+                isinstance(value, Mapping) and value.get("id") == item["id"] for value in supplies
+            ):
+                raise WorkflowEditorError(f"Supply ID {item['id']!r} is already in use")
+            found = next((i for i, value in enumerate(supplies) if isinstance(value, Mapping) and value.get("id") == origin), None)
+            if found is None:
+                found = next((i for i, value in enumerate(supplies) if isinstance(value, Mapping) and value.get("id") == item["id"]), None)
+            if found is None:
+                supplies.append(item)
+            else:
+                supplies[found] = item
+            return item["id"]
+
+        if name == "action":
+            group = self.action_vars["group"].get()
+            if group not in available_action_groups(document):
+                raise WorkflowEditorError("Choose an action phase")
+            action_id, kind = self.action_vars["id"].get().strip(), self.action_vars["kind"].get()
+            field, op = self.action_vars["field"].get(), self.action_vars["op"].get()
+            if not action_id or kind not in {"press", "left_click", "right_click", "drag"}:
+                raise WorkflowEditorError("Action ID and kind are required")
+            confirmation = {"sensor": self.action_vars["sensor"].get().strip(), "field": field, "op": op}
+            value = self._condition_value(field, op, self.action_vars["value"].get())
+            if value is not None:
+                confirmation["value"] = value
+            item: dict[str, Any] = {
+                "id": action_id, "kind": kind, "confirmation": confirmation,
+                "require_present": [value.strip() for value in self.action_vars["requires"].get().split(",") if value.strip()],
+                "timeout": parse_number(self.action_vars["timeout"].get() or "2", "Timeout", 0.01, 60),
+                "retries": parse_integer(self.action_vars["retries"].get() or "1", "Retries", 0, 20),
+                "mutating": bool(self.action_mutating.get()),
+            }
+            old_action_id = str(origin[1]) if isinstance(origin, (tuple, list)) and len(origin) == 2 else None
+            if old_action_id is not None and old_action_id != action_id and any(
+                existing.get("id") == action_id
+                for existing_group in available_action_groups(document)
+                for existing in action_group(document, existing_group)
+                if isinstance(existing, Mapping)
+            ):
+                raise WorkflowEditorError(f"Action ID {action_id!r} is already in use")
+            if kind == "press":
+                item["key"] = self.action_vars["key"].get().strip()
+            else:
+                item["target"] = self.action_vars["target"].get().strip()
+                if kind == "drag":
+                    item["destination"] = self.action_vars["destination"].get().strip()
+            found = None
+            if isinstance(origin, (tuple, list)) and len(origin) == 2:
+                old_group, old_id = str(origin[0]), str(origin[1])
+                for index, existing in enumerate(action_group(document, old_group)):
+                    if isinstance(existing, Mapping) and existing.get("id") == old_id:
+                        found = old_group, index
+                        break
+            if found is None:
+                for existing_group in available_action_groups(document):
+                    for index, existing in enumerate(action_group(document, existing_group)):
+                        if isinstance(existing, Mapping) and existing.get("id") == action_id:
+                            found = existing_group, index
+                            break
+                    if found:
+                        break
+            if found and found[0] == group:
+                action_group(document, group)[found[1]] = item
+            else:
+                if found:
+                    action_group(document, found[0]).pop(found[1])
+                action_group(document, group).append(item)
+            return group, action_id
+
+        if name == "binding":
+            binding_id = self.binding_vars["id"].get().strip()
+            if not binding_id:
+                raise WorkflowEditorError("Binding ID is required")
+            bindings = document.setdefault("bindings", {})
+            if not isinstance(bindings, dict):
+                raise WorkflowEditorError("bindings must be an object")
+            if isinstance(origin, str) and origin != binding_id and binding_id in bindings:
+                raise WorkflowEditorError(f"Binding ID {binding_id!r} is already in use")
+            if isinstance(origin, str) and origin != binding_id:
+                bindings.pop(origin, None)
+            bindings[binding_id] = {
+                "name": self.binding_vars["name"].get().strip(),
+            }
+            raw_region = self.binding_vars["region"].get().strip()
+            if raw_region:
+                bindings[binding_id]["region"] = parse_region(raw_region)
+            if isinstance(origin, str) and origin != binding_id:
+                self._rename_binding_references(document, origin, binding_id)
+            return binding_id
+
+        if name == "visual":
+            visual_id, kind = self.visual_vars["id"].get().strip(), self.visual_vars["kind"].get()
+            if not visual_id or kind not in {"template", "count"}:
+                raise WorkflowEditorError("Detector ID and kind are required")
+            visuals = document.setdefault("visual", {})
+            if not isinstance(visuals, dict):
+                raise WorkflowEditorError("visual must be an object")
+            prior_key = origin if isinstance(origin, str) else visual_id
+            if isinstance(origin, str) and origin != visual_id and visual_id in visuals:
+                raise WorkflowEditorError(f"Detector ID {visual_id!r} is already in use")
+            prior = visuals.get(prior_key)
+            same_kind = isinstance(prior, Mapping) and prior.get("kind") == kind
+            item: dict[str, Any] = deepcopy(dict(prior)) if same_kind else {}
+            prior_context = item.get("context")
+            context = deepcopy(dict(prior_context)) if isinstance(prior_context, Mapping) else {}
+            context["template"] = self.visual_vars["context_template"].get().strip()
+            raw_context_region = self.visual_vars["context_region"].get().strip()
+            if raw_context_region:
+                context["region"] = parse_region(raw_context_region, "Context region")
+            else:
+                context.pop("region", None)
+            raw_context_score = self.visual_vars["context_score"].get().strip()
+            if raw_context_score:
+                context["score"] = parse_number(raw_context_score, "Context score", 0, 1)
+            else:
+                context.pop("score", None)
+            item.update({
+                "kind": kind, "context": context,
+                "score": parse_number(self.visual_vars["score"].get() or "0.95", "Match score", 0, 1),
+            })
+            if kind == "template":
+                for key in ("digits", "count_region", "foreground", "tolerance", "max_digits"):
+                    item.pop(key, None)
+                item["template"] = self.visual_vars["template"].get().strip()
+                raw_region = self.visual_vars["region"].get().strip()
+                if raw_region:
+                    item["search_region"] = parse_region(raw_region, "Search region")
+                else:
+                    item.pop("search_region", None)
+            else:
+                for key in ("template", "search_region", "max_matches"):
+                    item.pop(key, None)
+                directory = self.visual_vars["digits_dir"].get().strip()
+                item["digits"] = {
+                    str(number): (Path(directory) / f"{number}.png").as_posix()
+                    for number in range(10)
+                } if directory else {}
+                raw_region = self.visual_vars["region"].get().strip()
+                if raw_region:
+                    item["count_region"] = parse_region(raw_region, "Count region")
+                else:
+                    item.pop("count_region", None)
+                item.setdefault("foreground", [255, 255, 255])
+                item.setdefault("tolerance", 8)
+                item.setdefault("max_digits", 6)
+            if prior_key != visual_id:
+                visuals.pop(prior_key, None)
+                self._rename_visual_references(document, prior_key, visual_id)
+            visuals[visual_id] = item
+            return visual_id
+        raise WorkflowEditorError(f"unknown editor form: {name}")
+
+    def _commit_forms(self, names: tuple[str, ...], *, force: bool = False) -> tuple[str, ...]:
+        candidate = deepcopy(self.data)
+        updated: list[tuple[str, Any, Any]] = []
+        action_group_before = self.action_vars["group"].get() if hasattr(self, "action_vars") else None
+        action_state_before = deepcopy(getattr(self, "_form_state", {}).get("action"))
+        try:
+            for name in names:
+                state = getattr(self, "_form_state", {}).get(name)
+                if not force and not self._form_dirty(name):
+                    continue
+                origin = state.get("origin") if state and state.get("revision") == getattr(self, "_document_revision", 0) else None
+                new_origin = self._apply_form(candidate, name, origin)
+                updated.append((name, origin, new_origin))
+                if (
+                    name == "route" and isinstance(origin, (tuple, list)) and len(origin) == 2
+                    and isinstance(new_origin, (tuple, list)) and len(new_origin) == 2
+                ):
+                    self._sync_open_action_route_move(
+                        (str(origin[0]), int(origin[1])), (str(new_origin[0]), int(new_origin[1])),
+                    )
+        except Exception:
+            if action_group_before is not None:
+                self.action_vars["group"].set(action_group_before)
+            if action_state_before is None:
+                getattr(self, "_form_state", {}).pop("action", None)
+            else:
+                self._form_state["action"] = action_state_before
+            raise
+        if not updated:
+            return ()
+        self.data = candidate
+        self._advance_document_revision()
+        if hasattr(self, "route_tree"):
+            self._refresh_route_tree()
+            self._refresh_supply_tree()
+            self._refresh_action_tree()
+            self._refresh_visual_trees()
+        for name, old_origin, new_origin in updated:
+            if isinstance(old_origin, str) and isinstance(new_origin, str) and old_origin != new_origin:
+                self._sync_open_form_rename(name, old_origin, new_origin)
+            self._bind_form(name, new_origin)
+        return tuple(name for name, _old_origin, _new_origin in updated)
 
     def _collect_structured(self) -> None:
         if hasattr(self, "json_text") and self.json_text.edit_modified():
             raise WorkflowEditorError("Apply or undo the edited Advanced JSON before continuing")
-        plan = _plan(self.data)
+        candidate = deepcopy(self.data)
+        plan = _plan(candidate)
         plan["id"] = self.plan_id.get().strip()
         plan["hunt_route"] = self.hunt_route.get().strip()
         plan["max_refill_rounds"] = parse_integer(self.max_refill.get(), "Maximum refill rounds", 1, 100)
@@ -796,18 +1342,46 @@ class HuntWorkflow:
                     raw.append({"route": variable.get().strip(), "before": [], "after": []})
                 elif isinstance(raw[0], dict):
                     raw[0]["route"] = variable.get().strip()
-        if hasattr(self, "supply_vars"):
-            if self._selected_route() is not None and self._put_route() is False:
-                raise WorkflowEditorError(getattr(self, "_last_form_error", "correct the route form"))
-            pending = (
-                (self.supply_vars["id"].get().strip(), self._put_supply),
-                (self.action_vars["id"].get().strip(), self._put_action),
-                (self.binding_vars["id"].get().strip(), self._put_binding),
-                (self.visual_vars["id"].get().strip(), self._put_visual),
-            )
-            for identifier, writer in pending:
-                if identifier and writer(silent=True) is False:
-                    raise WorkflowEditorError(getattr(self, "_last_form_error", "correct the open form"))
+        updated: list[tuple[str, Any, Any]] = []
+        action_group_before = self.action_vars["group"].get() if hasattr(self, "action_vars") else None
+        action_state_before = deepcopy(getattr(self, "_form_state", {}).get("action"))
+        try:
+            if hasattr(self, "supply_vars"):
+                for name in ("route", "supply", "action", "binding", "visual"):
+                    if self._form_dirty(name):
+                        state = self._form_state[name]
+                        new_origin = self._apply_form(candidate, name, state["origin"])
+                        updated.append((name, state["origin"], new_origin))
+                        if (
+                            name == "route" and isinstance(state["origin"], (tuple, list))
+                            and len(state["origin"]) == 2 and isinstance(new_origin, (tuple, list))
+                            and len(new_origin) == 2
+                        ):
+                            self._sync_open_action_route_move(
+                                (str(state["origin"][0]), int(state["origin"][1])),
+                                (str(new_origin[0]), int(new_origin[1])),
+                            )
+        except Exception:
+            if action_group_before is not None:
+                self.action_vars["group"].set(action_group_before)
+            if action_state_before is None:
+                getattr(self, "_form_state", {}).pop("action", None)
+            else:
+                self._form_state["action"] = action_state_before
+            raise
+        changed = candidate != self.data
+        self.data = candidate
+        if changed:
+            self._advance_document_revision()
+        if updated and hasattr(self, "route_tree"):
+            self._refresh_route_tree()
+            self._refresh_supply_tree()
+            self._refresh_action_tree()
+            self._refresh_visual_trees()
+        for name, old_origin, new_origin in updated:
+            if isinstance(old_origin, str) and isinstance(new_origin, str) and old_origin != new_origin:
+                self._sync_open_form_rename(name, old_origin, new_origin)
+            self._bind_form(name, new_origin)
 
     def _clear_error(self) -> None:
         self.message.set("Checking configuration…")
@@ -1028,6 +1602,21 @@ class HuntWorkflow:
             ),
         )
 
+    def resume_at_selected_anchor(self) -> None:
+        if self._busy is not None:
+            return
+        index = self._recovery_candidates.get(self.recovery_choice.get())
+        if index is None:
+            self.message.set("Select one of the currently recognized waypoints first.")
+            return
+        self._begin_control(
+            "Checking selected recovery waypoint",
+            lambda: self.controller.select_recovery_anchor(index),
+            lambda _value: self.message.set(
+                "Waypoint selected; fresh evidence is checked before navigation resumes."
+            ),
+        )
+
     def inspect(self) -> None:
         if self._active:
             self.message.set("Stop the workflow before running an observation-only inspection.")
@@ -1076,9 +1665,32 @@ class HuntWorkflow:
                 self._active = active
                 self._set_config_enabled(not active and not self._inspecting and self._busy is None)
             manual = bool(status.get("manual_required"))
-            command_ready = active and self._busy is None
+            recovering = bool(status.get("recovery_reason"))
+            command_ready = active and not status.get("paused") and self._busy is None
             self.manual_button.configure(state="normal" if command_ready and manual else "disabled")
-            self.recheck_button.configure(state="normal" if command_ready and manual else "disabled")
+            self.recheck_button.configure(
+                state="normal" if command_ready and (manual or recovering) else "disabled"
+            )
+            candidates = status.get("recovery_candidates", ())
+            self._recovery_candidates = {
+                f"Waypoint {index + 1}": index
+                for index in candidates
+                if type(index) is int and index >= 0
+            } if isinstance(candidates, (list, tuple)) and recovering else {}
+            self.recovery_selector.configure(values=tuple(self._recovery_candidates))
+            if self.recovery_choice.get() not in self._recovery_candidates:
+                self.recovery_choice.set("")
+            if len(self._recovery_candidates) > 1 or (
+                self._recovery_candidates
+                and status.get("recovery_reason") == "selected_route_anchor_not_currently_recognized"
+            ):
+                self.recovery_panel.pack(fill="x", pady=3, before=self.notebook)
+            else:
+                self.recovery_panel.pack_forget()
+            self.recovery_selector.configure(state="readonly" if command_ready else "disabled")
+            self.recovery_button.configure(
+                state="normal" if command_ready and self.recovery_choice.get() else "disabled"
+            )
             self.return_button.configure(state="normal" if command_ready else "disabled")
             self.return_now_button.configure(state="normal" if command_ready else "disabled")
             activation_pending = self._pending_epoch is not None
@@ -1108,7 +1720,14 @@ class HuntWorkflow:
                 result_bindings = observed.get("bindings")
                 if isinstance(result_bindings, Mapping):
                     self._inspection_result_bindings = dict(result_bindings)
-                if frame is not self._last_inspection_frame:
+                raw_readings = observed.get("readings")
+                # Observations/diagnostics are immutable SDK values, including
+                # mapping proxies that deepcopy cannot serialize. The outer
+                # status dictionary is newly allocated for each inspection.
+                readings = dict(raw_readings) if isinstance(raw_readings, Mapping) else {}
+                readings_changed = readings != self._inspection_readings
+                self._inspection_readings = readings
+                if frame is not self._last_inspection_frame or readings_changed:
                     self._last_inspection_frame = frame
                     self._render_inspection_frame()
         except Exception as exc:
@@ -1164,6 +1783,43 @@ class HuntWorkflow:
                     left + x1 * scale + 2, top + y1 * scale + 2,
                     anchor="nw", fill="#00e5ff", text=str(binding_id),
                 )
+        readings = getattr(self, "_inspection_readings", {})
+        if isinstance(readings, Mapping):
+            for binding_id, reading in readings.items():
+                if not isinstance(reading, Mapping):
+                    continue
+                raw_diagnostics = reading.get("diagnostics")
+                diagnostics = raw_diagnostics if isinstance(raw_diagnostics, (list, tuple)) else (raw_diagnostics,)
+                for diagnostic in diagnostics:
+                    if not isinstance(diagnostic, Mapping) or diagnostic.get("type") != "visual_ambiguity":
+                        continue
+                    scope = str(diagnostic.get("scope", "target"))
+                    color = "#ff9800" if scope == "context" else "#ff3b30"
+                    boxes = diagnostic.get("boxes")
+                    scores = diagnostic.get("scores")
+                    if not isinstance(boxes, (list, tuple)):
+                        continue
+                    score_values = scores if isinstance(scores, (list, tuple)) else ()
+                    for index, box in enumerate(boxes):
+                        if not isinstance(box, (list, tuple)) or len(box) != 4:
+                            continue
+                        try:
+                            x1, y1, x2, y2 = (float(value) for value in box)
+                        except (TypeError, ValueError):
+                            continue
+                        canvas.create_rectangle(
+                            left + x1 * scale, top + y1 * scale,
+                            left + x2 * scale, top + y2 * scale,
+                            outline=color, width=2,
+                        )
+                        score = score_values[index] if index < len(score_values) else None
+                        label = f"{binding_id} {scope}"
+                        if isinstance(score, (int, float)):
+                            label += f" {score:.3f}"
+                        canvas.create_text(
+                            left + x1 * scale + 2, top + y1 * scale + 2,
+                            anchor="nw", fill=color, text=label,
+                        )
 
     def _set_config_enabled(self, enabled: bool) -> None:
         for widget in self._config_widgets:
@@ -1239,22 +1895,31 @@ class HuntWorkflow:
     def _select_route(self, _event: Any = None) -> None:
         selected = self._selected_route()
         if selected:
-            phase, _index, segment = selected
+            phase, index, segment = selected
+            target_origin = (phase, index)
+            state = getattr(self, "_form_state", {}).get("route")
+            origin = state.get("origin") if state else None
+            new_phase = self.route_phase.get()
+            if (
+                self._form_dirty("route") and isinstance(origin, (tuple, list)) and len(origin) == 2
+                and origin[0] != new_phase and phase == origin[0] and index > int(origin[1])
+            ):
+                target_origin = (phase, index - 1)
+            if not self._switch_form_selection("route", self.route_tree, target_origin):
+                return
+            phase, index = target_origin
+            try:
+                segment = self._travel_lists()[phase][index]
+            except (KeyError, IndexError, WorkflowEditorError):
+                return
             self.route_phase.set(phase)
             self.route_name.set(str(segment.get("route", "")))
+            self._bind_form("route", (phase, index))
 
     def _put_route(self) -> bool:
         try:
-            phase, route = self.route_phase.get(), self.route_name.get().strip()
-            if phase not in {"outbound", "return"} or not route:
-                raise WorkflowEditorError("Travel phase and saved route are required")
-            selected = self._selected_route()
-            if selected and selected[0] == phase:
-                selected[2]["route"] = route
-            else:
-                self._travel_lists()[phase].append({"route": route, "before": [], "after": []})
-            self._refresh_route_tree()
-            self._refresh_action_tree()
+            self._commit_forms(("route",), force=True)
+            phase = self.route_phase.get()
             self.message.set(f"{phase.title()} route segment updated in the draft.")
             return True
         except Exception as exc:
@@ -1264,21 +1929,43 @@ class HuntWorkflow:
     def _remove_route(self) -> None:
         selected = self._selected_route()
         if selected:
-            phase, index, _segment = selected
+            try:
+                self._commit_forms(("route", "action"))
+            except Exception as exc:
+                self._show_error(exc)
+                return
+            origin = getattr(self, "_form_state", {}).get("route", {}).get("origin")
+            if not isinstance(origin, (tuple, list)) or len(origin) != 2:
+                return
+            phase, index = str(origin[0]), int(origin[1])
             self._travel_lists()[phase].pop(index)
+            self._sync_open_action_route_remove(phase, index)
+            self._advance_document_revision()
             self._refresh_route_tree()
             self._refresh_action_tree()
+            self._clear_form("route")
 
     def _move_route(self, offset: int) -> None:
         selected = self._selected_route()
         if selected:
-            phase, index, _segment = selected
+            try:
+                self._commit_forms(("route", "action"))
+            except Exception as exc:
+                self._show_error(exc)
+                return
+            origin = getattr(self, "_form_state", {}).get("route", {}).get("origin")
+            if not isinstance(origin, (tuple, list)) or len(origin) != 2:
+                return
+            phase, index = str(origin[0]), int(origin[1])
             values = self._travel_lists()[phase]
             destination = index + offset
             if 0 <= destination < len(values):
                 values[index], values[destination] = values[destination], values[index]
+                self._sync_open_action_route_swap(phase, index, destination)
+                self._advance_document_revision()
                 self._refresh_route_tree()
                 self._refresh_action_tree()
+                self._bind_form("route", (phase, destination))
 
     def _select_supply(self, _event: Any = None) -> None:
         selection = self.supply_tree.selection()
@@ -1289,35 +1976,27 @@ class HuntWorkflow:
             item = values[int(selection[0])]
         except (IndexError, TypeError, ValueError):
             return
+        target_id = str(item.get("id", ""))
+        if not self._switch_form_selection("supply", self.supply_tree, target_id):
+            return
+        values = _plan(self.data).get("supplies", [])
+        item = next(
+            (value for value in values if isinstance(value, Mapping) and value.get("id") == target_id),
+            None,
+        ) if isinstance(values, list) else None
+        if not isinstance(item, Mapping):
+            return
         for key, variable in self.supply_vars.items():
             variable.set(str(item.get(key, "")))
         self.supply_optional.set(bool(item.get("optional", False)))
+        self._bind_form("supply", target_id)
 
     def _put_supply(self, silent: bool = False) -> bool:
         try:
-            item = {
-                "id": self.supply_vars["id"].get().strip(),
-                "sensor": self.supply_vars["sensor"].get().strip(),
-                "return_below": parse_integer(self.supply_vars["return_below"].get(), "Return below"),
-                "emergency_reserve": parse_integer(self.supply_vars["emergency_reserve"].get(), "Emergency reserve"),
-                "refill_to": parse_integer(self.supply_vars["refill_to"].get(), "Refill target"),
-                "optional": bool(self.supply_optional.get()),
-            }
-            if not item["id"] or not item["sensor"]:
-                raise WorkflowEditorError("Supply ID and count sensor are required")
-            if not item["emergency_reserve"] <= item["return_below"] <= item["refill_to"]:
-                raise WorkflowEditorError("Emergency reserve must be <= return threshold <= refill target")
-            supplies = _plan(self.data).setdefault("supplies", [])
-            if not isinstance(supplies, list):
-                raise WorkflowEditorError("plan.supplies must be a list")
-            found = next((i for i, value in enumerate(supplies) if isinstance(value, Mapping) and value.get("id") == item["id"]), None)
-            if found is None:
-                supplies.append(item)
-            else:
-                supplies[found] = item
-            self._refresh_supply_tree()
+            self._commit_forms(("supply",), force=True)
+            item_id = self.supply_vars["id"].get().strip()
             if not silent:
-                self.message.set(f"Supply {item['id']} updated in the draft.")
+                self.message.set(f"Supply {item_id} updated in the draft.")
             return True
         except Exception as exc:
             self._show_error(exc)
@@ -1331,7 +2010,9 @@ class HuntWorkflow:
                 supplies.pop(int(selection[0]))
             except (IndexError, ValueError):
                 return
+            self._advance_document_revision()
             self._refresh_supply_tree()
+            self._clear_form("supply")
 
     def _all_actions(self) -> list[tuple[str, int, Mapping[str, Any]]]:
         result = []
@@ -1368,6 +2049,16 @@ class HuntWorkflow:
         if selected is None:
             return
         group, _index, item = selected
+        target_origin = (group, str(item.get("id", "")))
+        if not self._switch_form_selection("action", self.action_tree, target_origin):
+            return
+        item = next(
+            (value for candidate_group, _candidate_index, value in self._all_actions()
+             if candidate_group == group and value.get("id") == target_origin[1]),
+            None,
+        )
+        if not isinstance(item, Mapping):
+            return
         confirmation = item.get("confirmation") if isinstance(item.get("confirmation"), Mapping) else {}
         values = {
             "group": group, "id": item.get("id", ""), "kind": item.get("kind", ""),
@@ -1381,9 +2072,12 @@ class HuntWorkflow:
         for key, value in values.items():
             self.action_vars[key].set(str(value))
         self.action_mutating.set(bool(item.get("mutating", True)))
+        self._bind_form("action", target_origin)
 
     def _condition_value(self, field: str, op: str, raw: str) -> Any:
         if op in RELATIVE_OPS:
+            return None
+        if not raw.strip():
             return None
         if field == "present":
             if raw.strip().lower() not in {"true", "false"}:
@@ -1393,51 +2087,8 @@ class HuntWorkflow:
 
     def _put_action(self, silent: bool = False) -> bool:
         try:
-            group = self.action_vars["group"].get()
-            if group not in available_action_groups(self.data):
-                raise WorkflowEditorError("Choose an action phase")
-            action_id = self.action_vars["id"].get().strip()
-            kind = self.action_vars["kind"].get()
-            field, op = self.action_vars["field"].get(), self.action_vars["op"].get()
-            if not action_id or kind not in {"press", "left_click", "right_click", "drag"}:
-                raise WorkflowEditorError("Action ID and kind are required")
-            confirmation = {"sensor": self.action_vars["sensor"].get().strip(), "field": field, "op": op}
-            value = self._condition_value(field, op, self.action_vars["value"].get())
-            if value is not None:
-                confirmation["value"] = value
-            item: dict[str, Any] = {
-                "id": action_id, "kind": kind, "confirmation": confirmation,
-                "require_present": [value.strip() for value in self.action_vars["requires"].get().split(",") if value.strip()],
-                "timeout": parse_number(self.action_vars["timeout"].get() or "2", "Timeout", 0.01, 60),
-                "retries": parse_integer(self.action_vars["retries"].get() or "1", "Retries", 0, 20),
-                "mutating": bool(self.action_mutating.get()),
-            }
-            if kind == "press":
-                item["key"] = self.action_vars["key"].get().strip()
-                if not item["key"]:
-                    raise WorkflowEditorError("Press actions require a key")
-            else:
-                item["target"] = self.action_vars["target"].get().strip()
-                if not item["target"]:
-                    raise WorkflowEditorError("Mouse actions require a target binding")
-                if kind == "drag":
-                    item["destination"] = self.action_vars["destination"].get().strip()
-                    if not item["destination"]:
-                        raise WorkflowEditorError("Drag actions require a destination binding")
-            found = None
-            for existing_group in available_action_groups(self.data):
-                for index, existing in enumerate(action_group(self.data, existing_group)):
-                    if isinstance(existing, Mapping) and existing.get("id") == action_id:
-                        found = existing_group, index
-            if found:
-                if found[0] == group:
-                    action_group(self.data, group)[found[1]] = item
-                else:
-                    action_group(self.data, found[0]).pop(found[1])
-                    action_group(self.data, group).append(item)
-            else:
-                action_group(self.data, group).append(item)
-            self._refresh_action_tree()
+            self._commit_forms(("action",), force=True)
+            group, action_id = self.action_vars["group"].get(), self.action_vars["id"].get().strip()
             if not silent:
                 self.message.set(f"Action {action_id} updated in {group}.")
             return True
@@ -1450,7 +2101,9 @@ class HuntWorkflow:
         if selected:
             group, index, _item = selected
             action_group(self.data, group).pop(index)
+            self._advance_document_revision()
             self._refresh_action_tree()
+            self._clear_form("action")
 
     def _refresh_visual_trees(self) -> None:
         self.binding_tree.delete(*self.binding_tree.get_children())
@@ -1474,20 +2127,22 @@ class HuntWorkflow:
         if selected and isinstance(bindings, Mapping):
             item = bindings.get(selected[0])
             if isinstance(item, Mapping):
-                self.binding_vars["id"].set(selected[0])
+                target_id = selected[0]
+                if not self._switch_form_selection("binding", self.binding_tree, target_id):
+                    return
+                bindings = self.data.get("bindings")
+                item = bindings.get(target_id) if isinstance(bindings, Mapping) else None
+                if not isinstance(item, Mapping):
+                    return
+                self.binding_vars["id"].set(target_id)
                 self.binding_vars["name"].set(str(item.get("name", "")))
                 self.binding_vars["region"].set(display_region(item.get("region")))
+                self._bind_form("binding", target_id)
 
     def _put_binding(self, silent: bool = False) -> bool:
         try:
-            binding_id, name = self.binding_vars["id"].get().strip(), self.binding_vars["name"].get().strip()
-            if not binding_id or not name:
-                raise WorkflowEditorError("Binding ID and detector ID are required")
-            bindings = self.data.setdefault("bindings", {})
-            if not isinstance(bindings, dict):
-                raise WorkflowEditorError("bindings must be an object")
-            bindings[binding_id] = {"region": parse_region(self.binding_vars["region"].get()), "name": name}
-            self._refresh_visual_trees()
+            self._commit_forms(("binding",), force=True)
+            binding_id = self.binding_vars["id"].get().strip()
             if not silent:
                 self.message.set(f"Binding {binding_id} updated in the draft.")
             return True
@@ -1500,7 +2155,9 @@ class HuntWorkflow:
         bindings = self.data.get("bindings")
         if selected and isinstance(bindings, dict):
             bindings.pop(selected[0], None)
+            self._advance_document_revision()
             self._refresh_visual_trees()
+            self._clear_form("binding")
 
     def _select_visual(self, _event: Any = None) -> None:
         selected = self.visual_tree.selection()
@@ -1510,6 +2167,13 @@ class HuntWorkflow:
         item = visuals.get(selected[0])
         if not isinstance(item, Mapping):
             return
+        target_id = selected[0]
+        if not self._switch_form_selection("visual", self.visual_tree, target_id):
+            return
+        visuals = self.data.get("visual")
+        item = visuals.get(target_id) if isinstance(visuals, Mapping) else None
+        if not isinstance(item, Mapping):
+            return
         context = item.get("context") if isinstance(item.get("context"), Mapping) else {}
         digits = item.get("digits")
         digits_dir = ""
@@ -1517,7 +2181,7 @@ class HuntWorkflow:
             parents = {str(Path(str(path)).parent) for path in digits.values()}
             digits_dir = parents.pop() if len(parents) == 1 else ""
         values = {
-            "id": selected[0], "kind": item.get("kind", "template"),
+            "id": target_id, "kind": item.get("kind", "template"),
             "context_template": context.get("template", ""),
             "context_region": display_region(context.get("region")),
             "template": item.get("template", ""),
@@ -1527,62 +2191,12 @@ class HuntWorkflow:
         }
         for key, value in values.items():
             self.visual_vars[key].set(str(value))
+        self._bind_form("visual", target_id)
 
     def _put_visual(self, silent: bool = False) -> bool:
         try:
-            visual_id, kind = self.visual_vars["id"].get().strip(), self.visual_vars["kind"].get()
-            if not visual_id or kind not in {"template", "count"}:
-                raise WorkflowEditorError("Detector ID and kind are required")
-            context_template = self.visual_vars["context_template"].get().strip()
-            if not context_template:
-                raise WorkflowEditorError("Every detector requires a context template")
-            visuals = self.data.setdefault("visual", {})
-            if not isinstance(visuals, dict):
-                raise WorkflowEditorError("visual must be an object")
-            prior = visuals.get(visual_id)
-            same_kind = isinstance(prior, Mapping) and prior.get("kind") == kind
-            item: dict[str, Any] = deepcopy(dict(prior)) if same_kind else {}
-            prior_context = item.get("context")
-            context = deepcopy(dict(prior_context)) if isinstance(prior_context, Mapping) else {}
-            context.update({
-                "template": context_template,
-                "region": parse_region(self.visual_vars["context_region"].get(), "Context region"),
-                "score": parse_number(self.visual_vars["context_score"].get() or "0.95", "Context score", 0, 1),
-            })
-            item.update({
-                "kind": kind, "context": context,
-                "score": parse_number(self.visual_vars["score"].get() or "0.95", "Match score", 0, 1),
-            })
-            if kind == "template":
-                for key in ("digits", "count_region", "foreground", "tolerance", "max_digits"):
-                    item.pop(key, None)
-                item["template"] = self.visual_vars["template"].get().strip()
-                item["search_region"] = parse_region(self.visual_vars["region"].get(), "Search region")
-                if not item["template"]:
-                    raise WorkflowEditorError("Template detectors require a match template")
-            else:
-                for key in ("template", "search_region", "max_matches"):
-                    item.pop(key, None)
-                directory = self.visual_vars["digits_dir"].get().strip()
-                if not directory:
-                    raise WorkflowEditorError("Count detectors require a digit templates folder")
-                item["digits"] = {str(number): (Path(directory) / f"{number}.png").as_posix() for number in range(10)}
-                item["count_region"] = parse_region(self.visual_vars["region"].get(), "Count region")
-                item.setdefault("foreground", [255, 255, 255])
-                item.setdefault("tolerance", 8)
-                item.setdefault("max_digits", 6)
-                def exists(path_value: str) -> bool:
-                    path = Path(path_value).expanduser()
-                    resolved = path if path.is_absolute() else self.base_dir / path
-                    return resolved.is_file()
-
-                missing = [str(number) for number, path in item["digits"].items() if not exists(path)]
-                if missing:
-                    raise WorkflowEditorError(
-                        f"Digit templates folder is missing: {', '.join(missing)}.png"
-                    )
-            visuals[visual_id] = item
-            self._refresh_visual_trees()
+            self._commit_forms(("visual",), force=True)
+            visual_id = self.visual_vars["id"].get().strip()
             if not silent:
                 self.message.set(f"Visual detector {visual_id} updated in the draft.")
             return True
@@ -1595,7 +2209,9 @@ class HuntWorkflow:
         visuals = self.data.get("visual")
         if selected and isinstance(visuals, dict):
             visuals.pop(selected[0], None)
+            self._advance_document_revision()
             self._refresh_visual_trees()
+            self._clear_form("visual")
 
     def _choose_capture(self) -> None:
         filename = filedialog.askopenfilename(parent=self.window, title="Open a frame saved by Compatibility", filetypes=(("Images", "*.png *.jpg *.jpeg *.bmp"), ("All files", "*")))
@@ -1612,9 +2228,113 @@ class HuntWorkflow:
             self.message.set("Choose a saved client capture before selecting a crop.")
             return
         try:
-            _CropDialog(self, source)
+            selection = self.binding_tree.selection() if hasattr(self, "binding_tree") else ()
+            preferred_binding = selection[0] if selection else None
+            binding_state = getattr(self, "_form_state", {}).get("binding")
+            if binding_state and (binding_state.get("origin") is not None or self._form_dirty("binding")):
+                preferred_binding = self.binding_vars["id"].get().strip() or preferred_binding
+            self._commit_forms(("binding", "visual"))
+            _CropDialog(self, source, self._crop_intent(preferred_binding))
         except Exception as exc:
             self.message.set(f"Cannot open saved capture: {exc}")
+
+    def _crop_intent(self, preferred_binding: str | None = None) -> CropIntent:
+        detector_id = self.visual_vars["id"].get().strip()
+        if not detector_id:
+            raise WorkflowEditorError("Enter the detector ID before selecting its template crop")
+        purpose = self.crop_target.get()
+        valid_purposes = {"Match template", "Context template", *(f"Digit {number}" for number in range(10))}
+        if purpose not in valid_purposes:
+            raise WorkflowEditorError("Choose a crop purpose")
+        binding_id = None
+        binding_region = None
+        if purpose in {"Match template", "Context template"}:
+            bindings = self.data.get("bindings")
+            candidates: list[tuple[str, Mapping[str, Any]]] = []
+            if isinstance(bindings, Mapping):
+                selected_id = preferred_binding
+                if selected_id is None and hasattr(self, "binding_tree"):
+                    selected = self.binding_tree.selection()
+                    selected_id = selected[0] if selected else None
+                if selected_id:
+                    value = bindings.get(selected_id)
+                    if not isinstance(value, Mapping):
+                        raise WorkflowEditorError(f"Selected binding {selected_id!r} is no longer available")
+                    if value.get("name") != detector_id:
+                        raise WorkflowEditorError(
+                            f"Selected binding {selected_id!r} uses detector {value.get('name')!r}, "
+                            f"not {detector_id!r}; select a matching binding or clear the binding selection"
+                        )
+                    candidates = [(selected_id, value)]
+                else:
+                    candidates = [
+                        (str(key), value) for key, value in bindings.items()
+                        if isinstance(value, Mapping) and value.get("name") == detector_id
+                    ]
+            if len(candidates) == 1:
+                candidate_id, candidate = candidates[0]
+                region = candidate.get("region")
+                if isinstance(region, (list, tuple)) and len(region) == 4:
+                    binding_id = candidate_id
+                    binding_region = tuple(int(value) for value in region)
+        return CropIntent(
+            detector_id=detector_id,
+            purpose=purpose,
+            document_revision=self._document_revision,
+            binding_id=binding_id,
+            binding_region=binding_region,
+        )
+
+    def _prepare_crop_update(
+        self, intent: CropIntent, destination: Path, box: tuple[int, int, int, int],
+    ) -> dict[str, Any]:
+        if intent.document_revision != self._document_revision:
+            raise WorkflowEditorError("the workflow changed after this crop dialog opened; reopen it")
+        if self.visual_vars["id"].get().strip() != intent.detector_id:
+            raise WorkflowEditorError("the detector changed after this crop dialog opened; reopen it")
+        relative = relative_template_path(destination, self.filename)
+        update: dict[str, Any] = {"purpose": intent.purpose, "path": relative}
+        if intent.purpose in {"Context template", "Match template"}:
+            if intent.binding_region is None:
+                update["message"] = (
+                    f"Offline crop saved from client box {box}. No unique binding for "
+                    f"{intent.detector_id!r} was attached; enter the detector region explicitly."
+                )
+            else:
+                left, top, right, bottom = intent.binding_region
+                if not (box[0] >= left and box[1] >= top and box[2] <= right and box[3] <= bottom):
+                    raise WorkflowEditorError(
+                        f"crop {box} is outside binding {intent.binding_id!r} at {intent.binding_region}"
+                    )
+                update["region"] = [
+                    box[0] - left, box[1] - top, box[2] - left, box[3] - top,
+                ]
+                update["message"] = (
+                    f"Offline crop saved from client box {box} and attached to binding "
+                    f"{intent.binding_id}. Add/update the detector, then Inspect live evidence."
+                )
+        else:
+            update["message"] = (
+                f"Offline digit crop saved from client box {box}. "
+                "Add/update the detector, then Inspect live evidence."
+            )
+        return update
+
+    def _apply_crop_update(self, update: Mapping[str, Any]) -> None:
+        purpose, path = str(update["purpose"]), str(update["path"])
+        changes: dict[str, str] = {}
+        if purpose == "Context template":
+            changes["context_template"] = path
+            if "region" in update:
+                changes["context_region"] = display_region(update["region"])
+        elif purpose.startswith("Digit "):
+            changes["digits_dir"] = Path(path).parent.as_posix()
+        else:
+            changes["template"] = path
+            if "region" in update:
+                changes["region"] = display_region(update["region"])
+        for key, value in changes.items():
+            self.visual_vars[key].set(value)
 
     def _refresh_json(self, collect: bool = True) -> None:
         try:

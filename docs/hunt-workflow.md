@@ -36,6 +36,12 @@ to another client layout.
    directory. Optional targets, navigation settings, loot policy, and detector tuning can be
    reviewed in **Advanced JSON**; the structured tabs remain the normal configuration flow.
 
+Save, Validate, Inspect and Start include intentional edits in the open forms; pressing
+Add/update first is optional. If a form cannot be parsed, the editor preserves the draft and
+your entered values so you can correct it. Save accepts unfinished drafts; validation and Start
+check whether a workflow is ready to run. Removing an entry clears its form, and loading a new
+document replaces the old forms. Save As refreshes the displayed template paths after rebasing.
+
 The four station groups are `prepare`, `deposit`, `sell`, and `refill`. Travel also supports
 actions immediately before and after the outbound and return routes. Confirmation fields are
 `present` or `count`. Relative comparisons (`changed`, `increased`, and `decreased`) do not
@@ -55,7 +61,8 @@ Hunt Workflow can crop a template from a local image file:
    at the same files.
 2. In **Desktop Compatibility Studio**, capture a preview and choose **Save displayed frame**.
 3. In Hunt Workflow, choose **Load saved client capture** and select the binding whose pixels
-   the crop belongs to.
+   the crop belongs to. With no selection, the editor can use the detector's sole matching
+   binding. The crop dialog identifies the detector, purpose and binding before you save.
 4. Choose whether the crop is the match template, context template, or a digit, then choose
    **Select crop and save template**. Drag a non-empty box and save the PNG inside the workflow
    directory. Each detector receives its own suggested subdirectory. Digit crops use the names
@@ -70,6 +77,10 @@ Hunt Workflow can crop a template from a local image file:
 Loading and cropping a saved image is offline authoring. It does not prove that the current
 client is visible, fresh, aligned, or displaying the same pixels. A crop is limited to 512 by
 512 pixels and is never used as a captured frame or replay source.
+
+The crop dialog keeps the detector, binding and crop purpose it was opened for. A later
+selection or document change cannot attach the image to a different detector. Validation and
+file errors preserve the crop selection for another attempt.
 
 ## Inspect live evidence
 
@@ -87,6 +98,11 @@ need that evidence.
 The displayed frame and binding overlays come from the configuration snapshot submitted to that
 inspection. Configuration stays locked until the probe finishes, so later edits cannot relabel
 an earlier result.
+
+Ambiguous context or excess target matches include competing boxes and scores in the preview.
+Use these boxes to narrow the detector region or choose a more distinctive template. Overlapping
+but distinct matches remain ambiguous; they cannot authorize an action. These diagnostic details
+also survive trace recording and replay, and existing traces without them remain readable.
 
 Inspection does not validate action effects and does not arm the workflow. Stop an active
 workflow before inspecting.
@@ -107,11 +123,17 @@ draft and filename. Opening Hunt Workflow again restores the same panel and its 
 original generation. Use **Stop workflow** to stop that generation, or Hunt Console **STOP ALL**
 for the global stop.
 
-- **Return after fight** requests a safe return after the current combat boundary.
-- **Return now** requests the controller's immediate return path.
+- **Return after fight** requests a return after the current combat boundary.
+- **Return now** cancels pending hunt/combat input and begins the authored return path, using
+  fresh route evidence and the configured guards. Emergency reserves use this same immediate
+  path. Independent support features continue running. An input already dispatched to the
+  client cannot be undone; an uncertain inventory-changing action still needs reconciliation.
+  Return requests only increase in urgency. During outbound travel, the request is reported as
+  queued until that authored route completes; the controller does not guess a reverse route.
+  Return and town-side phases report that the request is already being satisfied.
 - **Stop workflow** stops this workflow only.
-- **Re-check evidence** asks for fresh confirmation without claiming that an operator corrected
-  the client.
+- **Re-check evidence** requests another recovery or confirmation check without claiming that
+  an operator corrected the client. Route recovery checks automatically as new frames arrive.
 - **I reconciled manually** means the operator personally inspected and corrected the client
   state. This is recorded as `operator_reconciled`. It is never labeled machine-confirmed, and
   fresh evidence is still required before automation proceeds.
@@ -119,6 +141,16 @@ for the global stop.
 When **Resume saved cycle** is selected, Start may resume a compatible checkpoint. The
 controller still checks the configuration and local binding identity; stale or mismatched state
 is not resumed silently.
+
+Pausing the existing run preserves its route progress, combat state and remaining timers. Resume
+waits for a newer valid observation, then continues without requiring a reached waypoint.
+Restarting from a checkpoint reconstructs lost route state instead: a unique recognized anchor
+resumes automatically, while multiple candidates let you select the intended waypoint with
+**Resume here**. That selection is checked against fresh evidence before movement resumes.
+Actions cancelled while still queued can retry with fresh evidence. Purchases and transfers
+that may already have reached the client retain their original confirmation baselines. If
+dispatch feedback was interrupted, an unchanged counter does not authorize a retry: the effect
+must be confirmed from new evidence or reconciled manually.
 
 ## Workflow document boundary
 

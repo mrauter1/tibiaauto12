@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from engine.CaveBot.routes import Route, Waypoint
+from features.cavebot import TargetSpec
 from features.hunt_cycle import CyclePhase, HuntCheckpointError, HuntCycleFeature
 from tibia_client import ClientSession
 from tibia_client.hunt_plan import hunt_plan_from_data, hunt_plan_template
@@ -24,6 +25,7 @@ from tibia_client.models import (
     ObservationBatch,
     Reading,
     Step,
+    Target,
 )
 
 
@@ -66,7 +68,17 @@ def bindings(value):
     }
 
 
-def context(feature, frame, now, visual, *, reached=False, unknown=(), stale=()):
+def context(
+    feature,
+    frame,
+    now,
+    visual,
+    *,
+    reached=False,
+    unknown=(),
+    stale=(),
+    targets=None,
+):
     observations = {}
     for sensor in feature.sensors():
         observed_at = now - 2 if sensor.name in stale else now
@@ -76,6 +88,14 @@ def context(feature, frame, now, visual, *, reached=False, unknown=(), stale=())
             observations[sensor] = Observation(sensor, reading, observed_at, frame, 1, quality)
         elif sensor.kind is SensorKind.MARKER:
             observations[sensor] = Observation(sensor, Marker((10, 10), reached), now, frame, 1)
+        elif sensor.kind is SensorKind.TARGET:
+            observations[sensor] = Observation(
+                sensor,
+                (targets or {}).get(sensor.name, Target(0)),
+                now,
+                frame,
+                1,
+            )
     return FeatureContext(Snapshot(observations, frame, 1, now), now)
 
 
@@ -444,6 +464,192 @@ def test_operator_return_uses_fresh_route_evidence_when_required_supply_is_unkno
     assert feature.status.supply_counts["mana_potions"] is None
 
 
+def test_return_intent_only_upgrades_and_emergency_scan_wins_across_supplies():
+    data = hunt_plan_template()
+    data.pop("loot")
+    data["supplies"][0].update(
+        return_below=6, emergency_reserve=2, refill_to=10
+    )
+    data["supplies"].append(
+        {
+            "id": "health_potions",
+            "sensor": "health_potions",
+            "return_below": 6,
+            "emergency_reserve": 2,
+            "refill_to": 10,
+            "optional": False,
+        }
+    )
+    value = hunt_plan_from_data(data, route_values())
+    feature = HuntCycleFeature(
+        value,
+        bindings(value),
+        binding_revision="two-supply-layout-v1",
+        map_region=(0, 0, 50, 50),
+        battle_region=(0, 0, 50, 50),
+        resume=False,
+    )
+    feature._supply_counts.update(mana_potions=5, health_potions=2)
+
+    due, reason = feature._return_due()
+
+    assert due
+    assert reason == "emergency_reserve:health_potions"
+    assert feature.status.return_mode is None  # status changes on the next public transition
+    assert feature._return_mode == "now"
+    feature.request_return(now=False)
+    assert feature._return_mode == "now"
+
+
+def test_warm_pause_uses_new_frame_without_relocalizing_live_navigation():
+    feature = make_feature()
+    feature._phase = CyclePhase.HUNT
+    feature._inner = feature._new_inner(CyclePhase.HUNT)
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 1},
+    }
+    movement = feature.tick(context(feature, 1, 0.0, visual)).requests[0]
+    feature.on_result(result(movement, 0.0))
+    inner = feature._inner
+    assert inner is not None
+    assert inner._mode == "arriving"
+
+    feature.on_pause()
+    feature.on_resume(paused_for=2.0)
+    same_frame = feature.tick(context(feature, 1, 2.0, visual))
+    assert same_frame.requests == ()
+    assert feature.status.reason == "resume_waiting_for_new_frame"
+    assert feature._inner is inner
+    assert inner._mode == "arriving"
+
+    feature.tick(context(feature, 2, 2.2, visual))
+    assert feature.status.reason == "resume_observations_reconciled"
+    assert feature._inner is inner
+    assert inner._mode == "arriving"
+
+
+def test_warm_pause_during_combat_retains_combat_state_without_anchor_resume():
+    value = plan()
+    feature = HuntCycleFeature(
+        value,
+        bindings(value),
+        binding_revision="combat-pause-layout-v1",
+        targets=(TargetSpec(1, "dragon"),),
+        map_region=(0, 0, 50, 50),
+        battle_region=(0, 0, 50, 50),
+        resume=False,
+    )
+    feature._phase = CyclePhase.HUNT
+    feature._inner = feature._new_inner(CyclePhase.HUNT)
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    active = {"dragon": Target(1, None, True)}
+    feature.tick(context(feature, 1, 0.0, visual, targets=active))
+    inner = feature._inner
+    assert inner is not None
+    assert inner._mode == "combat"
+
+    feature.on_pause()
+    feature.on_resume(paused_for=3.0)
+    feature.tick(context(feature, 2, 3.2, visual, targets=active))
+
+    assert feature.status.reason == "resume_observations_reconciled"
+    assert feature._inner is inner
+    assert inner._mode == "combat"
+
+
+def test_checkpoint_route_recovery_polls_then_accepts_explicit_anchor(tmp_path):
+    two_hunt = Route(
+        "hunt_route",
+        (Waypoint("hunt-a", "Sword"), Waypoint("hunt-b", "Star")),
+    )
+    data = hunt_plan_template()
+    data.pop("loot")
+    data["supplies"][0].update(return_below=6, emergency_reserve=2, refill_to=10)
+    value = hunt_plan_from_data(
+        data, {**route_values(), "hunt_route": two_hunt}
+    )
+    checkpoint = Path(tmp_path) / "anchors.state.json"
+    original = HuntCycleFeature(
+        value,
+        bindings(value),
+        binding_revision="anchor-layout-v1",
+        map_region=(0, 0, 50, 50),
+        battle_region=(0, 0, 50, 50),
+        checkpoint_path=checkpoint,
+        resume=False,
+    )
+    original._phase = CyclePhase.HUNT
+    original._save_checkpoint()
+    resumed = HuntCycleFeature(
+        value,
+        bindings(value),
+        binding_revision="anchor-layout-v1",
+        map_region=(0, 0, 50, 50),
+        battle_region=(0, 0, 50, 50),
+        checkpoint_path=checkpoint,
+        resume=True,
+    )
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+
+    resumed.tick(context(resumed, 1, 0.0, visual))
+    resumed.tick(context(resumed, 2, 0.2, visual, reached=True))
+    assert resumed.status.reason == "route_anchor_ambiguous_select_candidate"
+    assert resumed.status.recovery_candidates == (0, 1)
+    assert not resumed.status.manual_required
+
+    assert not resumed.select_recovery_anchor(99)
+    assert resumed.status.reason == "route_anchor_selection_rejected"
+    assert resumed.status.recovery_candidates == (0, 1)
+    assert resumed.request_recheck()
+    assert resumed.status.reason == "recovery_recheck_requested"
+    assert resumed.select_recovery_anchor(1)
+    resumed.tick(context(resumed, 3, 0.4, visual, reached=True))
+    assert resumed.status.reason == "resume_observations_reconciled"
+    assert resumed._inner is not None
+    assert resumed._inner.index == 1
+
+
+def test_checkpoint_route_recovery_keeps_polling_until_unique_anchor_appears(
+    tmp_path,
+):
+    original = make_feature(tmp_path, resume=False)
+    original._phase = CyclePhase.HUNT
+    original._save_checkpoint()
+    resumed = make_feature(tmp_path, resume=True)
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+
+    resumed.on_pause()
+    resumed.on_resume(paused_for=1.0)
+    assert resumed.status.recovery_reason == "checkpoint_fresh_observation_required"
+    resumed.tick(context(resumed, 1, 0.0, visual))
+    resumed.tick(context(resumed, 2, 0.2, visual, reached=False))
+    assert resumed.status.reason == "route_anchor_waiting_for_fresh_evidence"
+    assert not resumed.status.manual_required
+
+    resumed.tick(context(resumed, 3, 0.4, visual, reached=True))
+    assert resumed.status.reason == "resume_observations_reconciled"
+    assert resumed._inner is not None
+    assert resumed._inner.index == 0
+
+
+def test_manual_recheck_without_pending_effect_reports_actionable_status():
+    feature = make_feature()
+    feature._manual("operator_decision_required")
+    assert feature.acknowledge_manual(operator_reconciled=False)
+
+    feature.tick(context(feature, 1, 0.0, {}))
+
+    assert feature.status.reason == "manual_recheck_has_no_machine_reconcilable_effect"
+    assert feature.status.manual_required
+
+
 def test_interrupted_loot_transfer_keeps_both_deltas_for_manual_recheck(tmp_path):
     feature = make_feature(tmp_path, loot=True, resume=False)
     feature._phase = CyclePhase.HUNT
@@ -470,6 +676,112 @@ def test_interrupted_loot_transfer_keeps_both_deltas_for_manual_recheck(tmp_path
     resumed.tick(context(resumed, 3, 0.4, visual))
     assert resumed.status.reason == "machine_confirmed_after_manual_check"
     assert resumed._loot_moves == 1
+
+
+def test_immediate_return_cancels_queued_outer_loot_but_reconciles_dispatched():
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 1},
+        "detector_loot_corpse": {"present": True, "position": (5, 5), "count": 1},
+        "detector_loot_container": {"present": True, "position": (6, 6), "count": 1},
+        "detector_loot_backpack": {"present": True, "position": (10, 10), "count": 1},
+        "detector_loot_free_slots": {"present": True, "position": (10, 10), "count": 5},
+        "detector_loot_backpack_items": {"present": True, "position": (10, 10), "count": 20},
+        "detector_gold_coin": {"present": True, "position": (7, 7), "count": 100},
+    }
+    queued = make_feature(loot=True)
+    queued._phase = CyclePhase.HUNT
+    queued._looting = True
+    queued._loot_opened = True
+    request = queued.tick(context(queued, 1, 0.0, visual)).requests[0]
+
+    visual["detector_mana_potions"]["count"] = 0
+    cancelled = queued.tick(context(queued, 2, 0.1, visual))
+
+    assert cancelled.cancel_keys == (request.key,)
+    assert queued.status.return_mode == "now"
+    assert queued._pending is None
+    assert not queued._looting
+    assert queued.status.reason == "immediate_return_cancelled_queued_loot"
+
+    dispatched = make_feature(loot=True)
+    dispatched._phase = CyclePhase.HUNT
+    dispatched._looting = True
+    dispatched._loot_opened = True
+    visual["detector_mana_potions"]["count"] = 8
+    request = dispatched.tick(context(dispatched, 3, 0.2, visual)).requests[0]
+    dispatched.on_result(result(request, 0.2))
+    visual["detector_mana_potions"]["count"] = 0
+
+    waiting = dispatched.tick(context(dispatched, 4, 0.4, visual))
+
+    assert waiting.requests == ()
+    assert dispatched.status.return_mode == "now"
+    assert dispatched._pending is not None
+    visual["detector_gold_coin"]["count"] = 90
+    visual["detector_loot_backpack_items"]["count"] = 30
+
+    reconciled = dispatched.tick(context(dispatched, 5, 0.6, visual))
+
+    assert reconciled.cancel_keys == ()
+    assert dispatched._pending is None
+    assert dispatched._loot_moves == 1
+    assert dispatched.status.reason == "machine_confirmed"
+
+
+def test_immediate_return_suppresses_only_fresh_unchanged_loot_retry():
+    visual = {
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+        "detector_loot_corpse": {"present": True, "position": (5, 5), "count": 1},
+        "detector_loot_container": {"present": True, "position": (6, 6), "count": 1},
+        "detector_loot_backpack": {"present": True, "position": (10, 10), "count": 1},
+        "detector_loot_free_slots": {"present": True, "position": (10, 10), "count": 5},
+        "detector_loot_backpack_items": {"present": True, "position": (10, 10), "count": 20},
+        "detector_gold_coin": {"present": True, "position": (7, 7), "count": 100},
+    }
+    feature = make_feature(loot=True)
+    feature._phase = CyclePhase.HUNT
+    feature._looting = True
+    feature._loot_opened = True
+    request = feature.tick(context(feature, 1, 0.0, visual)).requests[0]
+    feature.on_result(result(request, 0.0))
+    feature.request_return(now=True)
+    assert feature._pending is not None
+    deadline = feature._pending.deadline
+    assert deadline is not None
+
+    suppressed = feature.tick(context(feature, 2, deadline + 0.01, visual))
+
+    assert suppressed.requests == ()
+    assert feature._pending is None
+    assert not feature._looting
+    assert feature.status.reason == "immediate_return_suppressed_loot_retry"
+
+    unknown = make_feature(loot=True)
+    unknown._phase = CyclePhase.HUNT
+    unknown._looting = True
+    unknown._loot_opened = True
+    request = unknown.tick(context(unknown, 3, 0.2, visual)).requests[0]
+    unknown.on_result(result(request, 0.2))
+    unknown.request_return(now=True)
+    assert unknown._pending is not None
+    deadline = unknown._pending.deadline
+    assert deadline is not None
+
+    unresolved = unknown.tick(
+        context(
+            unknown,
+            4,
+            deadline + 0.01,
+            visual,
+            unknown=("detector_gold_coin",),
+        )
+    )
+
+    assert unresolved.requests == ()
+    assert unknown._pending is not None
+    assert unknown.status.manual_required
+    assert unknown.status.manual_reason == "confirmation_unknown_after_timeout"
 
 
 def test_feature_runs_only_through_one_shared_client_session():

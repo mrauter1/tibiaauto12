@@ -110,7 +110,17 @@ def _decode(value: Any, depth: int = 0) -> Any:
     if set(value) == {"type", "fields"} and value["type"] in _TYPES:
         cls = _TYPES[value["type"]]
         supplied = value["fields"]
-        if not isinstance(supplied, dict) or set(supplied) != {field.name for field in fields(cls)}:
+        expected = {field.name for field in fields(cls)}
+        # Diagnostics are an additive observation field. Existing version-1
+        # traces predate it and retain an empty diagnostic mapping on decode.
+        legacy_observation = (
+            cls in (models.Reading, models.Observation)
+            and isinstance(supplied, dict)
+            and set(supplied) == expected - {"diagnostics"}
+        )
+        if not isinstance(supplied, dict) or (
+            set(supplied) != expected and not legacy_observation
+        ):
             raise TraceError("trace model fields do not match schema")
         return cls(**{key: _decode(item, depth + 1) for key, item in supplied.items()})
     if set(value) == {"tuple"} and isinstance(value["tuple"], list):
@@ -334,7 +344,10 @@ class ReplayAdapter:
             if observed_at is not None and observed_at != observation.observed_at:
                 raise TraceError("replay frame contains inconsistent sample times")
             observed_at = observation.observed_at
-            values[sensor] = Reading(observation.value, observation.quality, observation.detail)
+            values[sensor] = Reading(
+                observation.value, observation.quality, observation.detail,
+                observation.diagnostics,
+            )
         if observed_at is None:
             raise TraceError("replay observation needs at least one sensor")
         self.clock.advance_to(snapshot.created_at)

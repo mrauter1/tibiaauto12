@@ -122,11 +122,15 @@ class Reading:
     value: Any = None
     quality: Quality = Quality.KNOWN
     detail: str = ""
+    diagnostics: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         object.__setattr__(self, "quality", Quality(self.quality))
         object.__setattr__(self, "value", _freeze(self.value))
         _text(self.detail, "reading detail")
+        if not isinstance(self.diagnostics, Mapping):
+            raise ValueError("reading diagnostics must be a mapping")
+        object.__setattr__(self, "diagnostics", _freeze(self.diagnostics))
 
 
 @dataclass(frozen=True)
@@ -138,6 +142,7 @@ class Observation:
     epoch: int
     quality: Quality = Quality.KNOWN
     detail: str = ""
+    diagnostics: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         if not isinstance(self.sensor, Sensor):
@@ -148,6 +153,9 @@ class Observation:
         object.__setattr__(self, "quality", Quality(self.quality))
         object.__setattr__(self, "value", _freeze(self.value))
         _text(self.detail, "observation detail")
+        if not isinstance(self.diagnostics, Mapping):
+            raise ValueError("observation diagnostics must be a mapping")
+        object.__setattr__(self, "diagnostics", _freeze(self.diagnostics))
 
     def fresh(self, now: float, max_age: float) -> bool:
         return self.quality is Quality.KNOWN and 0 <= now - self.observed_at <= max_age
