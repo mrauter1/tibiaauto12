@@ -90,6 +90,7 @@ class CaveBot:
         self._imported_pack = None
         self._local_binding = None
         self._unapplied_import = False
+        self._loaded_route_name = None
         self._preview_image = None
 
         self._variables()
@@ -243,6 +244,7 @@ class CaveBot:
             if not route_file(name).exists():
                 self._route = Route(name, ())
                 self._editor_index = 0
+                self._loaded_route_name = None
                 self._set_message("New empty route; add a waypoint and save")
             else:
                 legacy_data = self._read_legacy_data(name)
@@ -251,6 +253,7 @@ class CaveBot:
                     self._editor_index = load_checkpoint(self._route)
                 else:
                     self._editor_index = import_legacy_active_index(legacy_data, self._route)
+                self._loaded_route_name = self._route.name
                 self._set_message("Loaded route '{}'".format(name))
             self._editor = RouteEditor(self._route, self._editor_index)
             self._imported_pack = None
@@ -263,17 +266,55 @@ class CaveBot:
     def _save_script(self):
         try:
             route = Route(self._route_name(), self._route.waypoints)
+            if not self._confirm_route_replacement(route):
+                self._set_message(
+                    "Save cancelled; existing route and checkpoint were unchanged. "
+                    "Rename or Duplicate route to keep both."
+                )
+                return
             save_route(route)
             self._route = route
             self._editor.route = route
             if route.waypoints:
                 self._editor_index = min(self._editor_index, len(route.waypoints) - 1)
                 save_checkpoint(route, self._editor_index)
-            write_loader("CaveBotLoader", {"Script": route.name})
-            self._set_message("Saved route '{}'".format(route.name))
+            self._loaded_route_name = route.name
+            if self._unapplied_import:
+                self._set_message(
+                    "Saved standalone route '{}'; active route unchanged. "
+                    "Bind local, then Save again to select it."
+                    .format(route.name)
+                )
+            else:
+                write_loader("CaveBotLoader", {"Script": route.name})
+                self._set_message("Saved route '{}'".format(route.name))
         except Exception as exc:
             self._set_message("Save failed: {}".format(exc))
         self._render_route()
+
+    def _confirm_route_replacement(self, route):
+        """Confirm replacement when the editor did not load or create the destination."""
+        if getattr(self, "_loaded_route_name", None) == route.name:
+            return True
+        if not route_file(route.name).is_file():
+            return True
+        try:
+            # Compare the stored definition even when one of its bundled assets
+            # is currently unavailable; save_route only treats malformed route
+            # structure as non-overwritable.
+            existing = load_route(route.name, validate_assets=False)
+        except RouteError:
+            # save_route supplies the actionable refusal for malformed/non-route files.
+            return True
+        if existing == route:
+            return True
+        return messagebox.askyesno(
+            "Replace local route?",
+            "A different local route named '{}' already exists. Replace its route and "
+            "checkpoint?\n\nChoose No, then rename or Duplicate route to keep both."
+            .format(route.name),
+            parent=self.window,
+        )
 
     def _add_waypoint(self):
         try:
@@ -376,6 +417,7 @@ class CaveBot:
             self._route = route
             self._editor = RouteEditor(route, min(self._editor_index, max(0, len(route.waypoints) - 1)))
             self._take_editor_state()
+            self._loaded_route_name = None
             if self._imported_pack is None:
                 self._local_binding = None
                 self.binding_label.configure(text="Local profile: current route")
@@ -566,6 +608,7 @@ class CaveBot:
             self._route = pack.route
             self._editor = RouteEditor(pack.route)
             self._take_editor_state()
+            self._loaded_route_name = None
             self._imported_pack = pack
             self._local_binding = None
             self._unapplied_import = True

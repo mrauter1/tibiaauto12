@@ -52,6 +52,26 @@ class Hotkey:
         with input_transaction("cursor position"):
             return self.SendToClient.Position()
 
+    def ScreenPosition(self):
+        """Return the physical cursor in desktop screen coordinates."""
+
+        with input_transaction("screen cursor position"):
+            return self.SendToClient.ScreenPosition()
+
+    def RestoreScreenPosition(self, position):
+        """Restore a physical cursor snapshot without action-coordinate use."""
+
+        with input_transaction("screen cursor restore"):
+            return self.SendToClient.RestoreScreenPosition(position)
+
+    def SupportsScreenRestore(self):
+        """Report support from the wrapped backend rather than this facade."""
+
+        return all(
+            callable(getattr(self.SendToClient, name, None))
+            for name in ("ScreenPosition", "RestoreScreenPosition")
+        )
+
     def LeftClick(self, X, Y):
         with input_transaction("left click"):
             return self.SendToClient.LeftClick((X, Y))

@@ -415,7 +415,7 @@ class DesktopAdapter:
         token.checkpoint()
         return ObservationBatch(readings=readings, observed_at=observed_at, frame=frame)
 
-    def _restore_cursor(self, point: object, token: Any) -> None:
+    def _restore_cursor(self, point: object, token: Any, *, screen: bool) -> None:
         if _cancelled(token):
             return
         if (
@@ -425,8 +425,14 @@ class DesktopAdapter:
         ):
             return
         try:
-            width, height = self.hotkey.MainWindowSize()
             x, y = int(point[0]), int(point[1])
+            if screen:
+                if not _cancelled(token):
+                    self.hotkey.RestoreScreenPosition((x, y))
+                return
+            # Compatibility for small injected test/third-party facades that
+            # predate the dedicated screen-coordinate restore API.
+            width, height = self.hotkey.MainWindowSize()
             if not _cancelled(token) and 0 <= x < int(width) and 0 <= y < int(height):
                 self.hotkey.MoveTo(x, y)
         except Exception:
@@ -451,11 +457,23 @@ class DesktopAdapter:
         token.checkpoint()
         previous = None
         preserve = self.mouse_mode == 1 and action.kind is not ActionKind.PRESS
+        restore_support = getattr(self.hotkey, "SupportsScreenRestore", None)
+        if callable(restore_support):
+            screen_restore = preserve and bool(restore_support())
+        else:
+            screen_restore = preserve and all(
+                callable(getattr(self.hotkey, name, None))
+                for name in ("ScreenPosition", "RestoreScreenPosition")
+            )
         try:
             with runtime.input_transaction(f"desktop {action.kind.value}"):
                 token.checkpoint()
                 if preserve:
-                    previous = self.hotkey.Position()
+                    previous = (
+                        self.hotkey.ScreenPosition()
+                        if screen_restore
+                        else self.hotkey.Position()
+                    )
                     token.checkpoint()
                 try:
                     if action.kind is ActionKind.PRESS:
@@ -471,10 +489,14 @@ class DesktopAdapter:
                     token.checkpoint()
                 finally:
                     if preserve and previous is not None:
-                        self._restore_cursor(previous, token)
+                        self._restore_cursor(previous, token, screen=screen_restore)
                         if not _cancelled(token):
                             try:
-                                final = self.hotkey.Position()
+                                final = (
+                                    self.hotkey.ScreenPosition()
+                                    if screen_restore
+                                    else self.hotkey.Position()
+                                )
                             except Exception:
                                 final = None
                             if (

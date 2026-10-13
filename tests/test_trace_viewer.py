@@ -1,7 +1,10 @@
 import json
 import os
+from pathlib import Path
+import queue
 import subprocess
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -159,6 +162,31 @@ def test_nonregular_trace_source_is_rejected_without_blocking(tmp_path):
     os.mkfifo(fifo)
     with pytest.raises(TraceError, match="regular file"):
         load_trace_document(fifo)
+    with pytest.raises(TraceError, match="regular file"):
+        load_trace(fifo)
+
+
+@pytest.mark.skipif(os.name == "nt", reason="Windows locks open files against replacement")
+def test_trace_reader_keeps_the_validated_file_when_its_path_is_replaced(tmp_path, monkeypatch):
+    import tibia_client.trace as trace
+
+    path = tmp_path / "session.jsonl"
+    replacement = tmp_path / "replacement.jsonl"
+    write_trace(path)
+    write_trace(replacement, ())
+    real_fstat = os.fstat
+    replaced = []
+
+    def replacing_fstat(descriptor):
+        info = real_fstat(descriptor)
+        if not replaced:
+            replacement.replace(path)
+            replaced.append(True)
+        return info
+
+    monkeypatch.setattr(trace.os, "fstat", replacing_fstat)
+    assert load_trace_document(path).events == sample_events()
+    assert load_trace(path) == ()
 
 
 class FakeSession:
@@ -167,6 +195,27 @@ class FakeSession:
 
     def events(self):
         return self._events
+
+
+def test_refresh_session_supersedes_an_older_pending_file_load():
+    from modules.TraceViewer import TraceViewer
+
+    viewer = object.__new__(TraceViewer)
+    viewer.session = FakeSession(sample_events())
+    viewer._load_serial = 1
+    viewer._load_results = queue.SimpleQueue()
+    older = session_trace_document(FakeSession(()))
+    viewer._load_results.put((1, Path("old.jsonl"), older, None))
+    displayed = []
+    viewer._set_document = lambda doc, label: displayed.append((doc, label))
+    viewer.window = SimpleNamespace(after=lambda *args: None)
+
+    assert viewer.refresh_session()
+    viewer._poll_load()
+
+    assert len(displayed) == 1
+    assert displayed[0][0].events == sample_events()
+    assert displayed[0][1] == "Live session history (snapshot)"
 
 
 def test_session_snapshot_and_export_use_valid_trace_api(tmp_path):

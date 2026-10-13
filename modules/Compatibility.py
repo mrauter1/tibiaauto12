@@ -138,9 +138,45 @@ def _add_probe_evidence(
     return profile.add_evidence(evidence)
 
 
+def _current_alignment_points(
+    profile: CompatibilityProfile, outcome: Outcome,
+) -> tuple[tuple[int, int], ...]:
+    """Return points whose latest alignment result has the requested outcome."""
+    current: dict[tuple[int, int], AlignmentEvidence] = {}
+    for item in profile.alignment_evidence:
+        if item.context_fingerprint == profile.context.fingerprint:
+            current[item.capture_point] = item
+    return tuple(
+        point for point, item in current.items() if item.outcome is outcome
+    )
+
+
+def _current_alignment_failures(
+    profile: CompatibilityProfile,
+) -> tuple[tuple[int, int], ...]:
+    return _current_alignment_points(profile, Outcome.FAIL)
+
+
 def _window_titles(configuration: Mapping[str, Any]) -> tuple[str, str]:
     values = configuration.get("capture_title", ""), configuration.get("input_title", "")
     return tuple(value.strip() if isinstance(value, str) else "" for value in values)  # type: ignore[return-value]
+
+
+def _blocking_reasons(check: Any) -> tuple[str, ...]:
+    if check is None or bool(getattr(check, "allowed", False)):
+        return ()
+    return tuple(str(item) for item in getattr(check, "reasons", ()) if str(item))
+
+
+def _context_problems(profile: CompatibilityProfile, context: Any, check: Any) -> tuple[str, ...]:
+    if context is None:
+        return _blocking_reasons(check) or ("no current desktop context is loaded",)
+    if (
+        getattr(context, "fingerprint", None) != profile.context.fingerprint
+        or not bool(getattr(context, "aligned", False))
+    ):
+        return _blocking_reasons(check) or ("current desktop context differs from the profile",)
+    return ()
 
 
 class Compatibility:
@@ -269,6 +305,9 @@ class Compatibility:
         self.cursor_box.grid(row=4, column=2)
         ttk.Label(probe, text="Drag: click source, then Shift-click the distinct destination.").grid(
             row=5, column=0, columnspan=4, sticky="w")
+        self.operation_note = tk.StringVar(value="")
+        ttk.Label(probe, textvariable=self.operation_note, wraplength=850).grid(
+            row=6, column=0, columnspan=4, sticky="w")
         probe.columnconfigure(1, weight=1)
         self._set_confirm_enabled(False)
 
@@ -373,24 +412,40 @@ class Compatibility:
         self.identity.set(f"Configured capture title: {capture or '<missing>'}  |  "
                           f"input title: {input_title or '<missing>'}")
 
-    def reload(self) -> None:
+    def reload(self) -> bool:
         if self.pending_probe is not None or self._capture_before is not None:
             self.status.set("Cancel or finish the pending probe before reloading context.")
-            return
+            return False
+        loaded = False
         try:
             if self.controller is not None:
-                self.controller.reload()
+                check = self.controller.reload()
                 selected = self._controller_value("profile")
             else:
+                check = None
                 selected = load_profile(self.sidecar_filename)
             if not isinstance(selected, CompatibilityProfile):
-                raise ValueError("no compatibility profile is loaded")
+                reasons = _blocking_reasons(check)
+                raise ValueError(
+                    "; ".join(reasons) if reasons else "no compatibility profile is loaded"
+                )
             self.profile = selected
             self._calibration = ConfManager.get(self.profile_filename)
             self._load_metadata(selected.context.environment)
             self.metadata.pack_forget()
             self._invalidate_preview()
-            self.status.set(self._profile_status())
+            problems = (
+                _context_problems(selected, self._controller_value("context"), check)
+                if self.controller is not None else ()
+            )
+            self.status.set(
+                self._profile_status()
+                + (
+                    " Current live context is blocked: " + "; ".join(problems) + "."
+                    if problems else ""
+                )
+            )
+            loaded = not problems
         except Exception as exc:
             self.profile, self._calibration = None, {}
             self.metadata.pack(fill="x", pady=5)
@@ -398,10 +453,26 @@ class Compatibility:
             self.status.set(f"Profile unavailable: {exc}. Create or explicitly reset it below.")
         self._refresh_identity()
         self._render_preview()
+        return loaded
 
     def _load_metadata(self, environment: EnvironmentMetadata) -> None:
         for name, variable in self._metadata_vars.items():
             variable.set(str(getattr(environment, name)))
+        self._update_operation_choices(environment.input_mode)
+
+    def _update_operation_choices(self, input_mode: str) -> None:
+        physical = input_mode == "physical"
+        operations = OPERATIONS if physical else tuple(
+            operation for operation in OPERATIONS if operation != "cursor_restore"
+        )
+        self.operation_box.configure(values=operations)
+        if self.operation.get() not in operations:
+            self.operation.set("press")
+        self.operation_note.set(
+            "Cursor restore is available only with physical input and is not required in "
+            "message mode."
+            if not physical else ""
+        )
 
     def edit_metadata(self) -> None:
         if self.pending_probe is not None or self._capture_before is not None:
@@ -419,8 +490,18 @@ class Compatibility:
             **{name: variable.get() for name, variable in self._metadata_vars.items()},
             capture_title=capture_title, input_title=input_title)
         calibration = ConfManager.get(self.profile_filename)
-        return CompatibilityProfile(
-            self.profile_filename, context_from_calibration(calibration, environment))
+        current_context = getattr(self.controller, "current_context", None)
+        context = (
+            current_context(environment)
+            if callable(current_context)
+            else context_from_calibration(calibration, environment)
+        )
+        if not context.aligned:
+            raise ValueError(
+                f"capture size {context.capture_size} and current input size "
+                f"{context.input_size} differ; resize or reselect the windows, then recalibrate"
+            )
+        return CompatibilityProfile(self.profile_filename, context)
 
     def create(self) -> None:
         if self.pending_probe is not None or self._capture_before is not None:
@@ -428,8 +509,8 @@ class Compatibility:
             return
         try:
             save_profile(self._new_profile(), self.sidecar_filename)
-            self.reload()
-            self.status.set("Profile created. Capture, alignment, and operations are unverified.")
+            if self.reload():
+                self.status.set("Profile created. Capture, alignment, and operations are unverified.")
         except Exception as exc:
             self.status.set(f"Create failed: {exc}. Use Replace only if intended.")
 
@@ -444,8 +525,8 @@ class Compatibility:
             return
         try:
             save_profile(self._new_profile(), self.sidecar_filename, overwrite=True)
-            self.reload()
-            self.status.set("Profile replaced. All evidence is unverified for the new context.")
+            if self.reload():
+                self.status.set("Profile replaced. All evidence is unverified for the new context.")
         except Exception as exc:
             self.status.set(f"Profile replacement failed: {exc}")
 
@@ -454,9 +535,13 @@ class Compatibility:
         operations = ", ".join(
             f"{name}={self.profile.operation_outcome(name).value}"
             for name in self.profile.declared_operations)
+        preview = (
+            " Preview is ready for another probe."
+            if self._preview_ready()
+            else " Capture a fresh preview before arming input."
+        )
         return (f"Capture={self.profile.capture_outcome().value}; "
-                f"alignment={self.profile.alignment_outcome().value}; {operations}. "
-                "Capture a fresh preview before arming input.")
+                f"alignment={self.profile.alignment_outcome().value}; {operations}." + preview)
 
     def _invalidate_preview(self) -> None:
         self._preview_frame = self._preview_mapping = self._photo = None
@@ -531,6 +616,14 @@ class Compatibility:
             return
         try:
             operation = self.operation.get()
+            if (
+                operation == "cursor_restore"
+                and self.profile.context.environment.input_mode != "physical"
+            ):
+                self.status.set(
+                    "Cursor restore is physical-input only and is not required in message mode."
+                )
+                return
             if operation in ("press", "modified_press"):
                 operation = key_operation(self.hotkey.get())
                 self.operation.set(operation)
@@ -866,11 +959,7 @@ class Compatibility:
         # They are guides on the captured image, not proof of input alignment.
         passed: set[tuple[int, int]] = set()
         if self.profile is not None:
-            passed = {
-                item.capture_point for item in self.profile.alignment_evidence
-                if item.context_fingerprint == self.profile.context.fingerprint
-                and item.outcome is Outcome.PASS
-            }
+            passed = set(_current_alignment_points(self.profile, Outcome.PASS))
         fw, fh = mapping.frame_size
         for number, (nx, ny) in enumerate(
             ((.1, .1), (.9, .1), (.5, .5), (.1, .9), (.9, .9)), 1
@@ -880,6 +969,17 @@ class Compatibility:
             color = "#4fd16f" if point in passed else "#f0b64d"
             self.canvas.create_oval(x - 6, y - 6, x + 6, y + 6, outline=color, width=2)
             self.canvas.create_text(x, y + 9, text=str(number), fill=color, anchor="n")
+        if self.profile is not None:
+            for point in _current_alignment_failures(self.profile):
+                try:
+                    x, y = mapping.canvas_point(point)
+                except ValueError:
+                    continue
+                self.canvas.create_line(x - 7, y - 7, x + 7, y + 7, fill="#ff5b5b", width=2)
+                self.canvas.create_line(x - 7, y + 7, x + 7, y - 7, fill="#ff5b5b", width=2)
+                self.canvas.create_text(
+                    x + 9, y, text=f"failed {point[0]},{point[1]} — click to retry",
+                    fill="#ff5b5b", anchor="w")
 
     def _select_canvas_point(self, event) -> None:
         if self.pending_probe is not None or self._capture_before is not None:
@@ -893,7 +993,20 @@ class Compatibility:
         except ValueError as exc:
             self.status.set(str(exc))
             return
-        if self.operation.get() == "drag" and bool(event.state & 0x0001):
+        drag_destination = self.operation.get() == "drag" and bool(event.state & 0x0001)
+        if not drag_destination and self.profile is not None:
+            nearby: list[tuple[float, tuple[int, int]]] = []
+            for failed in _current_alignment_failures(self.profile):
+                try:
+                    x, y = self._preview_mapping.canvas_point(failed)
+                except ValueError:
+                    continue
+                distance = (event.x - x) ** 2 + (event.y - y) ** 2
+                if distance <= 10 ** 2:
+                    nearby.append((distance, failed))
+            if nearby:
+                point = min(nearby, key=lambda item: item[0])[1]
+        if drag_destination:
             self.drag_destination = point
             self.status.set(f"Selected drag destination {point}; source is {self.selected_point}.")
         else:
@@ -931,12 +1044,23 @@ class Compatibility:
                     self.pending_point, self.pending_point, alignment, evidence.source,
                     "operator separately assessed exact equality of capture and mapped input point",
                 ))
-            save_profile(updated, self.sidecar_filename, overwrite=True)
-            self._reload_saved_profile(updated)
-            self.status.set(self._profile_status())
         except Exception as exc:
             self.status.set(f"Could not save evidence: {exc}")
             return
+        try:
+            save_profile(updated, self.sidecar_filename, overwrite=True)
+        except Exception as exc:
+            self.status.set(f"Could not save evidence: {exc}")
+            return
+        problems = self._reload_saved_profile(updated)
+        if problems:
+            self.status.set(
+                "Evidence was saved, but the current live context could not be reloaded: "
+                + "; ".join(problems)
+                + ". Reload after fixing the selected windows or calibration."
+            )
+        else:
+            self.status.set(self._profile_status())
         self._clear_pending()
         self._render_preview()
 
@@ -958,10 +1082,18 @@ class Compatibility:
                 "current-client visible change; continuous source freshness remains unknown",
             )
             updated = self.profile.add_capture_check(check)
+        except Exception as exc:
+            self.status.set(f"Could not save capture evidence / binding: {exc}")
+            return
+        try:
             save_profile(updated, self.sidecar_filename, overwrite=True)
-            self._reload_saved_profile(updated)
-            note = ""
-            if check.outcome is Outcome.PASS and check.source is EvidenceSource.LIVE:
+        except Exception as exc:
+            self.status.set(f"Could not save capture evidence: {exc}")
+            return
+        problems = list(self._reload_saved_profile(updated))
+        note = ""
+        if not problems and check.outcome is Outcome.PASS and check.source is EvidenceSource.LIVE:
+            try:
                 confirm = getattr(self.controller, "confirm_binding", None)
                 if not callable(confirm):
                     raise RuntimeError("compatibility controller cannot confirm the live binding")
@@ -970,21 +1102,38 @@ class Compatibility:
                     reasons = "; ".join(str(item) for item in confirmation.reasons)
                     raise RuntimeError(reasons or "live binding confirmation was rejected")
                 note = " Live binding confirmed for this launch."
-            self.status.set(self._profile_status() + note)
-            self._capture_before = self._capture_confirmation = None
-            self.capture_confirm.pack_forget()
-            self.capture_after_button.configure(state="disabled")
-            self._update_controls()
-        except Exception as exc:
-            self.status.set(f"Could not save capture evidence / binding: {exc}")
-
-    def _reload_saved_profile(self, fallback: CompatibilityProfile) -> None:
-        if self.controller is not None:
-            self.controller.reload()
-            selected = self._controller_value("profile")
-            self.profile = selected if isinstance(selected, CompatibilityProfile) else fallback
+            except Exception as exc:
+                problems.append(str(exc))
+        if problems:
+            self.status.set(
+                "Capture evidence was saved, but the current live binding is blocked: "
+                + "; ".join(problems)
+                + ". Fix the context, reload, and run a fresh visible-change check."
+            )
         else:
+            self.status.set(self._profile_status() + note)
+        self._capture_before = self._capture_confirmation = None
+        self.capture_confirm.pack_forget()
+        self.capture_after_button.configure(state="disabled")
+        self._update_controls()
+
+    def _reload_saved_profile(self, fallback: CompatibilityProfile) -> tuple[str, ...]:
+        if self.controller is not None:
+            try:
+                check = self.controller.reload()
+                selected = self._controller_value("profile")
+            except Exception as exc:
+                self.profile = fallback
+                return (str(exc),)
+            if isinstance(selected, CompatibilityProfile):
+                self.profile = selected
+                return _context_problems(
+                    selected, self._controller_value("context"), check
+                )
             self.profile = fallback
+            return _blocking_reasons(check) or ("no compatibility profile is loaded",)
+        self.profile = fallback
+        return ()
 
     def save_displayed_frame(self) -> None:
         if self._preview_frame is None:

@@ -52,7 +52,8 @@ class HuntConsole:
         self.window.title("Hunt Console")
         self.window.geometry("790x620")
         self.window.minsize(660, 500)
-        self._pending = False
+        self._pending = None
+        self._control_serial = 0
         self._closed = False
         _windows[key] = self
         body = ttk.Frame(self.window, padding=12)
@@ -61,7 +62,8 @@ class HuntConsole:
         controls = ttk.Frame(body)
         controls.pack(fill="x", pady=8)
         self.stop = ttk.Button(controls, text="STOP ALL", command=lambda: self._control(
-            lambda: session.stop_all("operator Stop All"), "All automation stopped. Restart modules explicitly."))
+            lambda: session.stop_all("operator Stop All"),
+            "All automation stopped. Restart modules explicitly.", is_stop=True))
         self.stop.pack(side="left")
         self.pause = ttk.Button(controls, text="Pause navigation", command=lambda: self._control(
             session.pause_navigation, "Navigation paused; support modules continue."))
@@ -78,18 +80,28 @@ class HuntConsole:
         self.window.protocol("WM_DELETE_WINDOW", self.close)
         self._refresh()
 
-    def _control(self, operation, success):
-        if self._pending:
+    def _control(self, operation, success, *, is_stop=False):
+        if self._pending == "stop" or (self._pending and not is_stop):
             return
-        self._pending = True
+        self._control_serial += 1
+        serial = self._control_serial
+        self._pending = "stop" if is_stop else "navigation"
         self.message.set("Applying control…")
-        # Stop remains available in the main launcher if a navigation operation is pending.
-        for button in (self.stop, self.pause, self.resume):
+        # The visible stop control can interrupt a delayed navigation hook.
+        self.stop.configure(state="disabled" if is_stop else "normal")
+        for button in (self.pause, self.resume):
             button.configure(state="disabled")
 
-        def done(_value, error):
-            self._pending = False
-            self.message.set(f"Control failed: {error}" if error else success)
+        def done(value, error):
+            if serial != self._control_serial or self._closed:
+                return
+            self._pending = None
+            if error:
+                self.message.set(f"Control failed: {error}")
+            elif value is False:
+                self.message.set("Navigation unchanged; CaveBot may already be paused, stopped, or changing state.")
+            else:
+                self.message.set(success)
             for button in (self.stop, self.pause, self.resume):
                 button.configure(state="normal")
         run_control(self.window, operation, done)

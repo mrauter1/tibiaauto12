@@ -6,6 +6,7 @@ import math
 from conf.Hotkeys import Hotkey
 from core import runtime
 from core.MoveMouse import InputUnavailableError, MoveMouse
+from core.MoveMouseLinux import MoveLinuxMouse
 from core.SendToClient import SendToClient
 
 
@@ -27,6 +28,7 @@ class FakePhysicalBackend:
         self.cancel_on_first_down = False
         self.lose_focus_after_move = False
         self.size = (800, 600)
+        self.origin = (100, 200)
 
     def is_window(self, hwnd):
         return self.valid and hwnd == 41
@@ -36,10 +38,10 @@ class FakePhysicalBackend:
 
     def client_to_screen(self, hwnd, position):
         self.events.append(("client_to_screen", hwnd, position))
-        return position[0] + 100, position[1] + 200
+        return position[0] + self.origin[0], position[1] + self.origin[1]
 
     def screen_to_client(self, hwnd, position):
-        return position[0] - 100, position[1] - 200
+        return position[0] - self.origin[0], position[1] - self.origin[1]
 
     def cursor_position(self):
         return self.cursor
@@ -108,6 +110,31 @@ class FakeMessageBackend:
         self.posted.append((hwnd, message, wparam, lparam))
 
 
+class FakeLinuxExecutor:
+    def __init__(self):
+        self.active = "41"
+        self.cursor = (-20, 900)
+        self.commands = []
+        self.active_calls = 0
+        self.cancel_on_active_call = None
+
+    def __call__(self, command):
+        self.commands.append(tuple(command))
+        if command[1] == "getactivewindow":
+            self.active_calls += 1
+            if self.active_calls == self.cancel_on_active_call:
+                runtime.current_token().cancel()
+            return self.active + "\n"
+        if command[1] == "getmouselocation":
+            return f"X={self.cursor[0]}\nY={self.cursor[1]}\n"
+        if command[1] == "getwindowgeometry":
+            return "X=100\nY=200\nWIDTH=800\nHEIGHT=600\n"
+        if command[1] == "mousemove":
+            self.cursor = int(command[-2]), int(command[-1])
+            return ""
+        raise AssertionError(f"unexpected command: {command!r}")
+
+
 class InputTests(unittest.TestCase):
     def tearDown(self):
         runtime.stop_all(timeout=1)
@@ -125,6 +152,67 @@ class InputTests(unittest.TestCase):
             ("mouse", MoveMouse.MOUSEEVENTF_LEFTDOWN),
             ("mouse", MoveMouse.MOUSEEVENTF_LEFTUP),
         ])
+
+    def test_screen_cursor_restore_handles_every_side_and_window_movement(self):
+        positions = ((99, 260), (900, 260), (130, 199), (130, 800))
+        for position in positions:
+            backend = FakePhysicalBackend()
+            mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+            backend.cursor = position
+            snapshot = mouse.ScreenPosition()
+            backend.origin = (400, 500)
+            mouse.RestoreScreenPosition(snapshot)
+            self.assertEqual(backend.cursor, position)
+            self.assertEqual(
+                [event[1] for event in backend.events if event[0] == "move"],
+                [position],
+            )
+
+    def test_screen_cursor_restore_rechecks_focus_before_moving(self):
+        backend = FakePhysicalBackend()
+        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        snapshot = mouse.ScreenPosition()
+        backend.foreground = 99
+
+        with self.assertRaises(InputUnavailableError):
+            mouse.RestoreScreenPosition(snapshot)
+        self.assertFalse(any(event[0] == "move" for event in backend.events))
+
+    def test_linux_screen_cursor_restore_uses_absolute_signed_coordinates(self):
+        executor = FakeLinuxExecutor()
+        mouse = MoveLinuxMouse(executor=executor, window_resolver=lambda: "41")
+
+        snapshot = mouse.ScreenPosition()
+        executor.cursor = (300, 400)
+        mouse.RestoreScreenPosition(snapshot)
+
+        self.assertEqual(snapshot, (-20, 900))
+        self.assertEqual(executor.cursor, snapshot)
+        self.assertIn(
+            ("xdotool", "mousemove", "--", "-20", "900"),
+            executor.commands,
+        )
+
+    def test_linux_screen_cursor_restore_rechecks_focus(self):
+        executor = FakeLinuxExecutor()
+        mouse = MoveLinuxMouse(executor=executor, window_resolver=lambda: "41")
+        executor.active = "99"
+
+        with self.assertRaises(InputUnavailableError):
+            mouse.RestoreScreenPosition((-20, 900))
+
+        self.assertFalse(any(command[1] == "mousemove" for command in executor.commands))
+
+    def test_linux_screen_cursor_restore_honors_cancellation_before_move(self):
+        executor = FakeLinuxExecutor()
+        executor.cancel_on_active_call = 2
+        mouse = MoveLinuxMouse(executor=executor, window_resolver=lambda: "41")
+        token = runtime.CancellationToken("linux-restore", 1)
+
+        with runtime.use_token(token), self.assertRaises(runtime.CancelledError):
+            mouse.RestoreScreenPosition((-20, 900))
+
+        self.assertFalse(any(command[1] == "mousemove" for command in executor.commands))
 
     def test_physical_input_rejects_unfocused_window_without_side_effects(self):
         backend = FakePhysicalBackend()

@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import time
 
+from conf.Hotkeys import Hotkey
 from core.perception import CaptureError, Frame, Match
 from tibia_client import desktop
 from tibia_client.desktop import DesktopAdapter, DesktopAdapterError
@@ -92,6 +93,36 @@ class FakeHotkey:
 
     def DragTo(self, start, end):
         self.events.append(("drag", start, end))
+
+
+class ScreenHotkey(FakeHotkey):
+    def __init__(self, token=None):
+        super().__init__(token)
+        self.screen_cursor = (-40, 160)
+        self.fail_action = False
+        self.lose_focus = False
+
+    def ScreenPosition(self):
+        if not self.focused:
+            raise RuntimeError("focus lost")
+        self.events.append(("screen_position",))
+        return self.screen_cursor
+
+    def RestoreScreenPosition(self, position):
+        if not self.focused:
+            raise RuntimeError("focus lost")
+        self.events.append(("screen_restore", tuple(position)))
+        self.screen_cursor = tuple(position)
+
+    def RightClick(self, x, y):
+        self.events.append(("right", x, y))
+        self.screen_cursor = (x + 100, y + 200)
+        if self.token is not None:
+            self.token.cancelled = True
+        if self.lose_focus:
+            self.focused = False
+        if self.fail_action:
+            raise RuntimeError("click failed")
 
 
 def moderately_slow_provider():
@@ -339,6 +370,91 @@ def test_execute_maps_only_public_actions_and_restores_valid_physical_cursor():
     assert ("drag", (1, 2), (8, 9)) in hotkey.events
     assert hotkey.events.count(("move", 17, 23)) == 2
     assert adapter.last_cursor_transition == ((17, 23), (17, 23))
+
+
+def test_hotkey_facade_falls_back_when_wrapped_backend_lacks_screen_restore():
+    class LegacyBackend:
+        def __init__(self):
+            self.cursor = (17, 23)
+            self.events = []
+
+        def MainWindowSize(self):
+            return 180, 120
+
+        def IsFocused(self):
+            return True
+
+        def Position(self):
+            return self.cursor
+
+        def RightClick(self, position):
+            self.events.append(("right", position))
+            self.cursor = tuple(position)
+
+        def MoveTo(self, x, y):
+            self.events.append(("move", x, y))
+            self.cursor = (x, y)
+
+    backend = LegacyBackend()
+    hotkey = Hotkey(1, backend=backend)
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert not hotkey.SupportsScreenRestore()
+    assert backend.events == [("right", (4, 5)), ("move", 17, 23)]
+    assert adapter.last_cursor_transition == ((17, 23), (17, 23))
+
+
+@pytest.mark.parametrize(
+    "screen_cursor",
+    ((-1, 240), (1000, 240), (240, -1), (240, 1000)),
+)
+def test_physical_cursor_restore_uses_screen_coordinates_outside_client(screen_cursor):
+    hotkey = ScreenHotkey()
+    hotkey.screen_cursor = screen_cursor
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert ("screen_restore", screen_cursor) in hotkey.events
+    assert hotkey.screen_cursor == screen_cursor
+    assert adapter.last_cursor_transition == (screen_cursor, screen_cursor)
+
+
+def test_failed_action_still_restores_screen_cursor():
+    hotkey = ScreenHotkey()
+    hotkey.fail_action = True
+    original = hotkey.screen_cursor
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    with pytest.raises(DesktopAdapterError, match="click failed"):
+        adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert ("screen_restore", original) in hotkey.events
+    assert hotkey.screen_cursor == original
+
+
+def test_focus_loss_during_action_prevents_screen_cursor_restore():
+    hotkey = ScreenHotkey()
+    hotkey.lose_focus = True
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), Token())
+
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
+    assert adapter.last_cursor_transition is None
+
+
+def test_cancelled_action_prevents_screen_cursor_restore():
+    token = Token()
+    hotkey = ScreenHotkey(token)
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+
+    with pytest.raises(RuntimeError, match="cancelled"):
+        adapter.execute(Action(ActionKind.RIGHT_CLICK, point=(4, 5)), token)
+
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
 
 
 def test_dispatch_rejects_geometry_changed_after_capture():

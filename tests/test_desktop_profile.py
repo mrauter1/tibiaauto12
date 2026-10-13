@@ -110,6 +110,27 @@ def test_current_input_geometry_must_match(configured, size):
     assert not gate.check().allowed
 
 
+def test_profile_creation_context_uses_current_measured_input_geometry(configured):
+    gate = controller((1024, 768), verified=False)
+    measured = gate.current_context(configured.context.environment)
+    assert measured.capture_size == (800, 600)
+    assert measured.input_size == (1024, 768)
+    assert not measured.aligned
+    assert measured.fingerprint != configured.context.fingerprint
+
+
+def test_profile_creation_rejects_metadata_input_mode_before_sidecar_replacement(configured):
+    gate = controller(verified=False)
+    sidecar = ConfManager.path("Test.compatibility.json")
+    original = sidecar.read_bytes()
+    wrong_mode = replace(configured.context.environment, input_mode="messages")
+
+    with pytest.raises(ValueError, match="input mode differs"):
+        gate.current_context(wrong_mode)
+
+    assert sidecar.read_bytes() == original
+
+
 def test_mode_change_cannot_reuse_evidence(configured):
     ConfManager.update("Test.json", lambda data: {**data, "MouseOption": 0})
     gate = controller()

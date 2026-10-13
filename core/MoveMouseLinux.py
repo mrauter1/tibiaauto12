@@ -70,6 +70,32 @@ class MoveLinuxMouse:
             return (int(cursor["X"]) - int(geometry["X"]),
                     int(cursor["Y"]) - int(geometry["Y"]))
 
+    def ScreenPosition(self):
+        """Snapshot the cursor in absolute desktop coordinates."""
+
+        with input_transaction("linux screen cursor position"):
+            self._active_window()
+            cursor = _shell_values(
+                self._execute(["xdotool", "getmouselocation", "--shell"])
+            )
+            return int(cursor["X"]), int(cursor["Y"])
+
+    def RestoreScreenPosition(self, position):
+        """Restore an absolute snapshot while the client remains focused."""
+
+        if (not isinstance(position, (tuple, list)) or len(position) != 2
+                or any(isinstance(value, bool) or not isinstance(value, Integral)
+                       for value in position)):
+            raise ValueError("screen position must contain two integral coordinates")
+        with input_transaction("linux screen cursor restore"):
+            window = self._active_window()
+            self._ensure_active(window)
+            checkpoint()
+            self._execute([
+                "xdotool", "mousemove", "--",
+                str(int(position[0])), str(int(position[1]))
+            ])
+
     def MainWindowSize(self):
         with input_transaction("linux client size"):
             geometry = self._geometry(self._active_window())

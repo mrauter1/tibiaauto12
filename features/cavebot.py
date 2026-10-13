@@ -247,7 +247,10 @@ class CaveBotFeature:
             operations.append("left_click")
         if self.targets:
             operations.append("battle_list_click")
-        if self.config.loot and self.loot_points:
+        # Looting is only reachable after combat.  A walking-only route has no
+        # transition into the loot phase, even when the default loot setting
+        # and calibrated loot points are present.
+        if self.targets and self.config.loot and self.loot_points:
             operation = "right_click" if self.config.loot_button == "right" else "left_click"
             if operation not in operations:
                 operations.append(operation)

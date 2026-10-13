@@ -66,6 +66,27 @@ def start_arrival(feature, *, at=0.0, frame=1):
     feature.on_result(result(navigation, ResultState.EXECUTED, at + 0.01))
 
 
+def test_walking_only_route_does_not_require_unreachable_loot_operation():
+    feature = bot(
+        config=SessionConfig(loot=True, loot_button="right"),
+        loot_points=((1, 2),),
+    )
+
+    assert feature.required_operations() == ("left_click",)
+
+
+def test_targeted_route_requires_configured_loot_operation():
+    feature = bot(
+        targets=(TargetSpec(1, "dragon"),),
+        config=SessionConfig(loot=True, loot_button="right"),
+        loot_points=((1, 2),),
+    )
+
+    assert feature.required_operations() == (
+        "left_click", "battle_list_click", "right_click"
+    )
+
+
 def test_sensors_are_dynamic_sdk_values_and_known_none_marker_times_out():
     feature = bot(config=SessionConfig(marker_timeout=0.4))
     sensors = feature.sensors()

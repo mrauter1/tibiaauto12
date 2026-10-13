@@ -366,3 +366,165 @@ def test_pack_export_preserves_independent_imported_name():
     exported = ui._current_pack()
     assert exported.name == imported.name
     assert exported.route == imported.route
+
+
+class _Variable:
+    def __init__(self, value):
+        self.value = value
+
+    def get(self):
+        return self.value
+
+    def set(self, value):
+        self.value = value
+
+
+def _route_ui(route, *, staged, loaded_name=None):
+    from engine.CaveBot.editor import RouteEditor
+    from modules.CaveBot import CaveBot
+
+    ui = object.__new__(CaveBot)
+    ui.window = object()
+    ui.script_name = _Variable(route.name)
+    ui._route = route
+    ui._editor = RouteEditor(route)
+    ui._editor_index = 0
+    ui._unapplied_import = staged
+    ui._loaded_route_name = loaded_name
+    ui.messages = []
+    ui._set_message = ui.messages.append
+    ui._render_route = lambda: None
+    return ui
+
+
+def _route_config(tmp_path, monkeypatch, script="old"):
+    from conf.conf_manager import ConfManager
+    from engine.CaveBot import routes
+
+    monkeypatch.setattr(ConfManager, "path", lambda name: tmp_path / str(name))
+    monkeypatch.setattr(routes, "scripts_path", lambda name: str(tmp_path / str(name)))
+    ConfManager.set({"Loaders": {"CaveBotLoader": {"Script": script}}}, "GUILoader.json")
+    return ConfManager
+
+
+def test_imported_route_collision_cancel_preserves_route_checkpoint_and_selection(
+    tmp_path, monkeypatch
+):
+    import importlib
+    from engine.CaveBot.routes import load_route, save_checkpoint, save_route
+
+    cavebot_module = importlib.import_module("modules.CaveBot")
+    config = _route_config(tmp_path, monkeypatch)
+    local = Route("shared", (Waypoint("local", "Flag"),))
+    imported = Route("shared", (Waypoint("imported", "Star"),))
+    save_route(local)
+    checkpoint = save_checkpoint(local, 0)
+    checkpoint_before = checkpoint.read_bytes()
+    asked = []
+    monkeypatch.setattr(
+        cavebot_module.messagebox,
+        "askyesno",
+        lambda *args, **kwargs: asked.append((args, kwargs)) or False,
+    )
+
+    ui = _route_ui(imported, staged=True)
+    ui._save_script()
+
+    assert asked
+    assert load_route("shared") == local
+    assert checkpoint.read_bytes() == checkpoint_before
+    assert config.get("GUILoader.json")["Loaders"]["CaveBotLoader"]["Script"] == "old"
+    assert "unchanged" in ui.messages[-1]
+
+
+def test_loaded_route_save_needs_no_replace_prompt(tmp_path, monkeypatch):
+    import importlib
+    from engine.CaveBot.routes import load_route, save_route
+
+    cavebot_module = importlib.import_module("modules.CaveBot")
+    config = _route_config(tmp_path, monkeypatch)
+    original = Route("shared", (Waypoint("local", "Flag"),))
+    edited = Route("shared", (Waypoint("local", "Star"),))
+    save_route(original)
+    monkeypatch.setattr(
+        cavebot_module.messagebox,
+        "askyesno",
+        lambda *args, **kwargs: pytest.fail("ordinary loaded-route Save prompted"),
+    )
+
+    ui = _route_ui(edited, staged=False, loaded_name="shared")
+    ui._save_script()
+
+    assert load_route("shared") == edited
+    assert config.get("GUILoader.json")["Loaders"]["CaveBotLoader"]["Script"] == "shared"
+
+
+def test_staged_route_copy_does_not_become_active_until_bound_and_saved(tmp_path, monkeypatch):
+    import importlib
+
+    cavebot_module = importlib.import_module("modules.CaveBot")
+    config = _route_config(tmp_path, monkeypatch)
+    candidate = Route("pack-route", (Waypoint("pack", "Flag"),))
+    monkeypatch.setattr(
+        cavebot_module.messagebox,
+        "askyesno",
+        lambda *args, **kwargs: pytest.fail("new route should not prompt"),
+    )
+    ui = _route_ui(candidate, staged=True)
+
+    ui._save_script()
+    assert config.get("GUILoader.json")["Loaders"]["CaveBotLoader"]["Script"] == "old"
+    assert "standalone route" in ui.messages[-1]
+
+    # Successful Bind local clears this flag; the documented Bind -> Save path
+    # then selects the saved route without asking about the file this session created.
+    ui._unapplied_import = False
+    ui._save_script()
+    assert config.get("GUILoader.json")["Loaders"]["CaveBotLoader"]["Script"] == "pack-route"
+
+
+@pytest.mark.parametrize(
+    ("module_name", "class_name", "loader", "prefix", "labels", "error"),
+    (
+        ("modules.AutoHeal", "AutoHeal", "HealthLoader", "Life", ("One", "Two", "Three"),
+         "enable at least one healing stage"),
+        ("modules.AutoMana", "AutoMana", "ManaLoader", "Mana", ("One", "Two"),
+         "enable at least one mana stage"),
+    ),
+)
+def test_disabled_support_rules_persist_on_close_but_cannot_start(
+    tmp_path, monkeypatch, module_name, class_name, loader, prefix, labels, error
+):
+    import importlib
+    from conf.conf_manager import ConfManager
+
+    module = importlib.import_module(module_name)
+    cls = getattr(module, class_name)
+    monkeypatch.setattr(ConfManager, "path", lambda name: tmp_path / str(name))
+    ConfManager.set({"Loaders": {loader: {}}}, "GUILoader.json")
+    stopped, started, statuses = [], [], []
+    instance = object.__new__(cls)
+    instance._enabled = False
+    instance._location = (1, 2)
+    instance._client = SimpleNamespace(
+        stop_feature=stopped.append,
+        start_feature=started.append,
+    )
+    instance.ui = SimpleNamespace(owner=True, status=statuses.append)
+    instance._vars = [
+        (label, _Variable(False), _Variable(str(20 + index)), _Variable("F1"), ())
+        for index, label in enumerate(labels)
+    ]
+
+    instance.close()
+
+    saved = ConfManager.get("GUILoader.json")["Loaders"][loader]
+    assert stopped == [class_name]
+    assert all(saved[f"{prefix}CheckStage{label}"] is False for label in labels)
+    assert [saved[f"{prefix}PercentageStage{label}"] for label in labels] == [
+        20 + index for index in range(len(labels))
+    ]
+
+    instance.toggle()
+    assert started == []
+    assert statuses[-1] == "Error: " + error

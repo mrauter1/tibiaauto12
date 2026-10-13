@@ -213,6 +213,8 @@ class TraceViewer:
         if self.session is None:
             self.status_var.set("No session was provided.")
             return False
+        # This explicit selection supersedes any older file load still running.
+        self._load_serial += 1
         try:
             document = session_trace_document(self.session)
         except (OSError, ValueError, TypeError) as exc:

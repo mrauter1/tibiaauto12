@@ -15,7 +15,8 @@ from typing import Callable
 from conf.conf_manager import ConfManager
 from tibia_client.compatibility import (
     ActivationCheck, CaptureCheck, CompatibilityProfile, DesktopContext, EvidenceSource, Outcome,
-    compatibility_filename, load_current_context, load_profile, validate_profile_context,
+    EnvironmentMetadata, compatibility_filename, context_from_calibration, load_profile,
+    validate_profile_context,
 )
 from tibia_client.diagnostics import AdapterCapabilities
 
@@ -53,6 +54,40 @@ class DesktopProfileController:
         self._reason = "Open Compatibility Test to create and verify a desktop profile"
         self.reload()
 
+    def current_context(self, environment: EnvironmentMetadata) -> DesktopContext:
+        """Build profile metadata with the currently measured input geometry."""
+        with self._lock:
+            config = ConfManager.get("conf.json")
+            if config.get("preferences_name") != self.calibration_profile:
+                raise ValueError("selected calibration changed; reopen the client launcher")
+            if config.get("configured") is not True:
+                raise ValueError("select and calibrate the capture and input windows first")
+            for field in ("capture_title", "input_title"):
+                selected_title = config.get(field)
+                if not isinstance(selected_title, str) or not selected_title.strip():
+                    raise ValueError("reselect capture/input windows to record their titles")
+                if getattr(environment, field, "") != selected_title.strip():
+                    raise ValueError(f"selected {field} differs from metadata; update metadata and retest")
+            for name in ("capture_hwnd", "input_hwnd"):
+                handle = config.get(name, config.get("hwnd"))
+                if type(handle) is not int or handle <= 0:
+                    raise ValueError(f"select a valid {name} before testing")
+            if (environment.capture_mode == "obs_projector"
+                    and config.get("capture_hwnd") == config.get("input_hwnd")):
+                raise ValueError("OBS projector and input must be separate selected windows")
+            calibration = ConfManager.get(self.calibration_profile)
+            expected_mode = "physical" if calibration.get("MouseOption", 1) == 1 else "messages"
+            if environment.input_mode != expected_mode:
+                raise ValueError("environment input mode differs from the selected input backend")
+            context = context_from_calibration(
+                calibration,
+                environment,
+                input_size=self._input_size(),
+            )
+            if tuple(config.get("capture_size", ())) != context.capture_size:
+                raise ValueError("capture size differs from calibration; recalibrate the client")
+            return context
+
     def reload(self) -> ActivationCheck:
         """Explicitly bind a saved profile to the current calibrated windows."""
         with self._lock:
@@ -61,32 +96,7 @@ class DesktopProfileController:
                 profile = load_profile(self.filename)
                 if profile.calibration_profile != self.calibration_profile:
                     raise ValueError("compatibility sidecar belongs to a different calibration")
-                calibration = ConfManager.get(self.calibration_profile)
-                config = ConfManager.get("conf.json")
-                if config.get("preferences_name") != self.calibration_profile:
-                    raise ValueError("selected calibration changed; reopen the client launcher")
-                if config.get("configured") is not True:
-                    raise ValueError("select and calibrate the capture and input windows first")
-                expected_mode = "physical" if calibration.get("MouseOption", 1) == 1 else "messages"
-                if profile.context.environment.input_mode != expected_mode:
-                    raise ValueError("profile input mode differs from the selected input backend")
-                for field in ("capture_title", "input_title"):
-                    selected_title = config.get(field)
-                    if not isinstance(selected_title, str) or not selected_title.strip():
-                        raise ValueError("reselect capture/input windows to record their titles")
-                    if getattr(profile.context.environment, field, "") != selected_title:
-                        raise ValueError(f"selected {field} differs from tested metadata; reset and retest")
-                if (profile.context.environment.capture_mode == "obs_projector"
-                        and config.get("capture_hwnd") == config.get("input_hwnd")):
-                    raise ValueError("OBS projector and input must be separate selected windows")
-                context = load_current_context(self.calibration_profile, profile.context.environment,
-                                               input_size=self._input_size())
-                if tuple(config.get("capture_size", ())) != context.capture_size:
-                    raise ValueError("capture size differs from calibration; recalibrate the client")
-                for name in ("capture_hwnd", "input_hwnd"):
-                    handle = config.get(name, config.get("hwnd"))
-                    if type(handle) is not int or handle <= 0:
-                        raise ValueError(f"select a valid {name} before testing")
+                context = self.current_context(profile.context.environment)
                 after = tuple(_stamp(path) for path in self._paths)
                 if before != after:
                     raise ValueError("configuration changed while loading; reload again")

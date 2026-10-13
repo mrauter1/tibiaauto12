@@ -66,12 +66,12 @@ class AutoMana:
         self.button.configure(text="AutoMana: OFF")
         set_enabled((w for v in self._vars for w in v[4]), True)
 
-    def _snapshot(self):
+    def _snapshot(self, *, require_enabled=True):
         rules = tuple(
             Threshold(v[1].get(), integer(v[2].get(), f"stage {i} threshold"), v[3].get())
             for i, v in enumerate(self._vars, 1)
         )
-        if not any(r.enabled for r in rules):
+        if require_enabled and not any(r.enabled for r in rules):
             raise ValueError("enable at least one mana stage")
         values = {}
         for label, e, p, k, _ in self._vars:
@@ -113,6 +113,6 @@ class AutoMana:
         finally:
             if getattr(self, "ui", None) is not None and self.ui.owner:
                 try:
-                    self._snapshot()
+                    self._snapshot(require_enabled=False)
                 except Exception:
                     pass

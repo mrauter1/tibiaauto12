@@ -12,9 +12,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 import json
-import os
 from pathlib import Path
-import stat
 from typing import Any
 
 from tibia_client.models import ActionResult, Event, Request, Snapshot, Step
@@ -146,29 +144,8 @@ def load_trace_document(
     max_events: int = DEFAULT_MAX_EVENTS,
 ) -> TraceDocument:
     """Load a complete trace through the SDK's strict, bounded trace reader."""
-    _validate_regular_source(path, max_bytes)
     events = load_trace(path, max_bytes=max_bytes, max_events=max_events)
     return TraceDocument(events, trace_statistics(events), str(Path(path)))
-
-
-def _validate_regular_source(path: str | Path, max_bytes: int) -> None:
-    """Reject devices/FIFOs before the strict reader can block on them."""
-    if type(max_bytes) is not int or max_bytes < 1024:
-        raise ValueError("max_bytes must be an integer of at least 1024")
-    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
-    flags |= getattr(os, "O_NOFOLLOW", 0)
-    try:
-        descriptor = os.open(Path(path), flags)
-    except OSError as exc:
-        raise TraceError(f"cannot open trace: {exc}") from exc
-    try:
-        info = os.fstat(descriptor)
-        if not stat.S_ISREG(info.st_mode):
-            raise TraceError("trace source must be a regular file")
-        if info.st_size > max_bytes:
-            raise TraceError("trace size limit exceeded")
-    finally:
-        os.close(descriptor)
 
 
 def session_trace_document(

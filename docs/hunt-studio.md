@@ -54,6 +54,11 @@ press **Save** before activation.
    same local profile and calibration are still selected. A profile change, resize that
    invalidates calibration, or newly missing capability requires binding again.
 
+You may save an imported route before binding when you only want a standalone route copy. This
+does not change the active saved route selection; bind the pack and save again to select it. If a
+different local route already uses the imported name, Route Studio asks before replacing that route
+and its checkpoint. Rename the route or use **Duplicate route** to keep both.
+
 The CaveBot OFF button stops the feature. Its configured pause hotkey pauses or resumes only
 navigation through the shared session; a paused CaveBot keeps Route Studio locked.
 

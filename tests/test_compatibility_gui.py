@@ -10,12 +10,45 @@ from modules.Compatibility import (
     Compatibility,
     PreviewMapping,
     _add_probe_evidence,
+    _current_alignment_failures,
     _window_titles,
     probe_completion,
 )
-from test_compatibility import context, operation
+from test_compatibility import NOW, alignment, context, operation
 from tibia_client import Action, ActionKind, ActionResult, FeatureStatus, ResultState, Sensor, SensorKind
-from tibia_client.compatibility import CompatibilityProfile, Outcome, ProbeFeature
+from tibia_client.compatibility import (
+    ActivationCheck,
+    AlignmentEvidence,
+    CompatibilityProfile,
+    EvidenceSource,
+    Outcome,
+    ProbeFeature,
+)
+
+
+class _Value:
+    def __init__(self, value=""):
+        self.value = value
+
+    def get(self):
+        return self.value
+
+    def set(self, value):
+        self.value = value
+
+
+class _Widget:
+    def __init__(self):
+        self.config = {}
+
+    def configure(self, **values):
+        self.config.update(values)
+
+    def pack(self, **_values):
+        pass
+
+    def pack_forget(self):
+        pass
 
 
 def test_preview_mapping_preserves_aspect_ratio_and_maps_only_image_bounds():
@@ -75,6 +108,234 @@ def test_window_identity_comes_from_configuration_without_string_coercion():
         "OBS", "Game"
     )
     assert _window_titles({"capture_title": 123, "input_title": None}) == ("", "")
+
+
+def test_reload_surfaces_the_controller_reason_instead_of_suggesting_a_blind_reset():
+    viewer = object.__new__(Compatibility)
+    viewer.pending_probe = viewer._capture_before = None
+    viewer.controller = SimpleNamespace(
+        profile=None,
+        reload=lambda: ActivationCheck(False, (
+            "selected capture_title differs from tested metadata; reset and retest",
+        )),
+    )
+    viewer.sidecar_filename = "Test.compatibility.json"
+    viewer.profile_filename = "Test.json"
+    viewer.status = _Value()
+    viewer.metadata = _Widget()
+    viewer._invalidate_preview = lambda: None
+    viewer._refresh_identity = lambda: None
+    viewer._render_preview = lambda: None
+
+    viewer.reload()
+
+    assert "selected capture_title differs" in viewer.status.value
+    assert "no compatibility profile is loaded" not in viewer.status.value
+
+
+def test_new_profile_rejects_measured_geometry_mismatch_before_saving(monkeypatch):
+    ctx = context(input_size=(1024, 768))
+    viewer = object.__new__(Compatibility)
+    viewer.profile_filename = "Test.json"
+    viewer.controller = SimpleNamespace(current_context=lambda environment: ctx)
+    viewer._metadata_vars = {
+        name: _Value(str(getattr(ctx.environment, name)))
+        for name in (
+            "client_build", "ot_server", "windows_version", "renderer", "obs_version",
+            "obs_configuration", "dpi_scaling", "layout", "input_mode", "capture_mode",
+            "battleye_state", "battleye_provenance", "test_date",
+        )
+    }
+    monkeypatch.setattr(
+        compatibility_module.ConfManager,
+        "get",
+        staticmethod(lambda name: {
+            "capture_title": "OBS projector", "input_title": "Tibia"
+        } if name == "conf.json" else {}),
+    )
+
+    with pytest.raises(ValueError, match=r"capture size \(800, 600\).*input size \(1024, 768\)"):
+        viewer._new_profile()
+
+
+def test_message_mode_hides_and_rejects_physical_cursor_restore_before_dispatch():
+    ctx = context(environment=compatibility_module.EnvironmentMetadata(
+        "build", "ot", "Windows", "OpenGL", "OBS", "config", "100%", "layout",
+        "messages",
+    ))
+    viewer = object.__new__(Compatibility)
+    viewer.operation_box = _Widget()
+    viewer.operation = _Value("cursor_restore")
+    viewer.operation_note = _Value()
+    viewer._update_operation_choices("messages")
+
+    assert "cursor_restore" not in viewer.operation_box.config["values"]
+    assert viewer.operation.get() == "press"
+    assert "physical input" in viewer.operation_note.get()
+
+    viewer.operation.set("cursor_restore")
+    viewer.profile = SimpleNamespace(context=ctx)
+    viewer.status = _Value()
+    viewer._preview_ready = lambda: True
+    viewer._begin_probe = lambda: pytest.fail("unsupported probe must not reach dispatch")
+    viewer.arm_probe()
+    assert "physical-input only" in viewer.status.get()
+
+
+def test_failed_alignment_point_is_visible_until_the_exact_point_passes():
+    ctx = context()
+    failed = AlignmentEvidence(
+        ctx.fingerprint, NOW, (123, 123), (123, 123), Outcome.FAIL, EvidenceSource.LIVE
+    )
+    profile = CompatibilityProfile(
+        "Hunt.json", ctx, ("press",), (), (*alignment(ctx), failed)
+    )
+    assert _current_alignment_failures(profile) == ((123, 123),)
+
+    class Canvas:
+        def __init__(self):
+            self.text = []
+
+        def create_oval(self, *_args, **_kwargs):
+            pass
+
+        def create_line(self, *_args, **_kwargs):
+            pass
+
+        def create_text(self, *_args, **kwargs):
+            self.text.append(kwargs.get("text"))
+
+    viewer = object.__new__(Compatibility)
+    viewer.profile = profile
+    viewer._calibration = {}
+    viewer.canvas = Canvas()
+    viewer._draw_overlays(PreviewMapping((720, 390), ctx.capture_size))
+    assert "failed 123,123 — click to retry" in viewer.canvas.text
+
+    retried = profile.add_alignment(AlignmentEvidence(
+        ctx.fingerprint, NOW, (123, 123), (123, 123), Outcome.PASS, EvidenceSource.LIVE
+    ))
+    assert _current_alignment_failures(retried) == ()
+
+
+def test_downscaled_failed_marker_click_snaps_to_exact_point_but_shift_drag_does_not():
+    ctx = context()
+    failed_point = (123, 123)
+    profile = CompatibilityProfile("Hunt.json", ctx, ("drag",), alignment_evidence=(
+        AlignmentEvidence(
+            ctx.fingerprint, NOW, failed_point, failed_point,
+            Outcome.FAIL, EvidenceSource.LIVE,
+        ),
+    ))
+    mapping = PreviewMapping((200, 150), ctx.capture_size)
+    marker_x, marker_y = mapping.canvas_point(failed_point)
+    event = SimpleNamespace(x=round(marker_x + 4), y=round(marker_y + 4), state=0)
+    viewer = object.__new__(Compatibility)
+    viewer.pending_probe = viewer._capture_before = None
+    viewer.profile = profile
+    viewer._preview_mapping = mapping
+    viewer.operation = _Value("left_click")
+    viewer.status = _Value()
+    viewer.selected_point = None
+    viewer.drag_destination = None
+    viewer._render_preview = lambda: None
+
+    viewer._select_canvas_point(event)
+    assert viewer.selected_point == failed_point
+
+    viewer.operation.set("drag")
+    viewer.selected_point = (50, 50)
+    event.state = 0x0001
+    unsnapped = mapping.client_point(event.x, event.y)
+    assert unsnapped != failed_point
+    viewer._select_canvas_point(event)
+    assert viewer.drag_destination == unsnapped
+
+
+def test_latest_failed_guide_is_not_still_drawn_as_a_historical_pass():
+    ctx = context()
+    first = alignment(ctx)[0]
+    profile = CompatibilityProfile(
+        "Hunt.json", ctx, ("press",), alignment_evidence=(
+            first,
+            AlignmentEvidence(
+                ctx.fingerprint, NOW, first.capture_point, first.input_point,
+                Outcome.FAIL, EvidenceSource.LIVE,
+            ),
+        ),
+    )
+
+    class Canvas:
+        def __init__(self):
+            self.ovals = []
+
+        def create_oval(self, *_args, **kwargs):
+            self.ovals.append(kwargs)
+
+        def create_line(self, *_args, **_kwargs):
+            pass
+
+        def create_text(self, *_args, **_kwargs):
+            pass
+
+    viewer = object.__new__(Compatibility)
+    viewer.profile = profile
+    viewer._calibration = {}
+    viewer.canvas = Canvas()
+    viewer._draw_overlays(PreviewMapping((720, 390), ctx.capture_size))
+
+    assert viewer.canvas.ovals[0]["outline"] == "#f0b64d"
+
+
+def test_profile_status_only_requests_a_preview_when_one_is_not_ready():
+    viewer = object.__new__(Compatibility)
+    viewer.profile = CompatibilityProfile("Hunt.json", context(), ("press",))
+    viewer._preview_ready = lambda: False
+    assert "Capture a fresh preview" in viewer._profile_status()
+    viewer._preview_ready = lambda: True
+    assert "Preview is ready" in viewer._profile_status()
+    assert "Capture a fresh preview" not in viewer._profile_status()
+
+
+def test_confirmation_reports_saved_evidence_when_live_reload_is_blocked(monkeypatch):
+    ctx = context()
+    profile = CompatibilityProfile("Hunt.json", ctx, ("press",))
+    probe = ProbeFeature("press", Action(ActionKind.PRESS, key="F1"))
+    probe.result = ActionResult(
+        "CompatibilityProbe:1:1", probe.name, "compatibility-probe",
+        ResultState.EXECUTED, 1.0,
+    )
+    probe.on_result(probe.result)
+    viewer = object.__new__(Compatibility)
+    viewer.profile = profile
+    viewer.pending_probe = probe
+    viewer._awaiting_confirmation = True
+    viewer._cancel_requested = False
+    viewer.pending_token = None
+    viewer.pending_point = None
+    viewer.alignment_confirmation = _Value(Outcome.UNVERIFIED.value)
+    viewer.cursor_confirmation = _Value(Outcome.UNVERIFIED.value)
+    viewer.sidecar_filename = "Test.compatibility.json"
+    viewer.status = _Value()
+    viewer.controller = SimpleNamespace(
+        profile=None,
+        reload=lambda: ActivationCheck(False, ("input window changed",)),
+    )
+    viewer._validate_token = lambda _token: None
+    viewer._clear_pending = lambda: None
+    viewer._render_preview = lambda: None
+    saved = []
+    monkeypatch.setattr(
+        compatibility_module, "save_profile",
+        lambda updated, _filename, overwrite: saved.append((updated, overwrite)),
+    )
+
+    viewer.confirm(Outcome.PASS)
+
+    assert saved and saved[0][1] is True
+    assert "Evidence was saved" in viewer.status.get()
+    assert "input window changed" in viewer.status.get()
+    assert "Could not save" not in viewer.status.get()
 
 
 def test_drag_requires_an_explicit_distinct_mapped_destination():

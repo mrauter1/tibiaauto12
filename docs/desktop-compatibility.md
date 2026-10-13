@@ -17,6 +17,10 @@ that any input method is undetectable or approved by a server.
    configuration, DPI/scaling and layout. Input mode and capture mode describe
    this particular test. Window titles come from the selected windows. Report
    BattlEye state with its provenance; leave it unknown if it is unknown.
+   Profile creation and replacement use the selected input window's measured
+   client size. If it differs from the capture calibration, the studio reports
+   both sizes and leaves the existing profile unchanged until the windows are
+   resized or reselected and calibration is corrected.
 3. Use the explicit capture-preview control. Foreground the game during the
    countdown. Opening the window itself never captures or sends game input.
    Inspect the captured image and calibration overlays before choosing points.
@@ -37,6 +41,9 @@ that any input method is undetectable or approved by a server.
    Alignment needs the center and points in all four corners of the view.
    Equal dimensions alone are insufficient. Use safe visible controls; the
    tool sends the selected action, so a click or drag can change game state.
+   A failed point is marked in red with its exact coordinates until that same
+   point is retested successfully. Cursor-restoration testing is available only
+   for physical input; message-mode profiles do not require it.
 7. Open **Hunt Console** to inspect blocking reasons and capabilities. Start only
    the modules whose required operations have passed for this context. Physical
    mouse actions also require a passed cursor-restoration check.
@@ -64,6 +71,9 @@ it does not silently carry passes into a different context.
 Cursor telemetry can include positions outside the client area. Missing or
 invalid telemetry does not change an already completed native dispatch into a
 failure; cursor restoration remains a separately assessed result.
+For physical input, restoration uses the original desktop screen coordinate,
+including a position outside the game window and a position retained while the
+window moves. Existing focus checks and cancellation boundaries still apply.
 
 These are local evidence records, not cryptographic attestations. A live-source
 label identifies the actual desktop pipeline used; it does not prove a game
@@ -103,6 +113,9 @@ Do not interpret repeated identical images as conclusive freeze detection.
   Restart modules explicitly. An already executing OS call
   cannot be undone; cancellation prevents subsequent work and releases input
   through the existing backend cleanup path.
+- **Hunt Console** keeps Stop All available while a navigation start, pause, or
+  resume control is pending, so a slow control operation cannot hide the stop
+  path.
 - Capture failure, malformed capture or fatal scheduler failure can close the
   session. Fix the cause and reopen/reselect the client; Stop All does not
   silently revive a failed session.
@@ -149,6 +162,9 @@ client/OBS environment verified, collect its own evidence for:
 | Capture-window closure or all-black capture | Automation fails closed with a visible reason |
 | Relay interrupted or frozen | Record the observable result; do not claim perfect freeze detection |
 | Pause, resume and Stop during queued/pending work | No canceled action is resurrected; support pauses only on Stop All |
+
+Walking-only routes derive only their walking requirements. They require a loot
+click only when configured targets can trigger loot behavior.
 
 This checklist is the remaining environment-specific release gate. Passing the
 repository's offline suite does not substitute for it.
