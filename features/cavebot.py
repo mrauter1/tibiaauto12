@@ -62,6 +62,9 @@ class SessionConfig:
     loot_button: str = "right"
     loot_budget: int = 9
     loot_max_seconds: float = 2.0
+    navigation_history_size: int = 12
+    navigation_progress_pixels: float = 3.0
+    navigation_stall_seconds: float = 1.0
 
     def __post_init__(self) -> None:
         durations = (
@@ -71,6 +74,8 @@ class SessionConfig:
             "arrival_timeout",
             "combat_timeout",
             "loot_max_seconds",
+            "navigation_progress_pixels",
+            "navigation_stall_seconds",
         )
         for field_name in durations:
             value = getattr(self, field_name)
@@ -84,7 +89,14 @@ class SessionConfig:
             raise ValueError("operation timeouts must be greater than zero")
         if self.loot_max_seconds <= 0:
             raise ValueError("loot_max_seconds must be greater than zero")
-        for field_name in ("movement_attempts", "count_stable_samples", "loot_budget"):
+        if self.navigation_progress_pixels <= 0 or self.navigation_stall_seconds <= 0:
+            raise ValueError("navigation progress settings must be greater than zero")
+        for field_name in (
+            "movement_attempts",
+            "count_stable_samples",
+            "loot_budget",
+            "navigation_history_size",
+        ):
             value = getattr(self, field_name)
             if not isinstance(value, int) or isinstance(value, bool) or value < 1:
                 raise ValueError(f"{field_name} must be at least one")
@@ -105,6 +117,9 @@ class CaveBotStatus:
     finished: bool = False
     failed: bool = False
     error: str | None = None
+    navigation_state: str = "idle"
+    marker_position: tuple[int, int] | None = None
+    navigation_attempt: int = 0
 
 
 @dataclass(frozen=True)
@@ -129,6 +144,7 @@ class CaveBotFeature:
         *,
         config: SessionConfig | None = None,
         start_index: int = 0,
+        loop: bool = True,
         save_progress: Callable[[Route, int], Any] | None = save_checkpoint,
         map_region: Iterable[int] = (),
         battle_region: Iterable[int] = (),
@@ -138,6 +154,8 @@ class CaveBotFeature:
             raise TypeError("route must be a Route")
         if not isinstance(start_index, int) or isinstance(start_index, bool):
             raise ValueError("start index must be an integer")
+        if type(loop) is not bool:
+            raise ValueError("loop must be true or false")
         if route.waypoints and not 0 <= start_index < len(route.waypoints):
             raise ValueError("start index is outside the route")
         checked_targets = tuple(sorted(targets))
@@ -152,6 +170,7 @@ class CaveBotFeature:
         self.config = config or SessionConfig()
         self.interval = self.config.poll_interval
         self.index = start_index
+        self.loop = loop
         self.save_progress = save_progress
         self.map_region = self._region(map_region, "map")
         self.battle_region = self._region(battle_region, "battle")
@@ -169,6 +188,13 @@ class CaveBotFeature:
         self._pending: _Pending | None = None
         self._request_sequence = 0
         self._arrival_failures = 0
+        self._navigation_history: tuple[
+            tuple[float, int, tuple[int, int] | None], ...
+        ] = ()
+        self._last_progress_position: tuple[int, int] | None = None
+        self._last_progress_at: float | None = None
+        self._exit_requested = False
+        self._abort_requested = False
         self._selected_wait: tuple[str, int, float] | None = None
         self._follow_wait: tuple[int, float] | None = None
         self._active_target: str | None = None
@@ -219,6 +245,114 @@ class CaveBotFeature:
     @property
     def finished(self) -> bool:
         return self._status.finished
+
+    @property
+    def navigation_progress(self) -> dict[str, Any]:
+        """Return a trace-safe snapshot of recent screen-space route progress."""
+
+        return {
+            "state": self._status.navigation_state,
+            "marker_position": self._status.marker_position,
+            "attempts_used": self._arrival_failures,
+            "attempts_remaining": max(
+                0, self.config.movement_attempts - self._arrival_failures
+            ),
+            "history": self._navigation_history,
+        }
+
+    def request_exit(self) -> None:
+        """Finish safely on the next tick after any active combat or loot."""
+
+        if not self._status.finished:
+            self._exit_requested = True
+
+    def request_abort(self) -> None:
+        """Stop immediately, cancelling this feature's outstanding request."""
+
+        if not self._status.finished:
+            self._abort_requested = True
+
+    def anchor_sensors(self) -> tuple[Sensor, ...]:
+        """Sensors an orchestrator may request while recovering route position."""
+
+        result = []
+        for waypoint in self.route.waypoints:
+            sensor = Sensor(SensorKind.MARKER, self.map_region, waypoint.mark)
+            if sensor not in result:
+                result.append(sensor)
+        return tuple(result)
+
+    def recognized_anchor_candidates(self, context: FeatureContext) -> tuple[int, ...]:
+        """Return route indices backed by fresh, explicitly reached markers."""
+
+        candidates = []
+        for index, waypoint in enumerate(self.route.waypoints):
+            sensor = Sensor(SensorKind.MARKER, self.map_region, waypoint.mark)
+            try:
+                marker = context.require(sensor, self._MAX_EVIDENCE_AGE)
+            except ObservationUnavailable:
+                continue
+            if (
+                isinstance(marker, Marker)
+                and marker.reached
+                and marker.position is not None
+            ):
+                candidates.append(index)
+        return tuple(candidates)
+
+    def resume_from_recognized_anchor(
+        self,
+        context: FeatureContext,
+        *,
+        waypoint_index: int | None = None,
+    ) -> int:
+        """Resume at a fresh reached marker, requiring selection if ambiguous."""
+
+        if self._pending is not None:
+            raise RuntimeError("cannot resume while an input request is pending")
+        candidates = self.recognized_anchor_candidates(context)
+        if not candidates:
+            raise ValueError("no reached route anchor was recognized")
+        if waypoint_index is None:
+            if len(candidates) != 1:
+                raise ValueError(
+                    "recognized route anchor is ambiguous; select waypoint_index"
+                )
+            waypoint_index = candidates[0]
+        if (
+            not isinstance(waypoint_index, int)
+            or isinstance(waypoint_index, bool)
+            or waypoint_index not in candidates
+        ):
+            raise ValueError("waypoint_index must select a recognized route anchor")
+        self.index = waypoint_index
+        self._mode = "find_marker"
+        self._mode_started = context.now
+        self._deadline = context.now + self.config.marker_timeout
+        self._arrival_failures = 0
+        self._navigation_history = ()
+        self._last_progress_position = None
+        self._last_progress_at = None
+        self._exit_requested = False
+        self._abort_requested = False
+        self._active_target = None
+        self._combat_deadline = None
+        self._selected_wait = None
+        self._follow_wait = None
+        self._set_status(
+            "Finding marker",
+            "recognized_anchor_resume",
+            waypoint_index=self.index,
+            waypoint_id=self.route.waypoints[self.index].id,
+            target=None,
+            finished=False,
+            failed=False,
+            error=None,
+            navigation_state="idle",
+            marker_position=None,
+            navigation_attempt=0,
+        )
+        return self.index
 
     def _marker_sensor(self) -> Sensor | None:
         if not self.route.waypoints:
@@ -281,6 +415,7 @@ class CaveBotFeature:
         self._deadline = self._shift_time(self._deadline, elapsed)
         self._combat_deadline = self._shift_time(self._combat_deadline, elapsed)
         self._loot_started = self._shift_time(self._loot_started, elapsed)
+        self._last_progress_at = self._shift_time(self._last_progress_at, elapsed)
         if self._selected_wait is not None:
             target, frame, ready_at = self._selected_wait
             self._selected_wait = (target, frame, ready_at + elapsed)
@@ -354,6 +489,76 @@ class CaveBotFeature:
             return context.require(sensor, self._MAX_EVIDENCE_AGE)
         except ObservationUnavailable:
             return None
+
+    def _record_navigation_marker(
+        self, context: FeatureContext, marker: Marker | None
+    ) -> None:
+        """Record one bounded sample per frame and expose a progress diagnosis."""
+
+        position = marker.position if isinstance(marker, Marker) else None
+        sample = (context.now, context.snapshot.frame_id, position)
+        if (
+            self._navigation_history
+            and self._navigation_history[-1][1] == context.snapshot.frame_id
+        ):
+            return
+        self._navigation_history = (
+            *self._navigation_history,
+            sample,
+        )[-self.config.navigation_history_size :]
+
+        if position is None:
+            self._set_status(
+                self._status.phase,
+                "navigation_marker_missing",
+                navigation_state="missing",
+                marker_position=None,
+            )
+            return
+
+        moving = self._last_progress_position is None
+        if self._last_progress_position is not None:
+            dx = position[0] - self._last_progress_position[0]
+            dy = position[1] - self._last_progress_position[1]
+            moving = math.hypot(dx, dy) >= self.config.navigation_progress_pixels
+        if moving:
+            self._last_progress_position = position
+            self._last_progress_at = context.now
+        progress_at = self._last_progress_at
+        stalled = (
+            not moving
+            and progress_at is not None
+            and context.now - progress_at >= self.config.navigation_stall_seconds
+        )
+        self._set_status(
+            self._status.phase,
+            "navigation_stalled" if stalled else "navigation_moving",
+            navigation_state="stalled" if stalled else "moving",
+            marker_position=position,
+        )
+
+    def _finish_exit(self, *, immediate: bool = False) -> Step:
+        cancel = ()
+        if self._pending is not None and (immediate or self._pending.kind == "navigate"):
+            cancel = (self._pending.key,)
+            self._pending = None
+        self._arrival_failures = 0
+        self._last_progress_position = None
+        self._last_progress_at = None
+        self._exit_requested = False
+        self._abort_requested = False
+        self._set_status(
+            "Finished",
+            "abort_requested" if immediate else "exit_requested",
+            target=None,
+            finished=True,
+            failed=False,
+            error=None,
+            navigation_state="idle",
+            marker_position=None,
+            navigation_attempt=0,
+        )
+        return self._step(cancel_keys=cancel)
 
     def _choose_target(
         self, context: FeatureContext
@@ -598,7 +803,9 @@ class CaveBotFeature:
             if self._deadline is not None and context.now >= self._deadline:
                 return self._fail("marker_timeout", "marker search timed out")
             if not isinstance(marker, Marker) or marker.position is None:
+                self._record_navigation_marker(context, None)
                 return self._step()
+            self._record_navigation_marker(context, marker)
             request = self._request(
                 context,
                 "navigate",
@@ -613,13 +820,16 @@ class CaveBotFeature:
 
         if self._mode == "arriving":
             if isinstance(marker, Marker) and marker.reached:
+                self._record_navigation_marker(context, marker)
                 self._mode = "stand"
                 self._mode_started = context.now
                 self._deadline = context.now + self.config.stand_seconds
                 self._set_status("Standing", "waypoint_arrived")
                 return self._tick_route(context) if self.config.stand_seconds == 0 else self._step()
+            self._record_navigation_marker(
+                context, marker if isinstance(marker, Marker) else None
+            )
             if self._deadline is not None and context.now >= self._deadline:
-                self._arrival_failures += 1
                 if self._arrival_failures >= self.config.movement_attempts:
                     return self._fail("arrival_timeout", "waypoint arrival timed out")
                 self._start_marker_search(context, "retrying_arrival")
@@ -633,14 +843,34 @@ class CaveBotFeature:
         return self._fail("invalid_state", f"unknown CaveBot state {self._mode!r}")
 
     def _complete_waypoint(self, context: FeatureContext) -> Step:
-        self.index = (self.index + 1) % len(self.route.waypoints)
         completed = self._status.completed_waypoints + 1
+        if not self.loop and self.index == len(self.route.waypoints) - 1:
+            self._arrival_failures = 0
+            self._last_progress_position = None
+            self._last_progress_at = None
+            self._set_status(
+                "Finished",
+                "route_complete",
+                completed_waypoints=completed,
+                target=None,
+                finished=True,
+                failed=False,
+                error=None,
+                navigation_state="idle",
+                marker_position=None,
+                navigation_attempt=0,
+            )
+            return self._step()
+        self.index = (self.index + 1) % len(self.route.waypoints)
         if self.save_progress is not None:
             try:
                 self.save_progress(self.route, self.index)
             except Exception as exc:
                 return self._fail("checkpoint_failed", f"checkpoint failed: {exc}")
         self._arrival_failures = 0
+        self._navigation_history = ()
+        self._last_progress_position = None
+        self._last_progress_at = None
         self._set_status(
             "Finding marker",
             "waypoint_complete",
@@ -648,6 +878,9 @@ class CaveBotFeature:
             waypoint_id=self.route.waypoints[self.index].id,
             completed_waypoints=completed,
             target=None,
+            navigation_state="idle",
+            marker_position=None,
+            navigation_attempt=0,
         )
         self._mode = "find_marker"
         self._mode_started = context.now
@@ -660,6 +893,10 @@ class CaveBotFeature:
         if not self.route.waypoints:
             self._set_status("Stopped: empty route", "empty_route", finished=True)
             return self._step()
+        if self._abort_requested:
+            return self._finish_exit(immediate=True)
+        if self._exit_requested and self._mode not in ("combat", "loot"):
+            return self._finish_exit()
         self._expire_pending(context)
         if self._mode not in ("combat", "loot"):
             spec, _, evidence_error = self._choose_target(context)
@@ -711,7 +948,14 @@ class CaveBotFeature:
             self._mode = "arriving"
             self._mode_started = result.at
             self._deadline = result.at + self.config.arrival_timeout
-            self._set_status("Navigating", "movement_executed")
+            self._arrival_failures += 1
+            self._last_progress_at = result.at
+            self._set_status(
+                "Navigating",
+                "movement_executed",
+                navigation_state="moving",
+                navigation_attempt=self._arrival_failures,
+            )
         elif pending.kind == "select":
             target = self._active_target or ""
             self._selected_wait = (target, pending.evidence_frame, result.at + settle)

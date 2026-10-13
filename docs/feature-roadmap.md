@@ -2,7 +2,7 @@
 
 Research date: **2026-10-12**. Roadmap implementation update: **2026-10-13 (UTC)**. Research baseline: **`01699e7`**; runtime-code baseline: **`f4c8212`**, on `reliability/client-foundation`.
 
-**Status: M0 software and M1 authoring/inspection tools implemented; environment-specific live validation and later milestones remain open.** This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
+**Status: M0 software, M1 authoring/inspection tools, and a configurable M1–M3 hunt workflow are implemented. Environment-specific live validation remains open.** The new workflow covers progress tracking, finite travel segments, guarded visual supply/container readings, verified transfers, and a resumable return/deposit/sell/refill cycle. Broader recognition and combat capabilities remain planned. This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
 
 ## Product direction
 
@@ -56,8 +56,8 @@ Current observation timestamps measure the local capture operation. A frozen OBS
 
 ## Implementation status — 2026-10-13
 
-The M0 software workflow and M1's parallel authoring/inspection tools are now
-implemented. This is an implementation status, not a real-client compatibility
+The M0 software workflow, M1's parallel authoring/inspection tools and a locally
+configured complete hunt workflow are implemented. This is an implementation status, not a real-client compatibility
 claim: the live evidence gate below remains open for each intended environment.
 
 | Available now | Remaining validation or scope |
@@ -65,13 +65,20 @@ claim: the live evidence gate below remains open for each intended environment.
 | Operator-started compatibility studio, captured preview, separate dispatch/confirmation records, bounded evidence export | Collect actual client/OBS operation, alignment and visible-change evidence |
 | Context-bound profiles, capability requirements and current-session window-binding gate | Verify each chosen client build, renderer, input mode and OBS configuration |
 | Shared capture health, runtime console, navigation pause/resume and Stop All | Exercise native focus, resize, capture failure and interruption scenarios |
-| Route list editing, marker preview, stable waypoint IDs, portable hunt packs and local binding | M1 movement-progress detection/recovery and richer waypoint actions remain planned |
+| Route list editing, marker preview, stable waypoint IDs, portable hunt packs and local binding | Automatic route recording and broader waypoint types remain planned |
+| Bounded navigation progress history, finite travel and recognized-anchor recovery API | Validate marker/progress behavior on the intended layout; anchor recovery requires fresh unambiguous evidence |
+| Context-guarded template and digit observations, supply thresholds and return intents | Capture and validate real item/container/digit templates; unknown state is not a zero count |
+| Ordered travel segments, guarded interactions, deposit/sell/refill loops and restart checkpoints | Demonstrate one configured full cycle; no universal NPC, shop or depot recognizer is bundled |
+| Structured workflow editor, saved-frame template cropping, capture-only detector inspection and manual reconciliation | Validate detector accuracy and interaction postconditions on the intended client |
 | Read-only filtered trace timeline, statistics and CLI inspection | Real detector fixtures and environment-specific replay cases depend on collected evidence |
 
 Start with the [desktop compatibility guide](desktop-compatibility.md), then use
-[Hunt Studio](hunt-studio.md) and the [trace tools](recording-replay.md). The M2+
-feature sequence stays gated on M0 live acceptance; offline authoring does not
-imply that supply, refill/depot, OCR or advanced combat have been implemented.
+[Hunt Studio](hunt-studio.md), the [hunt workflow guide](hunt-workflow.md), and the
+[trace tools](recording-replay.md). Live rollout remains gated on M0 acceptance
+and workflow-specific evidence. Digit-template recognition is deliberately
+narrow; universal OCR, automatic interaction discovery and advanced spatial
+combat are not implemented. Portable hunt-pack v1 remains unchanged; workflow
+documents additionally contain local visual bindings and template paths.
 
 ## Delivery sequence
 
@@ -268,17 +275,15 @@ Live release gates extend M0's profile evidence with the feature-specific checks
 
 ## Recommended next implementation slice
 
-Build **M0**, starting with the smallest useful operation probe and evidence export:
+Use the implemented tools to validate **one complete configured hunt**:
 
-1. Operator-started capture/input checks and a reproducible evidence bundle.
-2. Collect evidence on the intended installation; resolve only the compatibility differences it exposes.
-3. Desktop profile, capability declaration and visual/input alignment checks informed by that evidence.
-4. Capture-health diagnostics, explicit source-freshness limits and clearly scoped pause/stop controls.
-5. Validate the enabled operation set and interruption/recovery behavior for one profile.
+1. Collect M0 capture, input and alignment evidence on the intended installation.
+2. Save representative frames and create guarded supply, container, item and digit detectors in Hunt workflow.
+3. Inspect known, absent, zero, ambiguous and unreadable cases before enabling actions.
+4. Configure finite outbound/return segments and confirmed deposit/sell/refill steps; exercise interruption and checkpoint reconciliation around each mutation.
+5. Record a complete trip and its failure cases, then publish the supported client/layout/route combination with its evidence.
 
-When live-client access is unavailable, continue building the offline portions and M1's route/preset/trace UI while leaving compatibility results unverified. Do not invent successful checks or block unrelated offline progress.
-
-After M0 validation, deliver M1 with the smallest navigation-progress slice. Then add supply-aware return, followed by the first complete refill/depot loop. Verified looting remains a parallel track.
+Continue offline tests and authoring improvements while live access is unavailable, keeping compatibility unverified. After the first validated trip, prioritize shared cooldowns, richer support rules and trace-derived trip metrics. Spatial combat still depends on richer perception.
 
 ## Primary sources
 

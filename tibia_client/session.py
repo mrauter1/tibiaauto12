@@ -133,6 +133,7 @@ class _FeatureRecord:
     paused: bool = False
     paused_at: float | None = None
     transition: str | None = None
+    command_dispatch_holds: int = 0
 
 
 @dataclass(frozen=True)
@@ -261,6 +262,7 @@ class ClientSession:
         self._last_action: ActionDiagnostic | None = None
         self._last_result: ResultDiagnostic | None = None
         self._preview_frame: Frame | None = None
+        self._preview_frame_id: int | None = None
         self._failure_reasons: deque[str] = deque(maxlen=16)
 
     def _now(self) -> float:
@@ -502,10 +504,15 @@ class ClientSession:
             value = value()
         return "live" if value == "live" else "simulation"
 
-    def preview_frame(self) -> Frame | None:
+    def preview_frame(self, *, expected_frame_id: int | None = None) -> Frame | None:
         """Return the last immutable successful frame without triggering capture."""
 
         with self._lock:
+            if expected_frame_id is not None:
+                if type(expected_frame_id) is not int or expected_frame_id < 0:
+                    raise ValueError("expected_frame_id must be a non-negative integer")
+                if expected_frame_id != self._preview_frame_id:
+                    return None
             return self._preview_frame
 
     def feature_status(self, name: str) -> FeatureStatus:
@@ -569,7 +576,21 @@ class ClientSession:
                             self._recorder_error = exc
             return event
 
-    def start_feature(self, feature: Feature) -> int:
+    @property
+    def control_epoch(self) -> int:
+        """Cancellation revision for multi-stage, explicitly requested starts."""
+        with self._lock:
+            return self._stop_epoch
+
+    def _check_control_epoch(self, expected: int | None) -> None:
+        # Caller holds the registry lock; bool is not a revision number.
+        if expected is not None:
+            if type(expected) is not int or expected < 0:
+                raise ValueError("expected_stop_epoch must be a non-negative integer")
+            if expected != self._stop_epoch:
+                raise RuntimeError("client controls changed while the operation was preparing; start again")
+
+    def start_feature(self, feature: Feature, *, expected_stop_epoch: int | None = None) -> int:
         self._guard_recorder_reentry("start or replace a feature")
         if self._is_probe(feature):
             raise ValueError("ProbeFeature must be started with start_probe()")
@@ -588,6 +609,7 @@ class ClientSession:
         # Probe exclusivity is a lifecycle invariant and takes precedence over
         # ordinary profile-gate reporting.
         with self._lock:
+            self._check_control_epoch(expected_stop_epoch)
             if self._closed:
                 detail = f": {self._closed_reason}" if self._closed_reason else ""
                 raise RuntimeError(f"client session is closed{detail}")
@@ -653,7 +675,99 @@ class ClientSession:
                             )
                     return self._start_feature(feature, stop_epoch=stop_epoch)
 
-    def start_probe(self, feature: Feature) -> int:
+    def configure_visual_profile(
+        self, profile: object, *, expected_stop_epoch: int | None = None
+    ) -> int:
+        """Install an immutable detector registry only while the session is idle.
+
+        This boundary never captures or sends input. A concurrent start that
+        already evaluated the old registry cannot commit after this change.
+        """
+        self._guard_recorder_reentry("configure visual observations")
+        with self._lock:
+            self._check_control_epoch(expected_stop_epoch)
+            if self._closed or self._stopping_all:
+                raise RuntimeError("client session is closed or stopping")
+            entry_epoch = self._stop_epoch
+        if not self._tick_lock.acquire(timeout=self._CALLBACK_QUIESCE_TIMEOUT):
+            raise TimeoutError("wait for the current client operation before changing detectors")
+        try:
+            with self._lifecycle_lock:
+                with self._lock:
+                    self._check_control_epoch(entry_epoch)
+                    if self._closed or self._stopping_all:
+                        raise RuntimeError("client session is closed or stopping")
+                    if any(record.active for record in self._records.values()):
+                        raise RuntimeError("stop all features before changing visual detectors")
+                    configure = getattr(self._adapter, "configure_visual_profile", None)
+                    if not callable(configure):
+                        raise RuntimeError("this client adapter does not support visual profiles")
+                    configure(profile)
+                    self._stop_epoch += 1
+                    self._epoch += 1
+                    self._snapshot = Snapshot(epoch=self._epoch, created_at=self._now())
+                    self._preview_frame = None
+                    self._ready = False
+                    self._ready_started_at = None
+                    return self._stop_epoch
+        finally:
+            self._tick_lock.release()
+
+    def feature_command(
+        self, name: str, generation: int, command: str, **options: Any
+    ) -> bool:
+        """Apply a bounded operator intent to its original feature generation."""
+        self._guard_recorder_reentry("change a feature's operator intent")
+        if type(generation) is not int or generation < 0:
+            raise ValueError("generation must be a non-negative integer")
+        if command not in {
+            "request_return", "acknowledge_manual", "request_recheck", "select_recovery_anchor"
+        }:
+            raise ValueError("unsupported feature command")
+        with self._lock:
+            record = self._records.get(name)
+            if (self._closed or self._stopping_all or record is None
+                    or not record.active or record.generation != generation
+                    or record.transition is not None or record.cancelled.is_set()):
+                return False
+            hold_dispatch = command == "request_return" and options.get("now") is True
+            if hold_dispatch:
+                # Publish before waiting for a running tick. Queued input must
+                # not slip through while the immediate-return command waits.
+                record.command_dispatch_holds += 1
+        # Commands must land between scheduler steps. Otherwise a tick that
+        # already collected its due policies could dispatch old queued input
+        # after accepting an immediate-return intent. Keep the same lock order
+        # as tick_once: scheduler first, then the feature callback barrier.
+        acquired = False
+        try:
+            acquired = self._tick_lock.acquire(timeout=self._CALLBACK_QUIESCE_TIMEOUT)
+            if not acquired:
+                raise RuntimeError("client is still completing a scheduler step; retry the command")
+            with self._callback_barrier(record, command):
+                with self._lock:
+                    if (self._closed or self._stopping_all or self._records.get(name) is not record
+                            or not record.active or record.generation != generation
+                            or record.transition is not None or record.cancelled.is_set()):
+                        return False
+                callback = getattr(record.feature, command, None)
+                if not callable(callback):
+                    raise ValueError(f"feature does not support {command}")
+                result = callback(**options)
+                if result is not False:
+                    with self._lock:
+                        # Re-evaluate before any subsequent dispatch, even if
+                        # the ordinary feature polling interval has not elapsed.
+                        record.next_due = min(record.next_due, self._last_now)
+                return result is not False
+        finally:
+            if hold_dispatch:
+                with self._lock:
+                    record.command_dispatch_holds -= 1
+            if acquired:
+                self._tick_lock.release()
+
+    def start_probe(self, feature: Feature, *, expected_stop_epoch: int | None = None) -> int:
         """Start the one concrete compatibility probe in exclusive mode."""
 
         self._guard_recorder_reentry("start a compatibility probe")
@@ -664,6 +778,7 @@ class ClientSession:
         if type(feature) is not ProbeFeature:
             raise TypeError("start_probe() requires tibia_client.compatibility.ProbeFeature")
         with self._lock:
+            self._check_control_epoch(expected_stop_epoch)
             if self._closed:
                 raise RuntimeError("client session is closed")
             if self._stopping_all:
@@ -982,7 +1097,10 @@ class ClientSession:
                     self._terminal(
                         item, ResultState.CANCELLED, now, "navigation paused", deliver=False
                     )
-                self._call_feature_hook(record.feature, "on_pause", at=now)
+                self._call_feature_hook(
+                    record.feature, "on_pause", at=now,
+                    cancelled_before_dispatch=tuple(item.request.key for item in removed),
+                )
         except Exception:
             with self._lock:
                 if self._records.get(record.name) is record and record.active:
@@ -1089,7 +1207,7 @@ class ClientSession:
         return True
 
     @staticmethod
-    def _call_feature_hook(feature: Feature, name: str, **metadata: float) -> None:
+    def _call_feature_hook(feature: Feature, name: str, **metadata: Any) -> None:
         """Invoke an optional hook, supplying only metadata it opts into."""
 
         callback = getattr(feature, name, None)
@@ -1415,7 +1533,7 @@ class ClientSession:
                         )
                     observations[sensor] = Observation(
                         sensor, reading.value, observed_at, frame_id, epoch,
-                        reading.quality, reading.detail,
+                        reading.quality, reading.detail, reading.diagnostics,
                     )
             for sensor in watched.difference(observations):
                 previous = previous_snapshot.observations.get(sensor)
@@ -1455,6 +1573,7 @@ class ClientSession:
                 # ObservationBatch.frame is contractually an immutable Frame;
                 # avoid importing desktop perception in the headless SDK path.
                 self._preview_frame = batch.frame
+                self._preview_frame_id = frame_id if batch.frame is not None else None
         except Exception as exc:
             self._fatal(exc, now)
             return False
@@ -1849,6 +1968,8 @@ class ClientSession:
             or record.generation != item.generation
         ):
             return "owner generation is inactive"
+        if record.command_dispatch_holds:
+            return "immediate-return command is awaiting policy evaluation"
         if now > item.deadline:
             return "request ttl expired"
         for binding in item.bindings:

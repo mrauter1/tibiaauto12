@@ -143,6 +143,17 @@ def OpenHuntConsole():
     return HuntConsole(_active_root.windowID, get_client(), _profile_controller)
 
 
+def OpenHuntWorkflow():
+    from modules.HuntWorkflow import HuntWorkflow
+    from tibia_client.hunt_workflow import HuntWorkflowController
+
+    controller = getattr(_active_root, "hunt_workflow_controller", None)
+    if controller is None:
+        controller = HuntWorkflowController(get_client(), _profile_filename, _profile_controller)
+        _active_root.hunt_workflow_controller = controller
+    return HuntWorkflow(_active_root.windowID, controller)
+
+
 class root:
     def __init__(self, CharName, LoadedJson):
         global _active_root, _profile_controller, _profile_filename
@@ -177,7 +188,6 @@ class root:
             ("Creature Info", [147, 188]),
             ("Monsters", [245, 188]),
             ("Show Map", [147, 290]),
-            ("Adjust Config", [147, 366]),
             ("Modules", [245, 366]),
             ("Python Scripts", [245, 392]),
         )
@@ -197,6 +207,7 @@ class root:
         self.root.addButton("Test client", OpenCompatibility, [92, 23], [147, 340])
         self.root.addButton("Trace viewer", OpenTraceViewer, [92, 23], [245, 340])
         self.root.addButton("Hunt Console", OpenHuntConsole, [213, 23], [134, 426])
+        self.root.addButton("Hunt workflow", OpenHuntWorkflow, [92, 23], [147, 366])
 
         import tkinter as tk
         from modules.HuntConsole import run_control

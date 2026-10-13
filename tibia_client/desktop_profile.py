@@ -54,6 +54,13 @@ class DesktopProfileController:
         self._reason = "Open Compatibility Test to create and verify a desktop profile"
         self.reload()
 
+    def set_adapter_capabilities(self, capabilities: AdapterCapabilities) -> None:
+        """Refresh implementation support without promoting any live evidence."""
+        if not isinstance(capabilities, AdapterCapabilities):
+            raise TypeError("capabilities must be AdapterCapabilities")
+        with self._lock:
+            self._capabilities = capabilities
+
     def current_context(self, environment: EnvironmentMetadata) -> DesktopContext:
         """Build profile metadata with the currently measured input geometry."""
         with self._lock:
@@ -180,7 +187,16 @@ class DesktopProfileController:
         operations = method()
         if not isinstance(operations, tuple):
             return ActivationCheck(False, ("feature required_operations() must return a tuple",))
-        return self.check(operations)
+        with self._lock:
+            expected = getattr(feature, "desktop_context_fingerprint", None)
+            if expected is not None and (
+                not isinstance(expected, str) or not expected
+                or self.context is None or self.context.fingerprint != expected
+            ):
+                return ActivationCheck(False, (
+                    "workflow desktop context changed; validate and start it again",
+                ))
+            return self.check(operations)
 
     def status(self):
         with self._lock:

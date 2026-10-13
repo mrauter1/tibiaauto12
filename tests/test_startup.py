@@ -241,6 +241,11 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
     monkeypatch.setattr(gui_module.GUI, "loop", lambda self: None)
 
     import modules.Root as root_module
+    import modules.CaveBot as cavebot_module
+    # Full Tk event processing exercises scheduled hotkey polls too. Keep this
+    # GUI-only test independent of native global hooks on headless CI desktops.
+    monkeypatch.setattr(root_module, "poll_hotkey", lambda _key: False)
+    monkeypatch.setattr(cavebot_module, "poll_hotkey", lambda _key: False)
     try:
         root_module.root("Smoke Client", "Smoke.json")
         support_windows = (
@@ -275,6 +280,29 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         root_module.OpenCompatibility()
         root_module.OpenTraceViewer()
         root_module.OpenHuntConsole()
+        workflow = root_module.OpenHuntWorkflow()
+        workflow.data["bindings"] = {
+            "first": {"name": "first_detector", "region": [1, 2, 10, 12]},
+            "second": {"name": "second_detector", "region": [10, 2, 20, 12]},
+        }
+        workflow._load_into_editor()
+        workflow.binding_tree.selection_set("first")
+        workflow._select_binding()
+        workflow.binding_vars["name"].set("edited_detector")
+        workflow.binding_tree.selection_set("second")
+        workflow._select_binding()
+        # Process real queued TreeviewSelect events: duplicate notifications
+        # must not overwrite the just-committed edit or reset the new form.
+        gui_module.application_root().update()
+        assert workflow.data["bindings"]["first"]["name"] == "edited_detector"
+        assert workflow.binding_vars["id"].get() == "second"
+        workflow._remove_binding()
+        workflow._collect_structured()
+        gui_module.application_root().update()
+        assert "second" not in workflow.data["bindings"]
+        assert workflow.binding_vars["id"].get() == ""
+        workflow.close()
+        assert root_module.OpenHuntWorkflow() is workflow
         gui_module.application_root().update_idletasks()
     finally:
         from tibia_client.application import close_client

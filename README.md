@@ -21,7 +21,7 @@ python -m venv .venv
 2. A separate capture window must show the same content at the same client-area size, without scaling, letterboxing, or cropping. Equal dimensions are necessary, but do not prove that pixels and input coordinates align.
 3. Create or load a calibration profile. Older profiles require **Recalibrate existing profile** once to bind their geometry to the configured capture dimensions. Failed calibration preserves the previous profile. Resizing the client requires recalibration.
 4. Open a module, review its settings, and start it explicitly. Physical-input mode waits for the selected game window to have focus and never steals focus. Window-message mode checks that its target is ready.
-5. Stop a feature before changing its settings. Closing a feature window stops that feature before saving its settings. Closing the application closes the shared client session and its adapter.
+5. Stop a feature before changing its settings. Closing a standalone feature window stops that feature before saving its settings. The Hunt workflow panel hides on close and preserves its draft and running workflow; use **Stop workflow** or **STOP ALL** to stop it. Closing the application closes the shared client session and its adapter.
 
 Capture, readiness, invalid geometry, stale evidence, and adapter errors fail closed and appear in feature status. A native OS call cannot always be interrupted after it has entered the operating system; capture and input boundaries use bounded waits and do not respond to uncertainty with speculative actions.
 
@@ -35,10 +35,14 @@ Capture, readiness, invalid geometry, stale evidence, and adapter errors fail cl
 | Timed spells | Monotonic deadlines, configured spacing, and no catch-up burst |
 | CaveBot | Walk routes, ordered target priorities, follow toggle, stand duration, bounded marker/arrival/combat waits, pause control, and optional bounded loot |
 | Route editor | Validated save/load, legacy route import, stable waypoint IDs, and a separate fingerprinted resume checkpoint |
+| Hunt workflow | Ordered outbound/return segments, observed supply thresholds, guarded deposit/sell/refill actions, bounded refill loops, and restart reconciliation |
+| Visual inventory | Locally configured container/item templates and digit counts, explicit unknown/ambiguous results, and confirmed loot transfers |
 
 CaveBot is now a nonblocking SDK feature. Navigation, combat, follow, and loot advance through short ticks and submit individual requests to the shared scheduler. This lets higher-priority support and healing requests run between CaveBot actions. It does not interrupt a native call that is already executing, and priority alone is not proof of a real-client safety guarantee.
 
-Rope/Shovel execution, depot/refill, fishing, reconnect/login, and other unfinished legacy modules are unavailable. Source files that only opened unimplemented placeholder windows have been retired; their disabled **N/A** labels remain in the main window so the UI does not imply that those features work. Loot remains a bounded target-count-drop heuristic over calibrated surrounding tiles; it is not corpse recognition. Disable it when that heuristic is inappropriate.
+The **Hunt workflow** window composes existing routes with visually guarded actions for one configured client layout. Its supply, container and item detectors require locally captured templates; no bundled detector is claimed to work with an untested client. See the [workflow setup guide](docs/hunt-workflow.md). Failed or ambiguous inventory actions require fresh evidence or an explicit operator reconciliation before progress continues.
+
+The standalone CaveBot retains its optional bounded target-count-drop loot heuristic over calibrated surrounding tiles; that legacy option is not corpse recognition. The new workflow disables that heuristic and offers a separate recognized-container transfer policy. Generic Rope/Shovel waypoint execution, fishing and reconnect/login remain unavailable. Travel interactions can instead be configured between finite route segments with their own visual postconditions. Retired placeholder modules remain disabled in the launcher.
 
 The health and mana reader retains the existing 100-pixel bar calibration and five-percent steps. A missing or unreadable fill is unknown rather than zero. It does not infer death or reliably distinguish a truly empty bar from failed observation.
 
@@ -87,6 +91,9 @@ A scheduler tick collects the sensors needed by due features, asks the adapter f
 | `configure_client`, `get_client`, `close_client` | `tibia_client/application.py` | Composition root and the single UI-owned session |
 | Support features | `features/support.py` | Healing, mana, haste, food, equipment, and timed-spell decisions |
 | CaveBot feature | `features/cavebot.py` | Nonblocking route, combat, follow, and loot state machine |
+| Hunt lifecycle | `features/hunt_cycle.py`, `tibia_client/hunt_plan.py` | Versioned plans, supply policies, finite travel, guarded interactions and restart reconciliation |
+| Visual observations | `tibia_client/visual.py` | Immutable template registry, guarded presence/count readings and pixel fingerprints |
+| Workflow controller | `tibia_client/hunt_workflow.py` | Local configuration, detector inspection and generation-bound operator controls |
 | Routes and checkpoints | `engine/CaveBot/routes.py` | Immutable definitions, validation, legacy import, and progress persistence |
 | `JsonlRecorder`, `ReplayAdapter`, `replay_policies` | `tibia_client/trace.py` | Bounded diagnostics, virtual runtime scenarios, and exact policy comparison |
 
@@ -149,7 +156,7 @@ The [feature roadmap](docs/feature-roadmap.md) targets OT servers using the offi
 
 ### Desktop testing and Hunt Studio
 
-The launcher now provides **Test client**, **Hunt Console**, **Trace viewer** and
+The launcher now provides **Test client**, **Hunt Console**, **Hunt workflow**, **Trace viewer** and
 **STOP ALL**. Automation requires a matching compatibility profile and a fresh
 current-window binding check; installing this update does not mark an existing
 client configuration verified. Follow the [desktop compatibility guide](docs/desktop-compatibility.md).
