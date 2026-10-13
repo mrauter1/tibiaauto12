@@ -821,7 +821,9 @@ class HuntCycleFeature:
                 return self._step()
             below = [supply for supply in self.plan.supplies if self._supply_counts[supply.id] is not None and self._supply_counts[supply.id] < supply.refill_to]
             if below:
-                if self._refill_round >= self.plan.max_refill_rounds:
+                # The persisted counter is the zero-based current pass. The
+                # limit includes the pass that has just completed.
+                if self._refill_round + 1 >= self.plan.max_refill_rounds:
                     return self._manual("refill_target_not_reached")
                 self._refill_round += 1
                 self._action_index = 0
@@ -843,6 +845,13 @@ class HuntCycleFeature:
         action = self._current_action()
         if action is None:
             return self._finish_action_phase(context)
+        if (
+            self._phase is CyclePhase.REFILL
+            and self._refill_round >= self.plan.max_refill_rounds
+        ):
+            # Older checkpoints may have entered the extra pass. Pending
+            # effects reconcile before this point; do not send further input.
+            return self._manual("refill_round_limit_reached")
         return self._dispatch_action(context, action)
 
     def _tick_route(self, context: FeatureContext) -> Step:

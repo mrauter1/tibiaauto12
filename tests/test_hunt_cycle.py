@@ -1,4 +1,5 @@
 import json
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -103,8 +104,8 @@ def result(request, at, state=ResultState.EXECUTED):
     return ActionResult(f"r-{at}", "CaveBot", request.key, state, at)
 
 
-def make_feature(tmp_path=None, *, loot=False, resume=False):
-    value = plan(loot=loot)
+def make_feature(tmp_path=None, *, loot=False, resume=False, max_refill_rounds=10):
+    value = replace(plan(loot=loot), max_refill_rounds=max_refill_rounds)
     return HuntCycleFeature(
         value,
         bindings(value),
@@ -202,6 +203,123 @@ def test_complete_cycle_refills_incrementally_and_resumes_outbound():
     assert feature.status.phase == "outbound_before"
     assert feature.status.cycle_count == 1
     assert feature.status.supply_counts["mana_potions"] == 12
+
+
+@pytest.mark.parametrize("limit", [1, 2])
+@pytest.mark.parametrize("reach_target", [False, True])
+def test_refill_limit_includes_first_pass_and_allows_success_on_last(limit, reach_target):
+    feature = make_feature(max_refill_rounds=limit)
+    feature._enter(CyclePhase.SELL, "test")
+    visual = {"detector_mana_potions": {"present": True, "position": (1, 1), "count": 3}}
+    purchases = []
+    for frame in range(1, 20):
+        now = frame * 0.2
+        step = feature.tick(context(feature, frame, now, visual))
+        for request in step.requests:
+            purchases.append(request.action.key)
+            feature.on_result(result(request, now))
+            visual["detector_mana_potions"]["count"] += 1
+            if reach_target and len(purchases) == limit:
+                visual["detector_mana_potions"]["count"] = 10
+        if feature.status.manual_required or feature.status.phase == "outbound_before":
+            break
+    assert purchases == ["F2"] * limit
+    if reach_target:
+        assert feature.status.phase == "outbound_before"
+        assert feature.status.cycle_count == 1
+        assert feature.status.refill_round == 0
+    else:
+        assert feature.status.manual_reason == "refill_target_not_reached"
+
+
+@pytest.mark.parametrize("restart_at", ["between_passes", "pending", "confirmed"])
+def test_refill_checkpoint_resume_preserves_pass_budget(tmp_path, restart_at):
+    feature = make_feature(tmp_path, max_refill_rounds=2)
+    feature._enter(CyclePhase.REFILL, "test")
+    visual = {"detector_mana_potions": {"present": True, "position": (1, 1), "count": 3}}
+    purchases, restarted = [], False
+    for frame in range(1, 25):
+        now = frame * 0.2
+        step = feature.tick(context(feature, frame, now, visual))
+        for request in step.requests:
+            purchases.append(request.action.key)
+            feature.on_result(result(request, now))
+            visual["detector_mana_potions"]["count"] += 1
+        checkpoint_ready = {
+            "between_passes": feature.status.reason == "refill_target_pending",
+            "pending": len(purchases) == 2 and bool(step.requests),
+            "confirmed": len(purchases) == 2 and feature.status.reason == "machine_confirmed",
+        }[restart_at]
+        if checkpoint_ready and not restarted:
+            saved = json.loads((tmp_path / "hunt.state.json").read_text())
+            assert saved["refill_round"] == 1
+            feature = make_feature(tmp_path, resume=True, max_refill_rounds=2)
+            restarted = True
+        if feature.status.manual_required:
+            break
+    assert restarted
+    assert purchases == ["F2", "F2"]
+    assert feature.status.manual_reason == "refill_target_not_reached"
+
+
+def test_refill_limit_waits_for_known_counts_without_repeating_the_pass():
+    feature = make_feature(max_refill_rounds=1)
+    feature._enter(CyclePhase.REFILL, "test")
+    visual = {"detector_mana_potions": {"present": True, "position": (1, 1), "count": 3}}
+    request = feature.tick(context(feature, 1, 0, visual)).requests[0]
+    feature.on_result(result(request, 0))
+    visual["detector_mana_potions"]["count"] = 4
+    feature.tick(context(feature, 2, 0.2, visual))
+    for frame in range(3, 6):
+        step = feature.tick(context(feature, frame, frame * 0.2, visual, unknown=("detector_mana_potions",)))
+        assert not step.requests
+        assert feature.status.reason == "waiting_for_supply_counts"
+    assert not feature.tick(context(feature, 6, 1.2, visual)).requests
+    assert feature.status.manual_reason == "refill_target_not_reached"
+
+
+def test_refill_pass_limit_preserves_guarded_action_retries():
+    feature = make_feature(max_refill_rounds=1)
+    feature._enter(CyclePhase.REFILL, "test")
+    visual = {"detector_mana_potions": {"present": True, "position": (1, 1), "count": 3}}
+    first = feature.tick(context(feature, 1, 0, visual)).requests[0]
+    feature.on_result(result(first, 0))
+    retry = feature.tick(context(feature, 2, 2.1, visual)).requests[0]
+    assert retry.action.key == "F2"
+    feature.on_result(result(retry, 2.1))
+    visual["detector_mana_potions"]["count"] = 4
+    assert not feature.tick(context(feature, 3, 2.3, visual)).requests
+    assert not feature.tick(context(feature, 4, 2.5, visual)).requests
+    assert feature.status.manual_reason == "refill_target_not_reached"
+
+
+@pytest.mark.parametrize("pending", [False, True])
+def test_legacy_checkpoint_in_extra_refill_pass_cannot_send_more_input(tmp_path, pending):
+    feature = make_feature(tmp_path, max_refill_rounds=1)
+    feature._enter(CyclePhase.REFILL, "test")
+    visual = {"detector_mana_potions": {"present": True, "position": (1, 1), "count": 3}}
+    if pending:
+        request = feature.tick(context(feature, 1, 0, visual)).requests[0]
+        feature.on_result(result(request, 0))
+        visual["detector_mana_potions"]["count"] = 4
+    # Old v1 writers could persist round == limit after starting an extra pass.
+    path = tmp_path / "hunt.state.json"
+    checkpoint = json.loads(path.read_text())
+    checkpoint["refill_round"] = 1
+    path.write_text(json.dumps(checkpoint))
+    resumed = make_feature(tmp_path, resume=True, max_refill_rounds=1)
+    reasons = []
+    for frame in range(2, 8):
+        step = resumed.tick(context(resumed, frame, frame * 0.2, visual))
+        assert not step.requests
+        reasons.append(resumed.status.reason)
+        if resumed.status.manual_required:
+            break
+    if pending:
+        assert "machine_confirmed_after_resume" in reasons
+        assert resumed.status.manual_reason == "refill_target_not_reached"
+    else:
+        assert resumed.status.manual_reason == "refill_round_limit_reached"
 
 
 def test_unknown_and_stale_visuals_never_authorize_input():
