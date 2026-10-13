@@ -181,6 +181,7 @@ class CaveBotFeature:
         self._loot_cursor = 0
         self._loot_started: float | None = None
         self._after_loot = "combat"
+        self._pre_pause_status: CaveBotStatus | None = None
 
     @staticmethod
     def _region(region: Iterable[int], name: str) -> tuple[int, ...]:
@@ -237,6 +238,36 @@ class CaveBotFeature:
         if self.config.follow:
             sensors.append(Sensor(SensorKind.FOLLOW))
         return tuple(sensors)
+
+    def required_operations(self) -> tuple[str, ...]:
+        if not self.route.waypoints:
+            return ()
+        operations: list[str] = []
+        if self.route.waypoints or (self.targets and self.config.follow):
+            operations.append("left_click")
+        if self.targets:
+            operations.append("battle_list_click")
+        if self.config.loot and self.loot_points:
+            operation = "right_click" if self.config.loot_button == "right" else "left_click"
+            if operation not in operations:
+                operations.append(operation)
+        return tuple(operations)
+
+    def on_pause(self) -> None:
+        """Discard any old request intent while retaining route progress."""
+
+        if self._pre_pause_status is None:
+            self._pre_pause_status = self._status
+        self._pending = None
+        self._set_status("Paused", "navigation_paused")
+
+    def on_resume(self) -> None:
+        """Restore the policy phase; the session supplies a fresh observation."""
+
+        previous = self._pre_pause_status
+        self._pre_pause_status = None
+        if previous is not None:
+            self._status = previous
 
     def _set_status(self, phase: str, reason: str, **changes: Any) -> None:
         self._status = replace(self._status, phase=phase, reason=reason, **changes)

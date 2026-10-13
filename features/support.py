@@ -36,6 +36,15 @@ def _hotkey(value: str) -> str:
     return value
 
 
+def _press_operations(hotkeys: Sequence[str]) -> tuple[str, ...]:
+    operations: list[str] = []
+    for hotkey in hotkeys:
+        operation = "modified_press" if "+" in hotkey else "press"
+        if operation not in operations:
+            operations.append(operation)
+    return tuple(operations)
+
+
 def _point(value: tuple[int, int], label: str) -> tuple[int, int]:
     try:
         point = tuple(value)
@@ -172,6 +181,9 @@ class _ThresholdFeature(_ActionFeature):
     def sensors(self) -> tuple[Sensor, ...]:
         return (self.sensor,)
 
+    def required_operations(self) -> tuple[str, ...]:
+        return _press_operations(tuple(rule.hotkey for rule in self.rules if rule.enabled))
+
     def tick(self, context: FeatureContext) -> Step:
         value = _percentage(self._read(context, self.sensor, self.sensor_kind.value), self.name)
         rule = choose_threshold(value, self.rules)
@@ -216,6 +228,9 @@ class _StatusFeature(_ActionFeature):
 
     def sensors(self) -> tuple[Sensor, ...]:
         return (self.sensor,)
+
+    def required_operations(self) -> tuple[str, ...]:
+        return _press_operations((self.hotkey,))
 
     def tick(self, context: FeatureContext) -> Step:
         value = _flag(self._read(context, self.sensor, self.sensor_kind.value), self.name)
@@ -300,6 +315,11 @@ class EquipmentFeature(_ActionFeature):
             return (self.empty_sensor,)
         return (self.empty_sensor, self.health_sensor)
 
+    def required_operations(self) -> tuple[str, ...]:
+        if self.hotkey is not None:
+            return _press_operations((self.hotkey,))
+        return ("drag",)
+
     def tick(self, context: FeatureContext) -> Step:
         empty = _flag(
             self._read(context, self.empty_sensor, "equipment slot"),
@@ -369,6 +389,9 @@ class TimedSpellsFeature(_ActionFeature):
 
     def sensors(self) -> tuple[Sensor, ...]:
         return ()
+
+    def required_operations(self) -> tuple[str, ...]:
+        return _press_operations(tuple(spell.hotkey for spell in self.spells))
 
     def tick(self, context: FeatureContext) -> Step:
         if self._deadlines is None:

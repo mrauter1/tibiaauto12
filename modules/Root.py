@@ -5,7 +5,9 @@ from __future__ import annotations
 from conf.conf_manager import ConfManager
 from core.Getters import validate_calibration
 from core.GUI import GUI, shutdown
-from tibia_client.application import close_client, configure_client
+from tibia_client.application import (
+    close_client, configure_client, get_client, poll_hotkey, set_compatibility_provider,
+)
 
 MOUSE_OPTION = None
 ItemsSquare = 32
@@ -23,6 +25,8 @@ AmuletPositions = [0, 0, 0, 0]
 SQMs = [0] * 18
 MainPath = ItemsPath = ChestsPath = ContainersNamePath = CavebotScriptsPath = None
 _active_root = None
+_profile_controller = None
+_profile_filename = None
 
 
 def _values(data, group, name, keys):
@@ -123,11 +127,35 @@ def OpenTimedSpells():
     return _open("modules.TimedSpells", "TimedSpells", _active_root, MOUSE_OPTION)
 
 
+def OpenCompatibility():
+    from modules.Compatibility import Compatibility
+    return Compatibility(_active_root.windowID, get_client(), _profile_filename,
+                         controller=_profile_controller)
+
+
+def OpenTraceViewer():
+    from modules.TraceViewer import TraceViewer
+    return TraceViewer(_active_root.windowID, session=get_client())
+
+
+def OpenHuntConsole():
+    from modules.HuntConsole import HuntConsole
+    return HuntConsole(_active_root.windowID, get_client(), _profile_controller)
+
+
 class root:
     def __init__(self, CharName, LoadedJson):
-        global _active_root
+        global _active_root, _profile_controller, _profile_filename
         load_profile(LoadedJson)
-        configure_client(MOUSE_OPTION)
+        from tibia_client.desktop import DesktopAdapter
+        from tibia_client.desktop_profile import DesktopProfileController
+
+        adapter = DesktopAdapter(MOUSE_OPTION)
+        controller = DesktopProfileController(LoadedJson,
+            input_size=adapter.hotkey.MainWindowSize, capabilities=adapter.capabilities())
+        configure_client(MOUSE_OPTION, adapter=adapter, activation_guard=controller)
+        set_compatibility_provider(controller.status)
+        _profile_controller, _profile_filename = controller, LoadedJson
         self.root = GUI("root", "TibiaAuto V12")
         self.root.MainWindow("Main", [357, 530], [2, 2.36])
         self.root.deiconify()
@@ -149,8 +177,6 @@ class root:
             ("Creature Info", [147, 188]),
             ("Monsters", [245, 188]),
             ("Show Map", [147, 290]),
-            ("Load Config", [147, 340]),
-            ("Save Config", [245, 340]),
             ("Adjust Config", [147, 366]),
             ("Modules", [245, 366]),
             ("Python Scripts", [245, 392]),
@@ -168,11 +194,49 @@ class root:
         self.root.addButton("Auto Ring", OpenAutoRing, [92, 23], [245, 108])
         self.root.addButton("Timed Spells", OpenTimedSpells, [92, 23], [147, 135])
         self.root.addButton("Cave Bot", OpenCaveBot, [92, 23], [245, 290])
-        self.root.addButton("General Options (N/A)", lambda: None, [213, 23], [134, 426]).configure(
-            state="disabled"
-        )
+        self.root.addButton("Test client", OpenCompatibility, [92, 23], [147, 340])
+        self.root.addButton("Trace viewer", OpenTraceViewer, [92, 23], [245, 340])
+        self.root.addButton("Hunt Console", OpenHuntConsole, [213, 23], [134, 426])
+
+        import tkinter as tk
+        from modules.HuntConsole import run_control
+        self._stopping = False
+        self._closing = False
+        self._stop_latched = False
+        self.control_status = tk.StringVar(value="Stop shortcut: Ctrl+Shift+F12")
+        tk.Label(self.root.windowID, textvariable=self.control_status, bg="black", fg="white",
+                 wraplength=330).place(x=12, y=459, width=335, height=34)
+
+        def stop_all():
+            if self._stopping or self._closing:
+                return
+            self._stopping = True
+            self.control_status.set("Stopping all automation…")
+            def done(_value, error):
+                self._stopping = False
+                self.control_status.set(f"Stop failed: {error}" if error else "Stopped. Restart modules explicitly.")
+            run_control(self.root.windowID, lambda: get_client().stop_all("operator Stop All"), done)
+
+        self.root.addButton("STOP ALL", stop_all, [213, 23], [134, 498])
+
+        def poll_stop():
+            if self._closing:
+                return
+            try:
+                pressed = poll_hotkey("ctrl+shift+f12")
+                if pressed and not self._stop_latched:
+                    stop_all()
+                self._stop_latched = pressed
+            except Exception:
+                # A missing global keyboard hook must not disable the visible Stop button.
+                self.control_status.set("Global stop shortcut unavailable; use STOP ALL.")
+                return
+            self.root.windowID.after(100, poll_stop)
+
+        self.root.windowID.after(100, poll_stop)
 
         def close():
+            self._closing = True
             try:
                 close_client()
             finally:

@@ -1,8 +1,8 @@
 # Feature roadmap: from CaveBot to a complete hunting assistant
 
-Research date: **2026-10-12**. Roadmap revised: **2026-10-12 (America/Sao_Paulo)**. Reviewed repository: **`01699e7`**; runtime-code baseline: **`f4c8212`**, on `reliability/client-foundation`.
+Research date: **2026-10-12**. Roadmap implementation update: **2026-10-13 (UTC)**. Research baseline: **`01699e7`**; runtime-code baseline: **`f4c8212`**, on `reliability/client-foundation`.
 
-**Status: product and engineering proposal, not implemented functionality.** This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
+**Status: M0 software and M1 authoring/inspection tools implemented; environment-specific live validation and later milestones remain open.** This roadmap compares public primary documentation and selected source files. It does not establish a performance ranking or verify any competitor against a live client.
 
 ## Product direction
 
@@ -38,7 +38,7 @@ These are complementary references, not interchangeable products. Features docum
 
 The recurring lesson is that value comes from connecting modules. A supply threshold should select the return route; arrival should enable a confirmed shop interaction; replenishment should enable the trip back. Merely adding a refill button does not complete that experience.
 
-## Starting point in this repository
+## Baseline before this implementation
 
 | Already implemented | Remaining gap |
 |---|---|
@@ -53,6 +53,25 @@ The recurring lesson is that value comes from connecting modules. A supply thres
 `ActionResult.EXECUTED` means the native call ran. It does not prove the game accepted a spell, bought an item, or changed floors. Existing marker arrival is already an observed outcome; additional workflows need similarly explicit evidence.
 
 Current observation timestamps measure the local capture operation. A frozen OBS projector can still produce newly captured screenshots, so this freshness contract does not establish upstream game-frame freshness. M0 must expose and handle that distinction.
+
+## Implementation status — 2026-10-13
+
+The M0 software workflow and M1's parallel authoring/inspection tools are now
+implemented. This is an implementation status, not a real-client compatibility
+claim: the live evidence gate below remains open for each intended environment.
+
+| Available now | Remaining validation or scope |
+|---|---|
+| Operator-started compatibility studio, captured preview, separate dispatch/confirmation records, bounded evidence export | Collect actual client/OBS operation, alignment and visible-change evidence |
+| Context-bound profiles, capability requirements and current-session window-binding gate | Verify each chosen client build, renderer, input mode and OBS configuration |
+| Shared capture health, runtime console, navigation pause/resume and Stop All | Exercise native focus, resize, capture failure and interruption scenarios |
+| Route list editing, marker preview, stable waypoint IDs, portable hunt packs and local binding | M1 movement-progress detection/recovery and richer waypoint actions remain planned |
+| Read-only filtered trace timeline, statistics and CLI inspection | Real detector fixtures and environment-specific replay cases depend on collected evidence |
+
+Start with the [desktop compatibility guide](desktop-compatibility.md), then use
+[Hunt Studio](hunt-studio.md) and the [trace tools](recording-replay.md). The M2+
+feature sequence stays gated on M0 live acceptance; offline authoring does not
+imply that supply, refill/depot, OCR or advanced combat have been implemented.
 
 ## Delivery sequence
 

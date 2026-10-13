@@ -15,10 +15,17 @@ import math
 from types import MappingProxyType
 import threading
 import time
-from typing import Any, Callable, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 import weakref
 
 from core import runtime
+from tibia_client.diagnostics import (
+    ActionDiagnostic,
+    AdapterCapabilities,
+    CaptureHealth,
+    ResultDiagnostic,
+    SessionDiagnostics,
+)
 from tibia_client.models import (
     ActionKind,
     ActionResult,
@@ -38,6 +45,9 @@ from tibia_client.models import (
     Step,
 )
 from tibia_client.ports import ClientAdapter, Clock, Feature
+
+if TYPE_CHECKING:
+    from core.perception import Frame
 
 
 _SESSION_IDS = itertools.count(1)
@@ -119,6 +129,8 @@ class _FeatureRecord:
     sensors: tuple[Sensor, ...] = ()
     cancelled: threading.Event = field(default_factory=threading.Event)
     callback_lock: threading.RLock = field(default_factory=threading.RLock)
+    paused: bool = False
+    transition: str | None = None
 
 
 @dataclass(frozen=True)
@@ -176,6 +188,7 @@ class ClientSession:
         event_history: int = 2048,
         queue_limit: int = 256,
         ready_timeout: float = 30.0,
+        activation_guard: Callable[[Feature], object] | None = None,
         autostart: bool = True,
     ) -> None:
         for method in ("ready", "observe", "execute", "close"):
@@ -188,6 +201,8 @@ class ClientSession:
             or any(callable(getattr(recorder, name, None)) for name in ("record", "append", "emit"))
         ):
             raise TypeError("recorder must be callable or provide record/append/emit")
+        if activation_guard is not None and not callable(activation_guard):
+            raise TypeError("activation_guard must be callable")
 
         self._adapter = adapter
         self._clock = clock or _SystemClock()
@@ -196,6 +211,7 @@ class ClientSession:
         self._queue_limit = _capacity(queue_limit, "queue limit")
         self._autostart = bool(autostart)
         self._recorder = recorder
+        self._activation_guard = activation_guard
 
         self._lock = threading.RLock()
         self._lifecycle_lock = threading.RLock()
@@ -228,6 +244,18 @@ class ClientSession:
         self._close_error: BaseException | None = None
         self._close_status_recorded = False
         self._recorder_error: BaseException | None = None
+        self._stopping_all = False
+        self._readiness_reason: str | None = "not checked"
+        self._profile_allowed: bool | None = None
+        self._profile_reasons: tuple[str, ...] = ()
+        self._capture_transport_ok: bool | None = None
+        self._capture_visual_valid: bool | None = None
+        self._capture_at: float | None = None
+        self._capture_reasons: tuple[str, ...] = ()
+        self._last_action: ActionDiagnostic | None = None
+        self._last_result: ResultDiagnostic | None = None
+        self._preview_frame: Frame | None = None
+        self._failure_reasons: deque[str] = deque(maxlen=16)
 
     def _now(self) -> float:
         try:
@@ -284,7 +312,7 @@ class ClientSession:
             return tuple(
                 sorted(
                     name for name, record in self._records.items()
-                    if record.active and not record.cancelled.is_set()
+                    if record.active and not record.paused and not record.cancelled.is_set()
                 )
             )
 
@@ -317,6 +345,162 @@ class ClientSession:
     def close_error(self) -> BaseException | None:
         with self._lock:
             return self._close_error
+
+    @staticmethod
+    def _is_probe(feature: object) -> bool:
+        try:
+            from tibia_client.compatibility import ProbeFeature
+        except ImportError:
+            return False
+        return type(feature) is ProbeFeature
+
+    @staticmethod
+    def _required_operations(feature: Feature) -> tuple[str, ...]:
+        callback = getattr(feature, "required_operations", None)
+        if callback is None:
+            return ()
+        if not callable(callback):
+            raise TypeError("feature.required_operations must be callable")
+        operations = callback()
+        if not isinstance(operations, tuple):
+            raise TypeError("feature.required_operations() must return a tuple")
+        if any(not isinstance(item, str) or not item.strip() for item in operations):
+            raise ValueError("required operations must be non-empty text")
+        return tuple(dict.fromkeys(item.strip() for item in operations))
+
+    def _adapter_capabilities(self) -> AdapterCapabilities:
+        callback = getattr(self._adapter, "capabilities", None)
+        if not callable(callback):
+            return AdapterCapabilities()
+        value = callback()
+        if isinstance(value, AdapterCapabilities):
+            return value
+        operations = tuple(getattr(value, "operations", ()))
+        sensors = tuple(getattr(value, "sensors", ()))
+        return AdapterCapabilities(operations, sensors)
+
+    @staticmethod
+    def _guard_result(result: object) -> tuple[bool, tuple[str, ...]]:
+        if result is None or result is True:
+            return True, ()
+        if result is False:
+            return False, ("active compatibility profile rejected this feature",)
+        if isinstance(result, str):
+            return False, (result.strip() or "active compatibility profile rejected this feature",)
+        if hasattr(result, "allowed"):
+            allowed = bool(getattr(result, "allowed"))
+            reasons = tuple(str(item) for item in getattr(result, "reasons", ()) if str(item))
+            return allowed, reasons if reasons else (() if allowed else ("profile requirements are not satisfied",))
+        try:
+            reasons = tuple(str(item) for item in result if str(item))  # type: ignore[union-attr]
+        except TypeError:
+            raise TypeError("activation_guard returned an unsupported result") from None
+        return not reasons, reasons
+
+    def _activation_reasons(
+        self, feature: Feature, *, bypass_profile: bool = False, update: bool = True
+    ) -> tuple[str, ...]:
+        required = self._required_operations(feature)
+        capabilities = self._adapter_capabilities()
+        implementation_reasons: tuple[str, ...] = ()
+        if capabilities.operations:
+            missing = tuple(op for op in required if op not in capabilities.operations)
+            implementation_reasons = tuple(
+                f"adapter does not implement required operation {op!r}" for op in missing
+            )
+        allowed = not implementation_reasons
+        reasons = implementation_reasons
+        if allowed:
+            guard: Callable[[], object] | None = None
+            label = "activation guard"
+            if bypass_profile:
+                provider = getattr(feature, "probe_context_check", None)
+                if callable(provider):
+                    guard = provider
+                    label = "probe context guard"
+            elif self._activation_guard is not None:
+                guard = lambda: self._activation_guard(feature)
+            if guard is not None:
+                try:
+                    allowed, reasons = self._guard_result(guard())
+                except Exception as exc:
+                    allowed = False
+                    reasons = (f"{label} failed: {type(exc).__name__}: {exc}",)
+        if update:
+            with self._lock:
+                self._profile_allowed = (
+                    allowed
+                    if (
+                        self._activation_guard is not None
+                        or bypass_profile
+                        or implementation_reasons
+                    )
+                    else None
+                )
+                self._profile_reasons = reasons
+                if not allowed:
+                    self._preview_frame = None
+        return () if allowed else reasons
+
+    def diagnostics(self) -> SessionDiagnostics:
+        """Return a bounded immutable view without invoking capture or input."""
+
+        try:
+            value = self._clock.monotonic()
+            now = float(value)
+            if not math.isfinite(now):
+                raise ValueError
+        except Exception:
+            with self._lock:
+                now = self._last_now
+        with self._lock:
+            captured_at = self._capture_at
+            age = None if captured_at is None else max(0.0, now - captured_at)
+            capture_reasons = self._capture_reasons
+            if self._capture_transport_ok is None:
+                capture_reasons = ("no capture has completed",)
+            active = tuple(sorted(
+                record.name for record in self._records.values()
+                if record.active and not record.paused and not record.cancelled.is_set()
+            ))
+            paused = tuple(sorted(
+                record.name for record in self._records.values()
+                if record.active and record.paused
+            ))
+            return SessionDiagnostics(
+                ready=self._ready,
+                readiness_reason=self._readiness_reason,
+                profile_allowed=self._profile_allowed,
+                profile_reasons=self._profile_reasons,
+                active_features=active,
+                paused_features=paused,
+                capture=CaptureHealth(
+                    transport_ok=self._capture_transport_ok,
+                    captured_at=captured_at,
+                    captured_age=age,
+                    visual_valid=self._capture_visual_valid,
+                    reasons=capture_reasons,
+                ),
+                last_action=self._last_action,
+                last_result=self._last_result,
+                failure_reasons=tuple(self._failure_reasons),
+                capabilities=self._adapter_capabilities(),
+                closed=self._closed,
+            )
+
+    def probe_evidence_source(self) -> str:
+        """Return live only for an adapter-authenticated native composition."""
+
+        value = getattr(self._adapter, "evidence_source", "simulation")
+        if callable(value):
+            value = value()
+        return "live" if value == "live" else "simulation"
+
+    def preview_frame(self) -> Frame | None:
+        """Return the last immutable successful frame without triggering capture."""
+
+        with self._lock:
+            return self._preview_frame
 
     def feature_status(self, name: str) -> FeatureStatus:
         if not isinstance(name, str) or not name:
@@ -381,6 +565,8 @@ class ClientSession:
 
     def start_feature(self, feature: Feature) -> int:
         self._guard_recorder_reentry("start or replace a feature")
+        if self._is_probe(feature):
+            raise ValueError("ProbeFeature must be started with start_probe()")
         name = getattr(feature, "name", None)
         if not isinstance(name, str) or not name.strip():
             raise ValueError("feature.name must be non-empty text")
@@ -393,12 +579,35 @@ class ClientSession:
             weakref.ref(feature)
         except TypeError:
             raise TypeError("feature instances must support weak references") from None
+        # Probe exclusivity is a lifecycle invariant and takes precedence over
+        # ordinary profile-gate reporting.
+        with self._lock:
+            if self._closed:
+                detail = f": {self._closed_reason}" if self._closed_reason else ""
+                raise RuntimeError(f"client session is closed{detail}")
+            if self._stopping_all:
+                raise RuntimeError("stop all automation is in progress")
+            if any(
+                record.active and self._is_probe(record.feature)
+                for record in self._records.values()
+            ):
+                raise RuntimeError("automation cannot start while a compatibility probe is active")
+        reasons = self._activation_reasons(feature)
+        if reasons:
+            raise RuntimeError("activation blocked: " + "; ".join(reasons))
 
         while True:
             with self._lock:
                 if self._closed:
                     detail = f": {self._closed_reason}" if self._closed_reason else ""
                     raise RuntimeError(f"client session is closed{detail}")
+                if self._stopping_all:
+                    raise RuntimeError("stop all automation is in progress")
+                if any(
+                    record.active and self._is_probe(record.feature)
+                    for record in self._records.values()
+                ):
+                    raise RuntimeError("automation cannot start while a compatibility probe is active")
                 previous = self._records.get(name)
                 if (
                     previous is not None
@@ -424,7 +633,39 @@ class ClientSession:
                     with self._lock:
                         if self._records.get(name) is not previous:
                             continue
+                        if self._stopping_all:
+                            raise RuntimeError("stop all automation is in progress")
+                        if any(
+                            record.active and self._is_probe(record.feature)
+                            for record in self._records.values()
+                        ):
+                            raise RuntimeError(
+                                "automation cannot start while a compatibility probe is active"
+                            )
                     return self._start_feature(feature)
+
+    def start_probe(self, feature: Feature) -> int:
+        """Start the one concrete compatibility probe in exclusive mode."""
+
+        self._guard_recorder_reentry("start a compatibility probe")
+        try:
+            from tibia_client.compatibility import ProbeFeature
+        except ImportError as exc:
+            raise RuntimeError("compatibility probe support is unavailable") from exc
+        if type(feature) is not ProbeFeature:
+            raise TypeError("start_probe() requires tibia_client.compatibility.ProbeFeature")
+        reasons = self._activation_reasons(feature, bypass_profile=True)
+        if reasons:
+            raise RuntimeError("probe activation blocked: " + "; ".join(reasons))
+        with self._lifecycle_lock:
+            with self._lock:
+                if self._closed:
+                    raise RuntimeError("client session is closed")
+                if self._stopping_all:
+                    raise RuntimeError("stop all automation is in progress")
+                if any(record.active for record in self._records.values()):
+                    raise RuntimeError("compatibility probes require all automation to be stopped")
+            return self._start_feature(feature)
 
     def _start_feature(self, feature: Feature) -> int:
         name = getattr(feature, "name", None)
@@ -559,6 +800,246 @@ class ClientSession:
             raise
         return self._invalidate_record(record, "stopped", now)
 
+    def stop_all(self, reason: str = "stopped by operator") -> tuple[str, ...]:
+        """Stop every generation without closing the reusable adapter.
+
+        Cancellation is visible to in-flight adapter calls before this method
+        waits for callbacks.  A native call already executing may return, but
+        its generation can no longer publish work or dispatch another action.
+        """
+
+        self._guard_recorder_reentry("stop all automation")
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError("stop reason must be non-empty text")
+        reason = reason.strip()
+        with self._lock:
+            if self._closed:
+                return ()
+            if self._stopping_all:
+                return ()
+            self._stopping_all = True
+            records = [record for record in self._records.values() if record.active]
+            for record in records:
+                record.cancelled.set()
+                record.phase = "Stopping"
+
+        quiescence_errors: list[str] = []
+        acquired: list[_FeatureRecord] = []
+        lifecycle_acquired = False
+        try:
+            for record in records:
+                if record.callback_lock.acquire(timeout=self._CALLBACK_QUIESCE_TIMEOUT):
+                    acquired.append(record)
+                else:
+                    quiescence_errors.append(
+                        f"{record.name} callback did not quiesce during stop all"
+                    )
+            self._lifecycle_lock.acquire()
+            lifecycle_acquired = True
+            with self._lock:
+                if self._closed:
+                    return ()
+            try:
+                now = self._now()
+            except Exception:
+                now = self._failure_time()
+            with self._lock:
+                current = [
+                    record for record in records
+                    if self._records.get(record.name) is record and record.active
+                ]
+                for record in current:
+                    record.active = False
+                    record.paused = False
+                    record.transition = None
+                    record.phase = "Stopped"
+                    record.error = None
+                removed = list(self._queue)
+                removed.extend(value.queued for value in self._confirming.values())
+                self._queue.clear()
+                self._confirming.clear()
+                self._ready = False
+                self._readiness_reason = "automation stopped; restart requires readiness"
+                self._ready_started_at = None
+                self._epoch += 1
+                self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+                self._preview_frame = None
+                if quiescence_errors:
+                    self._failure_reasons.extend(quiescence_errors)
+            for item in removed:
+                self._terminal(item, ResultState.CANCELLED, now, reason, deliver=False)
+            for record in current:
+                self._record(
+                    "status", now, record.name,
+                    status=FeatureStatus(record.name, record.generation, False, "Stopped"),
+                    reason=reason,
+                )
+            self._record(
+                "status", now,
+                status=FeatureStatus("ClientSession", 0, False, "Stopped"),
+                reason=reason,
+            )
+            return tuple(sorted(record.name for record in current))
+        finally:
+            for record in reversed(acquired):
+                record.callback_lock.release()
+            if lifecycle_acquired:
+                self._lifecycle_lock.release()
+            with self._lock:
+                self._stopping_all = False
+
+    def pause_navigation(self) -> bool:
+        """Pause CaveBot only; independent support features keep running."""
+
+        self._guard_recorder_reentry("pause navigation")
+        with self._lock:
+            if self._stopping_all:
+                return False
+            record = self._records.get("CaveBot")
+            if (
+                record is None
+                or not record.active
+                or record.paused
+                or record.transition is not None
+            ):
+                return False
+            # Cancellation is immediate.  The feature-owned hook runs later
+            # without the lifecycle lock, so Stop All can still finish within
+            # its bounded callback wait if that hook is broken.
+            record.transition = "pause"
+            record.paused = True
+            record.cancelled.set()
+            record.phase = "Paused"
+        try:
+            with self._callback_barrier(record, "pause navigation"):
+                try:
+                    now = self._now()
+                except Exception:
+                    now = self._failure_time()
+                with self._lock:
+                    if (
+                        self._records.get(record.name) is not record
+                        or not record.active
+                        or record.transition != "pause"
+                    ):
+                        return False
+                    removed = [item for item in self._queue if self._owns(item, record)]
+                    self._queue = [item for item in self._queue if not self._owns(item, record)]
+                    pending = [
+                        value for value in self._confirming.values()
+                        if self._owns(value.queued, record)
+                    ]
+                    for value in pending:
+                        self._confirming.pop(value.queued.request_id, None)
+                    self._prune_snapshot_locked(now)
+                for item in removed + [value.queued for value in pending]:
+                    self._terminal(
+                        item, ResultState.CANCELLED, now, "navigation paused", deliver=False
+                    )
+                callback = getattr(record.feature, "on_pause", None)
+                if callable(callback):
+                    callback()
+        except Exception:
+            with self._lock:
+                if self._records.get(record.name) is record and record.active:
+                    record.transition = None
+                    record.phase = "Paused"
+            raise
+        with self._lifecycle_lock:
+            with self._lock:
+                if (
+                    self._stopping_all
+                    or self._records.get(record.name) is not record
+                    or not record.active
+                    or record.transition != "pause"
+                ):
+                    return False
+                record.transition = None
+                record.phase = "Paused"
+        self._record(
+            "status", now, record.name,
+            status=FeatureStatus(record.name, record.generation, False, "Paused"),
+            reason="navigation paused",
+        )
+        return True
+
+    def resume_navigation(self) -> bool:
+        """Resume the paused CaveBot generation after forcing fresh evidence."""
+
+        self._guard_recorder_reentry("resume navigation")
+        with self._lock:
+            if self._stopping_all:
+                return False
+            record = self._records.get("CaveBot")
+            if (
+                record is None
+                or not record.active
+                or not record.paused
+                or record.transition is not None
+            ):
+                return False
+            record.transition = "resume"
+        reasons = self._activation_reasons(record.feature)
+        if reasons:
+            with self._lock:
+                if self._records.get(record.name) is record and record.active:
+                    record.transition = None
+            raise RuntimeError("activation blocked: " + "; ".join(reasons))
+        try:
+            now = self._now()
+        except Exception as exc:
+            with self._lock:
+                if self._records.get(record.name) is record and record.active:
+                    record.transition = None
+            self._fatal(exc, self._failure_time())
+            raise
+        try:
+            with self._callback_barrier(record, "resume navigation"):
+                with self._lock:
+                    if (
+                        self._stopping_all
+                        or self._records.get(record.name) is not record
+                        or not record.active
+                        or not record.paused
+                        or record.transition != "resume"
+                    ):
+                        return False
+                callback = getattr(record.feature, "on_resume", None)
+                if callable(callback):
+                    callback()
+        except Exception:
+            with self._lock:
+                if self._records.get(record.name) is record and record.active:
+                    record.transition = None
+                    record.phase = "Paused"
+            raise
+        with self._lifecycle_lock:
+            with self._lock:
+                if (
+                    self._stopping_all
+                    or self._records.get(record.name) is not record
+                    or not record.active
+                    or not record.paused
+                    or record.transition != "resume"
+                ):
+                    return False
+                record.transition = None
+                record.cancelled = threading.Event()
+                record.paused = False
+                record.next_due = now
+                record.phase = "Resuming"
+                self._ready = False
+                self._ready_started_at = None
+                self._preview_frame = None
+        self._record(
+            "status", now, record.name,
+            status=FeatureStatus(record.name, record.generation, True, "Resuming"),
+            reason="navigation resumed; fresh evidence required",
+        )
+        if self._autostart:
+            runtime.start(self._runtime_name, self._run)
+        return True
+
     def _invalidate_record(self, record: _FeatureRecord, reason: str, now: float) -> bool:
         with self._lock:
             current = self._records.get(record.name)
@@ -647,7 +1128,10 @@ class ClientSession:
             return self.snapshot
 
         due, sensors = self._collect_due(now)
-        if sensors:
+        # Every due policy gets a capture-health heartbeat, including features
+        # such as timed spells that do not consume a visual sensor.  This keeps
+        # a failed transport/layout from being bypassed by sensorless input.
+        if due or sensors:
             if not self._observe(sensors, now):
                 return self.snapshot
         snapshot = self.snapshot
@@ -686,6 +1170,7 @@ class ClientSession:
                 return False
             was_ready = self._ready
             self._ready = ready
+            self._readiness_reason = None if ready else "client target is not ready"
             records = [
                 record for record in self._records.values()
                 if self._is_current_locked(record)
@@ -709,6 +1194,7 @@ class ClientSession:
                 if was_ready:
                     self._epoch += 1
                     self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+                    self._preview_frame = None
                     rejected = list(self._queue)
                     unconfirmed = [value.queued for value in self._confirming.values()]
                     self._queue.clear()
@@ -752,7 +1238,7 @@ class ClientSession:
         with self._lock:
             due = [
                 record for record in self._records.values()
-                if record.active and now >= record.next_due
+                if record.active and not record.paused and now >= record.next_due
             ]
             confirmation_sensors = [
                 pending.queued.request.confirmation.sensor
@@ -762,6 +1248,13 @@ class ClientSession:
         sensors: set[Sensor] = set(confirmation_sensors)
         valid_due: list[_FeatureRecord] = []
         for record in due:
+            activation_reasons = self._activation_reasons(
+                record.feature, bypass_profile=self._is_probe(record.feature)
+            )
+            if activation_reasons:
+                reason = "activation blocked: " + "; ".join(activation_reasons)
+                self._fail_feature(record, RuntimeError(reason), now, detail=reason)
+                continue
             try:
                 with record.callback_lock:
                     with self._lock:
@@ -801,6 +1294,12 @@ class ClientSession:
         except runtime.CancelledError:
             return False
         except Exception as exc:
+            with self._lock:
+                self._capture_transport_ok = False
+                self._capture_visual_valid = False
+                self._capture_reasons = (f"{type(exc).__name__}: {exc}",)
+                self._preview_frame = None
+                self._failure_reasons.append(self._capture_reasons[0])
             self._fatal(exc, now)
             return False
 
@@ -848,6 +1347,11 @@ class ClientSession:
                 if previous is not None and previous.epoch == epoch:
                     observations[sensor] = previous
             published_at = self._now()
+            visual_reasons = tuple(
+                observation.detail or f"{observation.sensor.kind.value} observation failed"
+                for observation in observations.values()
+                if observation.quality is Quality.ERROR
+            )
             with self._lock:
                 if self._closed:
                     return False
@@ -869,6 +1373,13 @@ class ClientSession:
                 }
                 snapshot = Snapshot(observations, frame_id, epoch, published_at)
                 self._snapshot = snapshot
+                self._capture_transport_ok = True
+                self._capture_at = observed_at
+                self._capture_visual_valid = not visual_reasons
+                self._capture_reasons = visual_reasons
+                # ObservationBatch.frame is contractually an immutable Frame;
+                # avoid importing desktop perception in the headless SDK path.
+                self._preview_frame = batch.frame
         except Exception as exc:
             self._fatal(exc, now)
             return False
@@ -887,6 +1398,13 @@ class ClientSession:
         return True
 
     def _run_feature(self, record: _FeatureRecord, snapshot: Snapshot, now: float) -> bool:
+        activation_reasons = self._activation_reasons(
+            record.feature, bypass_profile=self._is_probe(record.feature)
+        )
+        if activation_reasons:
+            reason = "activation blocked: " + "; ".join(activation_reasons)
+            self._fail_feature(record, RuntimeError(reason), now, detail=reason)
+            return False
         try:
             with record.callback_lock:
                 with self._lock:
@@ -1051,6 +1569,14 @@ class ClientSession:
                 self._terminal(item, ResultState.REJECTED, now, reason)
                 continue
             assert record is not None
+            activation_reasons = self._activation_reasons(
+                record.feature, bypass_profile=self._is_probe(record.feature)
+            )
+            if activation_reasons:
+                reason = "activation blocked: " + "; ".join(activation_reasons)
+                self._terminal(item, ResultState.REJECTED, now, reason)
+                self._fail_feature(record, RuntimeError(reason), now, detail=reason)
+                return
             session_token = self._session_token()
             token = _CombinedToken(
                 session_token, record.cancelled, record.name, record.generation
@@ -1060,6 +1586,13 @@ class ClientSession:
                 generation=item.generation, key=item.request.key,
                 action=item.request.action.kind.value,
             )
+            with self._lock:
+                self._last_action = ActionDiagnostic(
+                    item.owner,
+                    item.request.key,
+                    item.request.action.kind.value,
+                    now,
+                )
             with self._lock:
                 recorder_error = self._recorder_error
             if recorder_error is not None:
@@ -1117,6 +1650,16 @@ class ClientSession:
                 self._terminal(item, ResultState.REJECTED, execution_at, reason)
                 return
             assert record is not None
+            activation_reasons = self._activation_reasons(
+                record.feature, bypass_profile=self._is_probe(record.feature)
+            )
+            if activation_reasons:
+                reason = "activation blocked: " + "; ".join(activation_reasons)
+                self._terminal(item, ResultState.REJECTED, execution_at, reason)
+                self._fail_feature(
+                    record, RuntimeError(reason), execution_at, detail=reason
+                )
+                return
             try:
                 token.checkpoint()
                 with runtime.use_token(token):
@@ -1138,6 +1681,35 @@ class ClientSession:
                 )
                 self._fail_feature(record, exc, failed_at)
                 return
+
+            if self._is_probe(record.feature):
+                transition = getattr(self._adapter, "last_cursor_transition", None)
+                if callable(transition):
+                    transition = transition()
+                if transition is not None:
+                    try:
+                        original, final = transition
+                        callback = getattr(record.feature, "on_dispatch_metadata", None)
+                        if callable(callback):
+                            with record.callback_lock:
+                                with self._lock:
+                                    if not self._is_current_locked(record):
+                                        raise runtime.CancelledError("probe generation cancelled")
+                                callback(cursor_original=original, cursor_final=final)
+                    except runtime.CancelledError:
+                        self._terminal(
+                            item, ResultState.CANCELLED,
+                            self._failure_time(execution_at), "generation cancelled",
+                        )
+                        return
+                    except Exception as exc:
+                        failed_at = self._failure_time(execution_at)
+                        self._terminal(
+                            item, ResultState.FAILED, failed_at,
+                            f"probe dispatch metadata failed: {type(exc).__name__}: {exc}",
+                        )
+                        self._fail_feature(record, exc, failed_at)
+                        return
 
             try:
                 completed_at = self._now()
@@ -1327,6 +1899,15 @@ class ClientSession:
     def _record_result(
         self, item: _Queued, result: ActionResult, *, deliver: bool
     ) -> None:
+        with self._lock:
+            self._last_result = ResultDiagnostic(
+                result.owner,
+                result.key,
+                result.state.value,
+                result.reason,
+                result.at,
+                result.final,
+            )
         self._record(
             "result", result.at, item.owner, result=result,
             generation=item.generation, deliver=deliver,
@@ -1418,6 +1999,7 @@ class ClientSession:
             for value in pending:
                 self._confirming.pop(value.queued.request_id, None)
             self._prune_snapshot_locked(now)
+            self._failure_reasons.append(message)
         for item in removed + [value.queued for value in pending]:
             self._terminal(item, ResultState.CANCELLED, now, "feature failed", deliver=False)
         self._record(
@@ -1437,8 +2019,11 @@ class ClientSession:
                 return
             self._closed = True
             self._closed_reason = f"failure requires client reconfiguration ({message})"
+            self._readiness_reason = self._closed_reason
+            self._failure_reasons.append(message)
             self._epoch += 1
             self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+            self._preview_frame = None
             self._manual_token.cancel()
             records = [record for record in self._records.values() if record.active]
             for record in records:
@@ -1500,6 +2085,7 @@ class ClientSession:
                     self._closed_reason = "closed by caller"
                 self._epoch += 1
                 self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+                self._preview_frame = None
                 self._manual_token.cancel()
                 records = [record for record in self._records.values() if record.active]
         for record in records:
