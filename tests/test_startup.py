@@ -241,6 +241,11 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
     monkeypatch.setattr(gui_module.GUI, "loop", lambda self: None)
 
     import modules.Root as root_module
+    import modules.CaveBot as cavebot_module
+    # Full Tk event processing exercises scheduled hotkey polls too. Keep this
+    # GUI-only test independent of native global hooks on headless CI desktops.
+    monkeypatch.setattr(root_module, "poll_hotkey", lambda _key: False)
+    monkeypatch.setattr(cavebot_module, "poll_hotkey", lambda _key: False)
     try:
         root_module.root("Smoke Client", "Smoke.json")
         support_windows = (
