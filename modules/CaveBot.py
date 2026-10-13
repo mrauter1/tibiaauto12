@@ -443,9 +443,11 @@ class CaveBot:
             return
         self._editor_index = self._editor.selected_index
         waypoint = self._route.waypoints[self._editor_index]
-        self.route_table.selection_set(str(self._editor_index))
-        self.route_table.focus(str(self._editor_index))
-        self.route_table.see(str(self._editor_index))
+        selected_iid = str(self._editor_index)
+        if self.route_table.selection() != (selected_iid,):
+            self.route_table.selection_set(selected_iid)
+        self.route_table.focus(selected_iid)
+        self.route_table.see(selected_iid)
         self.mark_name.set(waypoint.mark)
         self.route_label.configure(
             text="Waypoint {} of {}".format(self._editor_index + 1, len(self._route.waypoints))
