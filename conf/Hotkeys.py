@@ -6,6 +6,7 @@ import time
 
 from core import runtime
 from core.runtime import input_transaction
+from conf.HexMapKeys import ACTION_HOTKEYS
 
 
 class Hotkey:
@@ -32,10 +33,7 @@ class Hotkey:
         from core.MoveMouse import MoveMouse
         return MoveMouse()
 
-    Hotkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Ctrl + F1", "Ctrl + F2", "Ctrl + F3", "Ctrl + F4", "Ctrl + F5", "Ctrl + F6",
-               "Ctrl + F7", "Ctrl + F8", "Ctrl + F9", "Ctrl + F10", "Ctrl + F11", "Ctrl + F12",
-               "Shift + F1", "Shift + F2", "Shift + F3", "Shift + F4", "Shift + F5", "Shift + F6",
-               "Shift + F7", "Shift + F8", "Shift + F9", "Shift + F10", "Shift + F11", "Shift + F12"]
+    Hotkeys = list(ACTION_HOTKEYS)
 
     def Press(self, Key):
         if not isinstance(Key, str) or not Key.strip():

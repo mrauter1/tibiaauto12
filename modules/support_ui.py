@@ -8,7 +8,7 @@ from tkinter import ttk
 from typing import Callable, Mapping
 from weakref import WeakValueDictionary
 
-from conf.Constants import Hotkeys
+from conf.HexMapKeys import ACTION_HOTKEYS
 from conf.conf_manager import ConfManager
 from tibia_client.application import get_client
 from tibia_client.models import Sensor, SensorKind
@@ -139,7 +139,7 @@ class SupportWindow:
 
 
 def hotkeys() -> tuple[str, ...]:
-    return tuple(Hotkeys)
+    return ACTION_HOTKEYS
 
 
 def set_enabled(widgets, enabled: bool) -> None:

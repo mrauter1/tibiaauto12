@@ -139,6 +139,29 @@ class InputTests(unittest.TestCase):
     def tearDown(self):
         runtime.stop_all(timeout=1)
 
+    def test_every_support_hotkey_dispatches_and_releases_on_both_windows_backends(self):
+        from conf.HexMapKeys import KeyToHex
+        from modules.support_ui import hotkeys
+
+        for mode in (0, 1):
+            for key in hotkeys():
+                with self.subTest(mode=mode, key=key):
+                    backend = FakeMessageBackend() if mode == 0 else FakePhysicalBackend()
+                    cls = SendToClient if mode == 0 else MoveMouse
+                    facade = Hotkey(mode, backend=cls(backend=backend, hwnd_resolver=lambda: 41))
+                    facade.Press(key)
+                    parts = [part.strip() for part in key.split("+")]
+                    codes = [KeyToHex[part.lower() if index == 0 and len(parts) == 2 else part]
+                             for index, part in enumerate(parts)]
+                    expected = [(code, False) for code in codes]
+                    expected += [(code, True) for code in reversed(codes)]
+                    if mode == 0:
+                        actual = [(event[2], event[1] == SendToClient.WM_KEYUP)
+                                  for event in backend.sent]
+                    else:
+                        actual = [(event[1], event[2]) for event in backend.events]
+                    self.assertEqual(actual, expected)
+
     def test_physical_coordinates_are_client_local(self):
         backend = FakePhysicalBackend()
         mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
