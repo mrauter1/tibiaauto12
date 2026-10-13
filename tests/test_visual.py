@@ -73,6 +73,39 @@ def _put(canvas, pixels, x, y):
     canvas[y : y + height, x : x + width] = pixels
 
 
+def _grouped_count_config(**changes):
+    config = {
+        "kind": "count",
+        "digits": _digit_paths(),
+        "thousands_separator": "comma.png",
+        "context": _context_config(),
+        "count_region": [8, 0, 58, 9],
+        "foreground": [255, 255, 255],
+        "tolerance": 0,
+        "score": 0.96,
+        "ambiguity_margin": 0.02,
+        "max_digits": 6,
+    }
+    config.update(changes)
+    return config
+
+
+def _put_count(canvas, text, *, comma_y=5):
+    x = 10
+    for character in text:
+        if character == ",":
+            pixels = _rgb(("1", "1"))
+            y = comma_y
+        elif character == ".":
+            pixels = _rgb(("1",))
+            y = 6
+        else:
+            pixels = _rgb(GLYPHS[character])
+            y = 2
+        _put(canvas, pixels, x, y)
+        x += pixels.shape[1] + 1
+
+
 def test_guarded_template_reports_presence_absence_and_absolute_position(tmp_path):
     context, target = _patterns(tmp_path)
     profile = VisualProfile.from_data(
@@ -358,6 +391,254 @@ def test_count_rejects_clipped_and_ambiguous_digits(tmp_path):
     reading = boundary_profile.read(sensor, Frame(boundary))
     assert reading.quality is Quality.UNKNOWN
     assert "ambiguous digit" in reading.detail
+
+
+def test_count_accepts_strict_thousands_groups_and_ungrouped_integers(tmp_path):
+    context, _ = _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    profile = VisualProfile(
+        {"mana": _grouped_count_config()}, base_path=tmp_path
+    )
+    sensor = Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana")
+
+    grouped = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(grouped, context, 1, 1)
+    _put_count(grouped, "1,085")
+    reading = profile.read(sensor, Frame(grouped))
+    assert reading.quality is Quality.KNOWN
+    assert reading.value["count"] == 1085
+    assert reading.value["score"] == pytest.approx(1.0)
+
+    ungrouped = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(ungrouped, context, 1, 1)
+    _put_count(ungrouped, "1085")
+    reading = profile.read(sensor, Frame(ungrouped))
+    assert reading.quality is Quality.KNOWN
+    assert reading.value["count"] == 1085
+
+
+def test_grouped_count_matches_short_variant_at_its_asset_height(tmp_path):
+    context, _ = _patterns(tmp_path)
+    short_one = _rgb(("1", "1"))
+    short_comma = _rgb(("1",))
+    _save(tmp_path / "1-short.png", short_one)
+    _save(tmp_path / "comma-short.png", short_comma)
+    profile = VisualProfile(
+        {
+            "mana": _grouped_count_config(
+                digit_variants={"1": ["1-short.png"]},
+                thousands_separator="comma-short.png",
+            )
+        },
+        base_path=tmp_path,
+    )
+    sensor = Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana")
+
+    for text in ("1,111", "1111"):
+        pixels = np.full((14, 64, 3), 25, dtype=np.uint8)
+        _put(pixels, context, 1, 1)
+        x = 10
+        for character in text:
+            glyph = short_comma if character == "," else short_one
+            _put(pixels, glyph, x, 5)
+            x += glyph.shape[1] + 1
+
+        reading = profile.read(sensor, Frame(pixels))
+
+        assert reading.quality is Quality.KNOWN
+        assert reading.value["count"] == 1111
+
+
+@pytest.mark.parametrize(
+    "text",
+    (",123", "123,", "1,,085", "12,34", "1234,567", "1,23,456", "0,123"),
+)
+def test_count_rejects_malformed_thousands_groups_and_leading_zero(tmp_path, text):
+    context, _ = _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    profile = VisualProfile(
+        {"mana": _grouped_count_config()}, base_path=tmp_path
+    )
+    pixels = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(pixels, context, 1, 1)
+    _put_count(pixels, text)
+
+    reading = profile.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana"), Frame(pixels)
+    )
+
+    assert reading.quality is Quality.UNKNOWN
+    assert reading.value is None
+
+
+def test_separator_geometry_rejects_tiny_blob_and_clipped_comma(tmp_path):
+    context, _ = _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    profile = VisualProfile(
+        {"mana": _grouped_count_config()}, base_path=tmp_path
+    )
+    sensor = Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana")
+
+    tiny = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(tiny, context, 1, 1)
+    _put_count(tiny, "1.085")
+    reading = profile.read(sensor, Frame(tiny))
+    assert reading.quality is Quality.UNKNOWN
+    assert "ambiguous glyph" in reading.detail
+
+    clipped = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(clipped, context, 1, 1)
+    _put_count(clipped, "1,085", comma_y=8)
+    reading = profile.read(sensor, Frame(clipped))
+    assert reading.quality is Quality.UNKNOWN
+    assert "edge" in reading.detail
+
+
+def test_separator_ambiguity_with_distinct_digit_is_unknown(tmp_path):
+    context, _ = _patterns(tmp_path)
+    ambiguous = _rgb(("01", "11", "01", "01"))
+    _save(tmp_path / "comma.png", ambiguous)
+    _save(tmp_path / "1-short.png", ambiguous)
+    profile = VisualProfile(
+        {
+            "mana": _grouped_count_config(
+                digit_variants={"1": ["1-short.png"]}
+            )
+        },
+        base_path=tmp_path,
+    )
+    pixels = np.full((14, 64, 3), 25, dtype=np.uint8)
+    _put(pixels, context, 1, 1)
+    _put(pixels, _rgb(GLYPHS["1"]), 10, 2)
+    _put(pixels, ambiguous, 14, 3)
+    _put(pixels, _rgb(GLYPHS["0"]), 17, 2)
+    _put(pixels, _rgb(GLYPHS["8"]), 21, 2)
+    _put(pixels, _rgb(GLYPHS["5"]), 25, 2)
+
+    reading = profile.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana"), Frame(pixels)
+    )
+
+    assert reading.quality is Quality.UNKNOWN
+    assert "ambiguous glyph" in reading.detail
+
+
+def test_digit_variants_are_one_digit_class_and_match_alternate_shape(tmp_path):
+    context, _ = _patterns(tmp_path)
+    alternate = _rgb(("010", "010", "010", "010", "010"))
+    _save(tmp_path / "1-alt.png", alternate)
+    config = {
+        "kind": "count",
+        "digits": _digit_paths(),
+        "digit_variants": {"1": ["1.png", "1-alt.png"]},
+        "context": _context_config(),
+        "count_region": [8, 0, 30, 9],
+        "foreground": [255, 255, 255],
+        "tolerance": 0,
+        "score": 0.99,
+        "ambiguity_margin": 0.02,
+        "max_digits": 3,
+    }
+    profile = VisualProfile({"count": config}, base_path=tmp_path)
+    pixels = np.full((14, 36, 3), 25, dtype=np.uint8)
+    _put(pixels, context, 1, 1)
+    _put(pixels, alternate, 12, 2)
+
+    reading = profile.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 32, 11), "count"), Frame(pixels)
+    )
+
+    assert reading.quality is Quality.KNOWN
+    assert reading.value["count"] == 1
+
+    duplicate_match = np.full((14, 36, 3), 25, dtype=np.uint8)
+    _put(duplicate_match, context, 1, 1)
+    _put(duplicate_match, _rgb(GLYPHS["1"]), 12, 2)
+    reading = profile.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 32, 11), "count"),
+        Frame(duplicate_match),
+    )
+    assert reading.quality is Quality.KNOWN
+    assert reading.value["count"] == 1
+
+
+def test_separator_and_variants_are_strict_and_fingerprinted(tmp_path):
+    _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    _save(tmp_path / "comma-wide.png", _rgb(("11", "10")))
+    _save(tmp_path / "1-alt.png", _rgb(("010", "010", "010", "010", "010")))
+    legacy_config = {
+        "kind": "count",
+        "digits": _digit_paths(),
+        "context": _context_config(),
+        "count_region": [8, 0, 30, 9],
+        "foreground": [255, 255, 255],
+        "tolerance": 0,
+        "score": 0.90,
+        "ambiguity_margin": 0.02,
+        "max_digits": 3,
+    }
+    legacy = VisualProfile({"count": legacy_config}, base_path=tmp_path)
+    assert legacy.fingerprint == (
+        "9e2f104648a0e9c611da500bbac176bd7ec64d7b6739be89545b1c619bf038a3"
+    )
+    plain = VisualProfile(
+        {"count": _grouped_count_config(thousands_separator="comma.png")},
+        base_path=tmp_path,
+    )
+    wide = VisualProfile(
+        {"count": _grouped_count_config(thousands_separator="comma-wide.png")},
+        base_path=tmp_path,
+    )
+    variant = VisualProfile(
+        {
+            "count": _grouped_count_config(
+                thousands_separator="comma.png",
+                digit_variants={"1": ["1-alt.png"]},
+            )
+        },
+        base_path=tmp_path,
+    )
+    assert plain.fingerprint != wide.fingerprint
+    assert plain.fingerprint != variant.fingerprint
+
+    template = {
+        "kind": "template",
+        "template": "target.png",
+        "context": _context_config(),
+        "thousands_separator": "comma.png",
+    }
+    with pytest.raises(VisualProfileError, match="count-only"):
+        VisualProfile({"bad": template}, base_path=tmp_path)
+    template.pop("thousands_separator")
+    template["digit_variants"] = {"1": ["1-alt.png"]}
+    with pytest.raises(VisualProfileError, match="count-only"):
+        VisualProfile({"bad": template}, base_path=tmp_path)
+
+    with pytest.raises(VisualProfileError, match="non-empty list"):
+        VisualProfile(
+            {"bad": _grouped_count_config(digit_variants={"1": []})},
+            base_path=tmp_path,
+        )
+    with pytest.raises(VisualProfileError, match="non-empty list"):
+        VisualProfile(
+            {
+                "bad": _grouped_count_config(
+                    digit_variants={"1": {"asset": "1-alt.png"}}
+                )
+            },
+            base_path=tmp_path,
+        )
+    with pytest.raises(VisualProfileError, match="non-empty list"):
+        VisualProfile(
+            {"bad": _grouped_count_config(digit_variants={"1": {"1-alt.png"}})},
+            base_path=tmp_path,
+        )
+    with pytest.raises(VisualProfileError, match="only the keys"):
+        VisualProfile(
+            {"bad": _grouped_count_config(digit_variants={"10": ["1-alt.png"]})},
+            base_path=tmp_path,
+        )
 
 
 def test_profile_is_fingerprintable_immutable_and_strict(tmp_path):

@@ -193,6 +193,106 @@ def test_validate_returns_readonly_fully_resolved_value(controller, tmp_path):
         compiled.document["version"] = 2
 
 
+def test_resource_preset_uses_offline_frame_and_does_not_install_or_probe(
+    controller, monkeypatch, tmp_path
+):
+    service, session, _profiles = controller
+    source = tmp_path / "saved-frame.png"
+    Image.new("RGB", (200, 100), "black").save(source)
+    expected = object()
+    seen = {}
+
+    def apply(data, frame, *, calibration_size, base_dir):
+        seen.update(
+            data=data,
+            frame=frame,
+            calibration_size=calibration_size,
+            base_dir=Path(base_dir),
+        )
+        return expected
+
+    monkeypatch.setattr(workflow, "apply_bundled_resource_preset", apply)
+    draft = default_workflow_document()
+
+    result = service.apply_resource_preset(draft, source, tmp_path / "workflow")
+
+    assert result is expected
+    assert seen["data"] is draft
+    assert seen["frame"].size == (200, 100)
+    assert seen["frame"].source == "offline:saved-frame.png"
+    assert seen["calibration_size"] == (200, 100)
+    assert seen["base_dir"] == tmp_path / "workflow"
+    assert session.calls == []
+
+
+def test_resource_preset_rejects_wrong_image_size_before_discovery(
+    controller, monkeypatch, tmp_path
+):
+    service, session, _profiles = controller
+    source = tmp_path / "desktop-screenshot.png"
+    Image.new("RGB", (201, 100), "black").save(source)
+    called = False
+
+    def apply(*_args, **_kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("discovery must not run")
+
+    monkeypatch.setattr(workflow, "apply_bundled_resource_preset", apply)
+
+    with pytest.raises(workflow.HuntWorkflowError, match="differs from calibrated client size"):
+        service.apply_resource_preset(default_workflow_document(), source, tmp_path)
+
+    assert called is False
+    assert session.calls == []
+
+
+def test_resource_preset_needs_only_calibration_size_for_offline_authoring(
+    controller, monkeypatch, tmp_path
+):
+    service, session, _profiles = controller
+    source = tmp_path / "saved-frame.png"
+    Image.new("RGB", (200, 100), "black").save(source)
+    expected = object()
+    monkeypatch.setattr(
+        workflow.ConfManager,
+        "get",
+        lambda _name: {"calibration_size": [200, 100]},
+    )
+    monkeypatch.setattr(
+        workflow,
+        "apply_bundled_resource_preset",
+        lambda *_args, **_kwargs: expected,
+    )
+
+    result = service.apply_resource_preset(default_workflow_document(), source, tmp_path)
+
+    assert result is expected
+    assert session.calls == []
+
+
+@pytest.mark.parametrize(
+    "calibration_size",
+    [None, [200], [0, 100], ["200", 100]],
+)
+def test_resource_preset_rejects_missing_or_invalid_calibration_size(
+    controller, monkeypatch, tmp_path, calibration_size
+):
+    service, session, _profiles = controller
+    source = tmp_path / "saved-frame.png"
+    Image.new("RGB", (200, 100), "black").save(source)
+    monkeypatch.setattr(
+        workflow.ConfManager,
+        "get",
+        lambda _name: {"calibration_size": calibration_size},
+    )
+
+    with pytest.raises(workflow.HuntWorkflowError, match="no valid calibration_size"):
+        service.apply_resource_preset(default_workflow_document(), source, tmp_path)
+
+    assert session.calls == []
+
+
 def test_binding_revision_uses_current_context_calibration_visual_and_options(controller, tmp_path):
     service, _session, profiles = controller
     first = service.validate(document(), tmp_path).binding_revision

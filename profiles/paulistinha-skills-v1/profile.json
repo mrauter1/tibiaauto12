@@ -1,0 +1,251 @@
+{
+  "schema": "tibiaauto.resource-preset",
+  "version": 1,
+  "id": "paulistinha-skills-v1",
+  "name": "Paulistinha Skills resources",
+  "resources": {
+    "resource_health": {
+      "label": "Health",
+      "anchor_offset": [
+        -2,
+        -2
+      ],
+      "binding_size": [
+        189,
+        21
+      ],
+      "detector": {
+        "kind": "count",
+        "context": {
+          "template": "labels/health.png",
+          "region": [
+            2,
+            2,
+            102,
+            19
+          ],
+          "score": 0.998
+        },
+        "count_region": [
+          112,
+          0,
+          189,
+          21
+        ],
+        "digits": {
+          "0": "digits/0.png",
+          "1": "digits/1.png",
+          "2": "digits/2.png",
+          "3": "digits/3.png",
+          "4": "digits/4.png",
+          "5": "digits/5.png",
+          "6": "digits/6.png",
+          "7": "digits/7.png",
+          "8": "digits/8.png",
+          "9": "digits/9.png"
+        },
+        "digit_variants": {
+          "0": [
+            "digits/0-1.png"
+          ],
+          "1": [
+            "digits/1-1.png",
+            "digits/1-2.png"
+          ]
+        },
+        "foreground": [
+          192,
+          192,
+          192
+        ],
+        "tolerance": 50,
+        "score": 0.94,
+        "ambiguity_margin": 0.035,
+        "max_digits": 6,
+        "thousands_separator": "comma.png"
+      }
+    },
+    "resource_mana": {
+      "label": "Mana",
+      "anchor_offset": [
+        -2,
+        -2
+      ],
+      "binding_size": [
+        189,
+        20
+      ],
+      "detector": {
+        "kind": "count",
+        "context": {
+          "template": "labels/mana.png",
+          "region": [
+            2,
+            2,
+            59,
+            18
+          ],
+          "score": 0.998
+        },
+        "count_region": [
+          112,
+          0,
+          189,
+          20
+        ],
+        "digits": {
+          "0": "digits/0.png",
+          "1": "digits/1.png",
+          "2": "digits/2.png",
+          "3": "digits/3.png",
+          "4": "digits/4.png",
+          "5": "digits/5.png",
+          "6": "digits/6.png",
+          "7": "digits/7.png",
+          "8": "digits/8.png",
+          "9": "digits/9.png"
+        },
+        "digit_variants": {
+          "0": [
+            "digits/0-1.png"
+          ],
+          "1": [
+            "digits/1-1.png",
+            "digits/1-2.png"
+          ]
+        },
+        "foreground": [
+          192,
+          192,
+          192
+        ],
+        "tolerance": 50,
+        "score": 0.94,
+        "ambiguity_margin": 0.035,
+        "max_digits": 6,
+        "thousands_separator": "comma.png"
+      }
+    },
+    "resource_soul": {
+      "label": "Soul",
+      "anchor_offset": [
+        -2,
+        -2
+      ],
+      "binding_size": [
+        189,
+        19
+      ],
+      "detector": {
+        "kind": "count",
+        "context": {
+          "template": "labels/soul.png",
+          "region": [
+            2,
+            2,
+            113,
+            17
+          ],
+          "score": 0.998
+        },
+        "count_region": [
+          112,
+          0,
+          189,
+          19
+        ],
+        "digits": {
+          "0": "digits/0.png",
+          "1": "digits/1.png",
+          "2": "digits/2.png",
+          "3": "digits/3.png",
+          "4": "digits/4.png",
+          "5": "digits/5.png",
+          "6": "digits/6.png",
+          "7": "digits/7.png",
+          "8": "digits/8.png",
+          "9": "digits/9.png"
+        },
+        "digit_variants": {
+          "0": [
+            "digits/0-1.png"
+          ],
+          "1": [
+            "digits/1-1.png",
+            "digits/1-2.png"
+          ]
+        },
+        "foreground": [
+          192,
+          192,
+          192
+        ],
+        "tolerance": 50,
+        "score": 0.94,
+        "ambiguity_margin": 0.035,
+        "max_digits": 3
+      }
+    },
+    "resource_capacity": {
+      "label": "Capacity",
+      "anchor_offset": [
+        -2,
+        -2
+      ],
+      "binding_size": [
+        189,
+        20
+      ],
+      "detector": {
+        "kind": "count",
+        "context": {
+          "template": "labels/capacity.png",
+          "region": [
+            2,
+            2,
+            91,
+            18
+          ],
+          "score": 0.998
+        },
+        "count_region": [
+          112,
+          0,
+          189,
+          20
+        ],
+        "digits": {
+          "0": "digits/0.png",
+          "1": "digits/1.png",
+          "2": "digits/2.png",
+          "3": "digits/3.png",
+          "4": "digits/4.png",
+          "5": "digits/5.png",
+          "6": "digits/6.png",
+          "7": "digits/7.png",
+          "8": "digits/8.png",
+          "9": "digits/9.png"
+        },
+        "digit_variants": {
+          "0": [
+            "digits/0-1.png"
+          ],
+          "1": [
+            "digits/1-1.png",
+            "digits/1-2.png"
+          ]
+        },
+        "foreground": [
+          192,
+          192,
+          192
+        ],
+        "tolerance": 50,
+        "score": 0.94,
+        "ambiguity_margin": 0.035,
+        "max_digits": 6,
+        "thousands_separator": "comma.png"
+      }
+    }
+  }
+}

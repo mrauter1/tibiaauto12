@@ -36,6 +36,7 @@ MAX_PROFILE_TEMPLATE_BYTES = 32 * 1024 * 1024
 MAX_SENSOR_PIXELS = 2_000_000
 MAX_VISUAL_WORK_PIXELS = 8_000_000
 MAX_DIGITS = 9
+MAX_DIGIT_VARIANTS = 4
 MAX_MATCHES = 9
 MIN_MATCH_SCORE = 0.5
 _MAX_MATCH_IOU_NUMERATOR = 3
@@ -97,6 +98,8 @@ class VisualSpec:
     tolerance: int
     max_digits: int
     fingerprint: str
+    digit_variants: tuple[tuple[_Template, ...], ...] = ((),) * 10
+    thousands_separator: _Template | None = None
 
 
 def _number(value: object, label: str, *, minimum: float, maximum: float) -> float:
@@ -196,7 +199,7 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
     common = {
         "kind", "context", "search_region", "score", "ambiguity_margin",
         "max_matches", "template", "digits", "foreground", "tolerance", "max_digits",
-        "count_region",
+        "count_region", "thousands_separator", "digit_variants",
     }
     _only(config, common, "visual spec")
     context = _mapping(config.get("context"), "visual context")
@@ -237,6 +240,8 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
 
     template: _Template | None = None
     digits: tuple[_Template, ...] = ()
+    digit_variants: tuple[tuple[_Template, ...], ...] = ((),) * 10
+    thousands_separator: _Template | None = None
     foreground = (255, 255, 255)
     tolerance = 0
     max_digits = 1
@@ -254,7 +259,13 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
             or template.height > search_region[3] - search_region[1]
         ):
             raise VisualProfileError("visual target template exceeds its configured search region")
-        if any(key in config for key in ("digits", "foreground", "tolerance", "max_digits")):
+        if any(
+            key in config
+            for key in (
+                "digits", "digit_variants", "foreground", "tolerance", "max_digits",
+                "thousands_separator"
+            )
+        ):
             raise VisualProfileError("template visual spec has count-only fields")
         settings = {
             "kind": kind,
@@ -274,6 +285,30 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         if set(digit_config) != {str(number) for number in range(10)}:
             raise VisualProfileError("visual digits must define exactly the keys '0' through '9'")
         digits = tuple(load(digit_config[str(number)]) for number in range(10))
+        if "digit_variants" in config:
+            variants_config = _mapping(config["digit_variants"], "visual digit variants")
+            if any(key not in {str(number) for number in range(10)} for key in variants_config):
+                raise VisualProfileError(
+                    "visual digit variants may use only the keys '0' through '9'"
+                )
+            loaded_variants: list[tuple[_Template, ...]] = []
+            for number in range(10):
+                paths = variants_config.get(str(number), ())
+                if not isinstance(paths, (list, tuple)):
+                    raise VisualProfileError(
+                        f"visual digit {number} variants must be a non-empty list"
+                    )
+                path_list = tuple(paths)
+                if str(number) in variants_config and not path_list:
+                    raise VisualProfileError(
+                        f"visual digit {number} variants must be a non-empty list"
+                    )
+                if len(path_list) > MAX_DIGIT_VARIANTS:
+                    raise VisualProfileError(
+                        f"visual digit {number} may define at most {MAX_DIGIT_VARIANTS} variants"
+                    )
+                loaded_variants.append(tuple(load(path) for path in path_list))
+            digit_variants = tuple(loaded_variants)
         color = config.get("foreground", [255, 255, 255])
         if isinstance(color, (str, bytes)):
             raise VisualProfileError("visual foreground must contain three byte values")
@@ -289,18 +324,50 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         max_digits = _integer(
             config.get("max_digits", 6), "visual max_digits", minimum=1, maximum=MAX_DIGITS
         )
-        for digit, digit_template in enumerate(digits):
+        for digit, primary in enumerate(digits):
+            for variant_index, digit_template in enumerate((primary, *digit_variants[digit])):
+                label = (
+                    f"visual digit {digit} template"
+                    if variant_index == 0
+                    else f"visual digit {digit} variant {variant_index}"
+                )
+                if (
+                    digit_template.width > search_region[2] - search_region[0]
+                    or digit_template.height > search_region[3] - search_region[1]
+                ):
+                    raise VisualProfileError(
+                        f"{label} exceeds the configured count region"
+                    )
+                try:
+                    _glyph(_mask(digit_template.pixels, foreground, tolerance))
+                except VisualProfileError as exc:
+                    raise VisualProfileError(f"{label}: {exc}") from exc
+        if "thousands_separator" in config:
+            thousands_separator = load(config["thousands_separator"])
             if (
-                digit_template.width > search_region[2] - search_region[0]
-                or digit_template.height > search_region[3] - search_region[1]
+                thousands_separator.width > search_region[2] - search_region[0]
+                or thousands_separator.height > search_region[3] - search_region[1]
             ):
                 raise VisualProfileError(
-                    f"visual digit {digit} template exceeds the configured count region"
+                    "visual thousands separator template exceeds the configured count region"
                 )
             try:
-                _glyph(_mask(digit_template.pixels, foreground, tolerance))
+                separator_mask = _mask(thousands_separator.pixels, foreground, tolerance)
+                _glyph(separator_mask)
             except VisualProfileError as exc:
-                raise VisualProfileError(f"visual digit {digit} template: {exc}") from exc
+                raise VisualProfileError(
+                    f"visual thousands separator template: {exc}"
+                ) from exc
+            digit_heights = tuple(
+                _glyph_size(_mask(item.pixels, foreground, tolerance))[1]
+                for number, primary in enumerate(digits)
+                for item in (primary, *digit_variants[number])
+            )
+            separator_height = _glyph_size(separator_mask)[1]
+            if separator_height >= max(digit_heights):
+                raise VisualProfileError(
+                    "visual thousands separator foreground must be shorter than digit foreground"
+                )
         settings = {
             "kind": kind,
             "context_region": context_region,
@@ -313,6 +380,15 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
             "max_digits": max_digits,
         }
         templates = (context_template, *digits)
+        if "digit_variants" in config:
+            settings["digit_variants"] = tuple(len(items) for items in digit_variants)
+            templates = (
+                *templates,
+                *(item for variants in digit_variants for item in variants),
+            )
+        if thousands_separator is not None:
+            settings["thousands_separator"] = True
+            templates = (*templates, thousands_separator)
 
     return VisualSpec(
         kind=kind,
@@ -325,6 +401,8 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         ambiguity_margin=ambiguity_margin,
         max_matches=max_matches,
         digits=digits,
+        digit_variants=digit_variants,
+        thousands_separator=thousands_separator,
         foreground=foreground,
         tolerance=tolerance,
         max_digits=max_digits,
@@ -349,7 +427,8 @@ class VisualProfile(Mapping[str, VisualSpec]):
          "context": {"template": "container.png", "region": [0, 0, 20, 20]},
          "count_region": [20, 0, 80, 20], "foreground": [255, 255, 255],
          "tolerance": 8, "score": 0.95, "ambiguity_margin": 0.03,
-         "max_digits": 6}
+         "max_digits": 6, "digit_variants": {"1": ["1-alt.png"]},
+         "thousands_separator": "comma.png"}
 
     All subregions are relative to the ``Sensor.region`` origin.  Template
     paths are relative to ``base_path``.  Context is mandatory for both kinds.
@@ -609,15 +688,32 @@ def _mask(image: np.ndarray, color: tuple[int, int, int], tolerance: int) -> np.
 
 
 def _glyph(mask: np.ndarray) -> tuple[np.ndarray, float]:
+    width, height = _glyph_size(mask)
     rows, columns = np.where(mask)
-    if rows.size == 0:
-        raise VisualProfileError("digit template contains no configured foreground pixels")
     cropped = mask[rows.min() : rows.max() + 1, columns.min() : columns.max() + 1]
-    ratio = cropped.shape[1] / cropped.shape[0]
+    ratio = width / height
     normalized = cv2.resize(
         cropped.astype(np.uint8), (16, 24), interpolation=cv2.INTER_NEAREST
     ).astype(bool)
     return normalized, ratio
+
+
+def _glyph_size(mask: np.ndarray) -> tuple[int, int]:
+    rows, columns = np.where(mask)
+    if rows.size == 0:
+        raise VisualProfileError("digit template contains no configured foreground pixels")
+    return int(columns.max() - columns.min() + 1), int(rows.max() - rows.min() + 1)
+
+
+def _glyph_score(
+    candidate: np.ndarray,
+    ratio: float,
+    expected: np.ndarray,
+    expected_ratio: float,
+) -> float:
+    pixel_score = 1.0 - float(np.mean(candidate != expected))
+    ratio_score = min(ratio, expected_ratio) / max(ratio, expected_ratio)
+    return 0.85 * pixel_score + 0.15 * ratio_score
 
 
 def _recognize_count(spec: VisualSpec, image: np.ndarray) -> tuple[int, float]:
@@ -632,17 +728,29 @@ def _recognize_count(spec: VisualSpec, image: np.ndarray) -> tuple[int, float]:
     if len(starts) == 0 or len(starts) > spec.max_digits:
         raise _UnknownVisual("count has an unsupported number of digit segments")
 
-    reference = tuple(_glyph(_mask(item.pixels, spec.foreground, spec.tolerance)) for item in spec.digits)
+    reference = tuple(
+        tuple(
+            _glyph(_mask(item.pixels, spec.foreground, spec.tolerance))
+            for item in (primary, *spec.digit_variants[number])
+        )
+        for number, primary in enumerate(spec.digits)
+    )
     result: list[int] = []
     scores: list[float] = []
     for start, end in zip(starts, ends):
         segment = ink[:, start:end]
         candidate, ratio = _glyph(segment)
         ranked: list[tuple[float, int]] = []
-        for number, (expected, expected_ratio) in enumerate(reference):
-            pixel_score = 1.0 - float(np.mean(candidate != expected))
-            ratio_score = min(ratio, expected_ratio) / max(ratio, expected_ratio)
-            ranked.append((0.85 * pixel_score + 0.15 * ratio_score, number))
+        for number, variants in enumerate(reference):
+            ranked.append(
+                (
+                    max(
+                        _glyph_score(candidate, ratio, expected, expected_ratio)
+                        for expected, expected_ratio in variants
+                    ),
+                    number,
+                )
+            )
         ranked.sort(reverse=True)
         best, number = ranked[0]
         second = ranked[1][0]
@@ -653,6 +761,94 @@ def _recognize_count(spec: VisualSpec, image: np.ndarray) -> tuple[int, float]:
     if len(result) > 1 and result[0] == 0:
         raise _UnknownVisual("multi-digit count has a leading zero")
     return int("".join(str(number) for number in result)), min(scores)
+
+
+def _height_score(
+    candidate_height: int,
+    expected_height: int,
+) -> float:
+    return min(candidate_height, expected_height) / max(candidate_height, expected_height)
+
+
+def _recognize_grouped_count(spec: VisualSpec, image: np.ndarray) -> tuple[int, float]:
+    assert spec.thousands_separator is not None
+    ink = _mask(image, spec.foreground, spec.tolerance)
+    if not bool(np.any(ink)):
+        raise _UnknownVisual("count region contains no configured digit foreground")
+    if bool(np.any(ink[0])) or bool(np.any(ink[-1])) or bool(np.any(ink[:, 0])) or bool(np.any(ink[:, -1])):
+        raise _UnknownVisual("count glyph touches the configured region edge and may be clipped")
+    occupied = np.any(ink, axis=0)
+    starts = np.flatnonzero(occupied & np.r_[True, ~occupied[:-1]])
+    ends = np.flatnonzero(occupied & np.r_[~occupied[1:], True]) + 1
+    if len(starts) == 0 or len(starts) > spec.max_digits * 2 + 1:
+        raise _UnknownVisual("count has an unsupported number of glyph segments")
+
+    digit_references = tuple(
+        tuple(
+            (
+                *_glyph(_mask(item.pixels, spec.foreground, spec.tolerance)),
+                _glyph_size(_mask(item.pixels, spec.foreground, spec.tolerance))[1],
+            )
+            for item in (primary, *spec.digit_variants[number])
+        )
+        for number, primary in enumerate(spec.digits)
+    )
+    separator_mask = _mask(
+        spec.thousands_separator.pixels, spec.foreground, spec.tolerance
+    )
+    separator_glyph, separator_ratio = _glyph(separator_mask)
+    separator_height = _glyph_size(separator_mask)[1]
+    candidate_data = []
+    for start, end in zip(starts, ends):
+        segment = ink[:, start:end]
+        glyph, ratio = _glyph(segment)
+        candidate_data.append((glyph, ratio, _glyph_size(segment)[1]))
+    tokens: list[int | str] = []
+    scores: list[float] = []
+    for candidate, ratio, height in candidate_data:
+        ranked: list[tuple[float, int | str]] = []
+        for number, variants in enumerate(digit_references):
+            variant_scores = [
+                _glyph_score(candidate, ratio, expected, expected_ratio)
+                for expected, expected_ratio, expected_height in variants
+                if _height_score(
+                    height,
+                    expected_height,
+                ) >= 0.75
+            ]
+            if variant_scores:
+                ranked.append((max(variant_scores), number))
+        if _height_score(
+            height,
+            separator_height,
+        ) >= 0.75:
+            ranked.append(
+                (
+                    _glyph_score(
+                        candidate, ratio, separator_glyph, separator_ratio
+                    ),
+                    ",",
+                )
+            )
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        if not ranked or ranked[0][0] < spec.score:
+            raise _UnknownVisual("count contains an ambiguous glyph")
+        if len(ranked) > 1 and ranked[0][0] - ranked[1][0] <= spec.ambiguity_margin:
+            raise _UnknownVisual("count contains an ambiguous glyph")
+        scores.append(ranked[0][0])
+        tokens.append(ranked[0][1])
+
+    digit_count = sum(isinstance(token, int) for token in tokens)
+    if digit_count == 0 or digit_count > spec.max_digits:
+        raise _UnknownVisual("count has an unsupported number of digits")
+    if "," in tokens:
+        text = "".join(str(token) for token in tokens)
+        if re.fullmatch(r"[0-9]{1,3}(?:,[0-9]{3})+", text) is None:
+            raise _UnknownVisual("count has malformed thousands grouping")
+    digits = [token for token in tokens if isinstance(token, int)]
+    if len(digits) > 1 and digits[0] == 0:
+        raise _UnknownVisual("multi-digit count has a leading zero")
+    return int("".join(str(number) for number in digits)), min(scores)
 
 
 def read_visual(
@@ -696,7 +892,11 @@ def read_visual(
             )
 
         count_region = _absolute_region(sensor_region, spec.search_region)
-        count, score = _recognize_count(spec, _crop(frame, count_region))
+        count_image = _crop(frame, count_region)
+        if spec.thousands_separator is None:
+            count, score = _recognize_count(spec, count_image)
+        else:
+            count, score = _recognize_grouped_count(spec, count_image)
         return Reading(
             {
                 "present": True,
@@ -710,6 +910,7 @@ def read_visual(
 
 
 __all__ = [
+    "MAX_DIGIT_VARIANTS",
     "MAX_DIGITS",
     "MAX_MATCHES",
     "MAX_SENSOR_PIXELS",

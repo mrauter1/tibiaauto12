@@ -36,6 +36,16 @@ to another client layout.
    directory. Optional targets, navigation settings, loot policy, and detector tuning can be
    reviewed in **Advanced JSON**; the structured tabs remain the normal configuration flow.
 
+The **Add default resource profile** button on **Visual bindings** can locate the bundled
+health, mana, soul, and capacity detectors in a saved client capture. It adds those bindings
+to the open draft without overwriting existing binding or detector IDs and does not save the
+workflow. The saved image must contain only the client-local capture and must have the exact
+dimensions recorded by the current calibration. Wrong-size desktop captures are rejected;
+matching dimensions alone cannot prove the image source, so use a client-only capture and
+review any missing, ambiguous, or unexpected readings. The values shown after import are
+readings from that offline image. They are not current-client evidence and do not satisfy
+calibration, Compatibility, Inspect, or Start gates.
+
 Save, Validate, Inspect and Start include intentional edits in the open forms; pressing
 Add/update first is optional. If a form cannot be parsed, the editor preserves the draft and
 your entered values so you can correct it. Save accepts unfinished drafts; validation and Start

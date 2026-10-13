@@ -12,8 +12,11 @@ import threading
 from types import MappingProxyType
 from typing import Any, Mapping
 
+from PIL import Image, UnidentifiedImageError
+
 from conf.conf_manager import ConfManager
 from core.Getters import validate_calibration
+from core.perception import Frame
 from core.paths import project_path, scripts_path
 from engine.CaveBot.routes import Route, load_route
 from features.cavebot import SessionConfig, TargetSpec
@@ -21,6 +24,11 @@ from features.hunt_cycle import HuntCycleFeature
 from tibia_client.compatibility import ProbeFeature, calibration_digest
 from tibia_client.hunt_plan import HuntPlan, hunt_plan_from_data
 from tibia_client.models import Observation, Quality, Reading, Sensor, SensorKind
+from tibia_client.resource_profiles import (
+    MAX_DISCOVERY_PIXELS,
+    ResourcePresetResult,
+    apply_resource_preset as apply_bundled_resource_preset,
+)
 from tibia_client.visual import VisualProfile
 
 
@@ -30,6 +38,7 @@ MAX_DOCUMENT_BYTES = 512 * 1024
 MAX_BINDINGS = 64
 MAX_SENSOR_PIXELS = 2_000_000
 MAX_TARGETS = 64
+MAX_RESOURCE_FRAME_BYTES = 32 * 1024 * 1024
 
 
 class HuntWorkflowError(ValueError):
@@ -254,6 +263,70 @@ class HuntWorkflowController:
         except Exception as exc:
             raise HuntWorkflowError(f"current calibration is invalid: {exc}") from exc
         return value
+
+    def apply_resource_preset(
+        self,
+        data: object,
+        frame_path: str | Path,
+        base_dir: str | Path,
+    ) -> ResourcePresetResult:
+        """Apply bundled detectors to a draft using one offline client-local frame.
+
+        This authoring operation neither installs the visual profile nor starts a
+        probe. The normal Inspect and Start compatibility gates remain required.
+        """
+        if not isinstance(data, Mapping):
+            raise HuntWorkflowError("workflow document must be an object")
+        try:
+            calibration = ConfManager.get(self.calibration_profile)
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot load current calibration: {exc}") from exc
+        if not isinstance(calibration, Mapping):
+            raise HuntWorkflowError("current calibration must be an object")
+        size = calibration.get("calibration_size")
+        if (
+            not isinstance(size, (list, tuple))
+            or len(size) != 2
+            or any(type(item) is not int or item <= 0 for item in size)
+        ):
+            raise HuntWorkflowError(
+                "current calibration has no valid calibration_size; recalibrate the client"
+            )
+        path = Path(frame_path).expanduser()
+        try:
+            stat = path.stat()
+            if not path.is_file() or stat.st_size > MAX_RESOURCE_FRAME_BYTES:
+                raise HuntWorkflowError(
+                    f"saved resource frame must be no larger than "
+                    f"{MAX_RESOURCE_FRAME_BYTES // (1024 * 1024)} MiB"
+                )
+            with Image.open(path) as image:
+                if image.size != (size[0], size[1]):
+                    raise HuntWorkflowError(
+                        f"saved image size {image.size} differs from calibrated client size "
+                        f"{(size[0], size[1])}; save a client frame in Compatibility Test "
+                        "without the desktop title bar or taskbar"
+                    )
+                if image.width * image.height > MAX_DISCOVERY_PIXELS:
+                    raise HuntWorkflowError(
+                        "saved client image exceeds the resource discovery size limit"
+                    )
+                frame = Frame(image.convert("RGB"), source=f"offline:{path.name}")
+        except HuntWorkflowError:
+            raise
+        except (OSError, ValueError, UnidentifiedImageError) as exc:
+            raise HuntWorkflowError(f"cannot read saved resource frame: {exc}") from exc
+        try:
+            return apply_bundled_resource_preset(
+                data,
+                frame,
+                calibration_size=(size[0], size[1]),
+                base_dir=base_dir,
+            )
+        except HuntWorkflowError:
+            raise
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot apply default resource profile: {exc}") from exc
 
     def _compile_bindings(
         self,
