@@ -1,0 +1,174 @@
+{
+  "reference_sha256": "8e0d74453d0d0ad57e104e434dca7941763f1f0d33b1c399b932effd55763176",
+  "reference_size": [
+    1919,
+    1079
+  ],
+  "reference_type": "desktop screenshot, including title bar/taskbar; positions are not client calibration",
+  "fixture_crop": [
+    1484,
+    53,
+    1680,
+    132
+  ],
+  "expected": {
+    "resource_health": 710,
+    "resource_mana": 1085,
+    "resource_soul": 4,
+    "resource_capacity": 192
+  },
+  "assets": {
+    "digits/7.png": {
+      "source": "reference screenshot",
+      "box": [
+        1644,
+        61,
+        1653,
+        72
+      ]
+    },
+    "digits/1.png": {
+      "source": "reference screenshot",
+      "box": [
+        1655,
+        61,
+        1662,
+        72
+      ]
+    },
+    "digits/0.png": {
+      "source": "reference screenshot",
+      "box": [
+        1664,
+        61,
+        1673,
+        72
+      ]
+    },
+    "digits/1-1.png": {
+      "source": "reference screenshot",
+      "box": [
+        1631,
+        78,
+        1637,
+        90
+      ]
+    },
+    "comma.png": {
+      "source": "reference screenshot",
+      "box": [
+        1639,
+        86,
+        1643,
+        92
+      ]
+    },
+    "digits/0-1.png": {
+      "source": "reference screenshot",
+      "box": [
+        1644,
+        78,
+        1653,
+        90
+      ]
+    },
+    "digits/8.png": {
+      "source": "reference screenshot",
+      "box": [
+        1654,
+        78,
+        1663,
+        90
+      ]
+    },
+    "digits/5.png": {
+      "source": "reference screenshot",
+      "box": [
+        1665,
+        78,
+        1673,
+        90
+      ]
+    },
+    "digits/4.png": {
+      "source": "reference screenshot",
+      "box": [
+        1664,
+        96,
+        1673,
+        107
+      ]
+    },
+    "digits/1-2.png": {
+      "source": "reference screenshot",
+      "box": [
+        1645,
+        113,
+        1652,
+        125
+      ]
+    },
+    "digits/9.png": {
+      "source": "reference screenshot",
+      "box": [
+        1654,
+        113,
+        1663,
+        125
+      ]
+    },
+    "digits/2.png": {
+      "source": "reference screenshot",
+      "box": [
+        1664,
+        113,
+        1673,
+        125
+      ]
+    },
+    "digits/3.png": {
+      "source": "images/TibiaSettings/StatsNumbers/3.png",
+      "reference_screenshot_verified": false
+    },
+    "digits/6.png": {
+      "source": "images/TibiaSettings/StatsNumbers/6.png",
+      "reference_screenshot_verified": false
+    },
+    "labels/health.png": {
+      "source": "reference screenshot",
+      "box": [
+        1490,
+        58,
+        1590,
+        75
+      ]
+    },
+    "labels/mana.png": {
+      "source": "reference screenshot",
+      "box": [
+        1490,
+        76,
+        1547,
+        92
+      ]
+    },
+    "labels/soul.png": {
+      "source": "reference screenshot",
+      "box": [
+        1490,
+        94,
+        1601,
+        109
+      ]
+    },
+    "labels/capacity.png": {
+      "source": "reference screenshot",
+      "box": [
+        1490,
+        111,
+        1579,
+        127
+      ]
+    }
+  }
+}

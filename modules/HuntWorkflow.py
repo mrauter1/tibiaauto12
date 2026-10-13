@@ -242,6 +242,13 @@ def rebase_visual_paths(
         if isinstance(digits, dict):
             for digit, value in tuple(digits.items()):
                 digits[digit] = rebased(value)
+        variants = spec.get("digit_variants")
+        if isinstance(variants, dict):
+            for digit, values in tuple(variants.items()):
+                if isinstance(values, (list, tuple)):
+                    variants[digit] = [rebased(value) for value in values]
+        if "thousands_separator" in spec:
+            spec["thousands_separator"] = rebased(spec["thousands_separator"])
     return result
 
 
@@ -1017,7 +1024,19 @@ class HuntWorkflow:
         choose.pack(side="left", padx=5)
         crop = ttk.Button(offline, text="Select crop and save template…", command=self._open_crop)
         crop.pack(side="left")
-        self._config_widgets.extend((choose, crop))
+        preset = ttk.Frame(spec_box)
+        preset.pack(fill="x", pady=(4, 0))
+        add_resources = ttk.Button(
+            preset,
+            text="Add default resource profile from saved capture",
+            command=self.add_resource_profile,
+        )
+        add_resources.pack(side="left")
+        ttk.Label(
+            preset,
+            text="Read resources from a saved client image.",
+        ).pack(side="left", padx=8)
+        self._config_widgets.extend((choose, crop, add_resources))
         ttk.Label(frame, textvariable=self.inspection, justify="left", wraplength=1030).pack(fill="x", pady=(5, 0))
         self.inspection_canvas = tk.Canvas(frame, height=150, background="#202020")
         self.inspection_canvas.pack(fill="x", pady=(4, 0))
@@ -1243,7 +1262,10 @@ class HuntWorkflow:
                 "score": parse_number(self.visual_vars["score"].get() or "0.95", "Match score", 0, 1),
             })
             if kind == "template":
-                for key in ("digits", "count_region", "foreground", "tolerance", "max_digits"):
+                for key in (
+                    "digits", "count_region", "foreground", "tolerance", "max_digits",
+                    "thousands_separator", "digit_variants",
+                ):
                     item.pop(key, None)
                 item["template"] = self.visual_vars["template"].get().strip()
                 raw_region = self.visual_vars["region"].get().strip()
@@ -2218,6 +2240,56 @@ class HuntWorkflow:
         if filename:
             self.capture_file.set(filename)
             self.message.set("Saved capture loaded for offline crop selection. No live verification has run.")
+
+    def add_resource_profile(self) -> None:
+        """Add the bundled resource detectors from a saved, client-local frame."""
+        if self._active or self._inspecting or self._busy is not None:
+            return
+        source = Path(self.capture_file.get()).expanduser()
+        if not source.is_file():
+            self.message.set("Choose a saved client capture before adding the resource profile.")
+            return
+        try:
+            self._collect_structured()
+        except Exception as exc:
+            self._show_error(exc)
+            return
+        snapshot, base_dir = deepcopy(self.data), self.base_dir
+
+        def added(result: Any) -> None:
+            document = getattr(result, "document", None)
+            readings = getattr(result, "readings", None)
+            if not isinstance(document, Mapping) or not isinstance(readings, Mapping):
+                self._show_error(WorkflowEditorError(
+                    "resource profile importer returned an invalid result"
+                ))
+                return
+            previous = self.data
+            self.data = deepcopy(dict(document))
+            try:
+                self._load_into_editor()
+            except Exception as exc:
+                self.data = previous
+                self._load_into_editor()
+                self._show_error(exc)
+                return
+            values = []
+            for resource_id, reading in sorted(readings.items()):
+                value = getattr(reading, "value", None)
+                count = value.get("count") if isinstance(value, Mapping) else None
+                label = str(resource_id).removeprefix("resource_").replace("_", " ").title()
+                values.append(f"{label}={count}" if type(count) is int else f"{label}=unknown")
+            suffix = ", ".join(values) if values else "no readings"
+            self.message.set(
+                f"Added default resource profile from saved image ({suffix}). "
+                "These readings are offline only; run Inspect evidence before use."
+            )
+
+        self._begin_control(
+            "Adding default resource profile",
+            lambda: self.controller.apply_resource_preset(snapshot, source, base_dir),
+            added,
+        )
 
     def _open_crop(self) -> None:
         if self.filename is None:

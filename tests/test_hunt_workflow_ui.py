@@ -37,6 +37,7 @@ class FakeController:
     def __init__(self):
         self.calls = []
         self.control_epoch = 11
+        self.resource_error = None
 
     def validate(self, data, base_dir):
         self.calls.append(("validate", data, Path(base_dir)))
@@ -64,6 +65,22 @@ class FakeController:
 
     def acknowledge_manual(self, operator_reconciled=False):
         self.calls.append(("ack", operator_reconciled))
+
+    def apply_resource_preset(self, data, frame_path, base_dir):
+        self.calls.append(("resource_preset", data, Path(frame_path), Path(base_dir)))
+        if self.resource_error is not None:
+            raise self.resource_error
+        updated = deepcopy(data)
+        updated["bindings"]["resource_soul"] = {
+            "name": "resource_soul",
+            "region": [10, 10, 30, 20],
+        }
+        updated["visual"]["resource_soul"] = {"kind": "count"}
+        return SimpleNamespace(
+            document=updated,
+            readings={"resource_soul": SimpleNamespace(value={"count": 4})},
+            bindings={},
+        )
 
 
 def headless_ui(tmp_path):
@@ -261,6 +278,29 @@ def test_save_as_rebases_all_visual_asset_paths_without_retargeting(tmp_path):
     assert digit.resolve() == (old_base / "templates/mana/0.png").resolve()
 
 
+def test_save_as_rebases_optional_thousands_separator_asset(tmp_path):
+    old_base, new_base = tmp_path / "old", tmp_path / "new"
+    value = default_workflow_document()
+    value["visual"] = {
+        "mana": {
+            "kind": "count",
+            "context": {"template": "templates/mana/context.png", "region": [0, 0, 5, 5]},
+            "digits": {str(number): f"templates/mana/{number}.png" for number in range(10)},
+            "digit_variants": {
+                "3": ["templates/mana/3-alt.png"],
+                "6": ["templates/mana/6-alt.png", "templates/mana/6-alt-2.png"],
+            },
+            "thousands_separator": "templates/mana/comma.png",
+            "count_region": [0, 0, 20, 10],
+        }
+    }
+    moved = rebase_visual_paths(value, old_base, new_base)
+    separator = new_base / moved["visual"]["mana"]["thousands_separator"]
+    variant = new_base / moved["visual"]["mana"]["digit_variants"]["6"][1]
+    assert separator.resolve() == (old_base / "templates/mana/comma.png").resolve()
+    assert variant.resolve() == (old_base / "templates/mana/6-alt-2.png").resolve()
+
+
 def test_structured_visual_update_preserves_advanced_tuning(tmp_path):
     ui = headless_ui(tmp_path)
     ui.data["visual"] = {
@@ -392,6 +432,32 @@ def test_incomplete_structured_entities_remain_savable_as_drafts(tmp_path):
     assert ui.data["bindings"]["mana_box"] == {"name": ""}
     assert ui.data["visual"]["mana_count"]["kind"] == "template"
     assert ui.data["plan"]["actions"]["prepare"][0]["id"] == "use_food"
+
+
+def test_changing_count_detector_to_template_removes_separator_assets(tmp_path):
+    ui = realistic_editor(tmp_path)
+    ui.data["visual"] = {
+        "resource_mana": {
+            "kind": "count",
+            "context": {"template": "context.png", "region": [0, 0, 8, 8]},
+            "digits": {str(number): f"{number}.png" for number in range(10)},
+            "digit_variants": {"3": ["3-alt.png"]},
+            "thousands_separator": "comma.png",
+            "count_region": [8, 0, 40, 8],
+        }
+    }
+    ui._refresh_visual_trees()
+    ui.visual_tree.selected = ("resource_mana",)
+    ui._select_visual()
+    ui.visual_vars["kind"].set("template")
+    ui.visual_vars["template"].set("mana.png")
+    ui.visual_vars["region"].set("8, 0, 40, 8")
+
+    assert ui._put_visual()
+    spec = ui.data["visual"]["resource_mana"]
+    assert spec["kind"] == "template"
+    assert "digit_variants" not in spec
+    assert "thousands_separator" not in spec
 
 
 def test_switching_rows_flushes_previous_edit_and_duplicate_event_preserves_new_edit(tmp_path):
@@ -733,6 +799,59 @@ def test_inspection_uses_epoch_captured_before_dispatch(tmp_path):
     call = ui.controller.calls[-1]
     assert call[0] == "inspect"
     assert call[3] == 11
+
+
+def test_default_resource_profile_is_added_offline_without_saving(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (20, 20), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui._mark_clean()
+    work = []
+    ui._dispatch_control = lambda operation, done: work.append((operation, done))
+
+    ui.add_resource_profile()
+
+    assert ui.controller.calls == []
+    assert ui._busy == "Adding default resource profile"
+    operation, done = work.pop()
+    result = operation()
+    done(result, None)
+
+    assert ui.controller.calls[0][0] == "resource_preset"
+    assert all(call[0] != "save" for call in ui.controller.calls)
+    assert ui.data["bindings"]["resource_soul"]["region"] == [10, 10, 30, 20]
+    assert ui.data != ui._clean_document
+    assert "Soul=4" in ui.message.get()
+    assert "offline only" in ui.message.get()
+    assert "Inspect evidence" in ui.message.get()
+
+
+def test_failed_default_resource_import_preserves_the_draft(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (20, 20), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui.controller.resource_error = ValueError("resource_soul already exists")
+    before = deepcopy(ui.data)
+
+    ui.add_resource_profile()
+
+    assert ui.data == before
+    assert ui.controller.calls[-1][0] == "resource_preset"
+    assert "resource_soul already exists" in ui.message.get()
+
+
+def test_default_resource_import_is_disabled_during_live_inspection(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (20, 20), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui._inspecting = True
+
+    ui.add_resource_profile()
+
+    assert ui.controller.calls == []
 
 
 def test_runtime_return_control_is_dispatched_off_the_ui_thread(tmp_path):
