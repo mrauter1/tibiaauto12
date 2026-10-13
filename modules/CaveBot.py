@@ -42,7 +42,7 @@ from tibia_client.hunt_packs import (
     support_from_loaders,
     required_capabilities_for,
 )
-from modules.support_ui import read_loader, set_enabled, write_loader
+from modules.support_ui import read_loader, refresh_loader_windows, set_enabled, write_loader
 from conf.conf_manager import ConfManager
 
 
@@ -450,7 +450,7 @@ class CaveBot:
         if self._imported_pack is not None:
             required.update(self._imported_pack.required_capabilities)
         return HuntPack(
-            route.name,
+            self._imported_pack.name if self._imported_pack is not None else route.name,
             revision,
             route,
             targets,
@@ -533,7 +533,10 @@ class CaveBot:
             cavebot.update(target_values)
             return document
 
-        ConfManager.update("GUILoader.json", update)
+        document = ConfManager.update("GUILoader.json", update)
+        refresh_loader_windows({
+            name: document["Loaders"][name] for name in pack.support.loader_updates()
+        })
 
     def _import_pack(self):
         path = filedialog.askopenfilename(
@@ -609,7 +612,7 @@ class CaveBot:
             self._unapplied_import = False
             self.binding_label.configure(text="Local profile: {}".format(binding.profile))
             self._set_message(
-                "Bound and applied; close and reopen support windows before their next start"
+                "Bound and applied; open support windows refreshed. Start support features when ready."
             )
         except Exception as exc:
             self._local_binding = None

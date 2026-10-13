@@ -101,6 +101,41 @@ def test_arrival_timeout_retries_are_bounded_and_rejection_does_not_charge_retry
     assert feature.status.reason == "arrival_timeout"
 
 
+def test_pause_preserves_remaining_arrival_timeout():
+    feature = bot(
+        config=SessionConfig(arrival_timeout=0.5, movement_attempts=1)
+    )
+    start_arrival(feature, at=0.0)
+
+    feature.on_pause()
+    feature.on_resume(paused_for=10.0)
+
+    before_deadline = feature.tick(
+        context(feature, 10.50, marker=Marker((1, 1), False), frame=2)
+    )
+    assert not before_deadline.finished
+    assert feature.status.phase == "Navigating"
+    at_deadline = feature.tick(
+        context(feature, 10.51, marker=Marker((1, 1), False), frame=3)
+    )
+    assert at_deadline.finished
+    assert feature.status.reason == "arrival_timeout"
+
+
+def test_invalid_pause_duration_keeps_navigation_paused_and_resumable():
+    feature = bot()
+    feature.tick(context(feature, 0.0, marker=Marker(None), frame=1))
+    original = feature.status
+    feature.on_pause()
+
+    with pytest.raises(ValueError, match="paused_for"):
+        feature.on_resume(paused_for=-1)
+    assert feature.status.phase == "Paused"
+
+    feature.on_resume(paused_for=1.0)
+    assert feature.status == original
+
+
 def test_pending_navigation_is_cancelled_and_low_number_target_wins():
     targets = (TargetSpec(5, "ordinary"), TargetSpec(1, "urgent"))
     feature = bot(targets=targets, config=SessionConfig(follow=False))
@@ -383,6 +418,26 @@ def test_checkpoint_waits_for_observed_arrival_and_cancellable_stand():
     assert feature.sensors()[0].name == "Flag"
 
 
+def test_repeated_pause_preserves_remaining_stand_time():
+    saved = []
+    feature = bot(
+        config=SessionConfig(stand_seconds=1.0),
+        save_progress=lambda _route, index: saved.append(index),
+    )
+    start_arrival(feature)
+    feature.tick(context(feature, 0.2, marker=Marker((1, 1), True), frame=2))
+
+    feature.on_pause()
+    feature.on_resume(paused_for=5.0)
+    feature.on_pause()
+    feature.on_resume(paused_for=7.0)
+
+    feature.tick(context(feature, 13.19, marker=Marker((1, 1), True), frame=3))
+    assert saved == []
+    feature.tick(context(feature, 13.20, marker=Marker((1, 1), True), frame=4))
+    assert saved == [0]
+
+
 def test_restart_begins_at_saved_index_and_wraps_checkpoint_progress():
     saved = []
     route = Route(
@@ -502,6 +557,31 @@ def test_combat_timeout_and_backend_failure_are_actionable_failures():
     )
     assert final.finished
     assert timed.status.reason == "combat_timeout"
+
+
+def test_pause_preserves_remaining_combat_timeout():
+    feature = bot(
+        targets=(TargetSpec(1, "dragon"),),
+        config=SessionConfig(follow=False, combat_timeout=0.5),
+    )
+    start_arrival(feature)
+    target = {"dragon": Target(1, None, True)}
+    feature.tick(
+        context(feature, 0.2, marker=Marker((1, 1)), targets=target, frame=2)
+    )
+
+    feature.on_pause()
+    feature.on_resume(paused_for=10.0)
+
+    before_deadline = feature.tick(
+        context(feature, 10.69, marker=Marker((1, 1)), targets=target, frame=3)
+    )
+    assert not before_deadline.finished
+    at_deadline = feature.tick(
+        context(feature, 10.70, marker=Marker((1, 1)), targets=target, frame=4)
+    )
+    assert at_deadline.finished
+    assert feature.status.reason == "combat_timeout"
 
 
 def test_runtime_cancels_queued_navigation_when_combat_appears():

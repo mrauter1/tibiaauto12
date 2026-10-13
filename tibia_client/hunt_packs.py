@@ -429,9 +429,15 @@ def hunt_pack_from_data(data: Any) -> HuntPack:
     if type(raw["version"]) is not int or raw["version"] != HUNT_PACK_VERSION:
         raise HuntPackError("unsupported hunt-pack version")
     name = _asset_name(raw["name"], "hunt-pack name")
-    route_raw = raw["route"]
-    if not isinstance(route_raw, Mapping):
-        raise HuntPackError("route must be an object")
+    # Hunt packs use the versioned schema; the standalone route reader still
+    # accepts historical list routes and their migration defaults.
+    route_raw = _keys(raw["route"], "route", {"version", "name", "waypoints"})
+    if not isinstance(route_raw["waypoints"], list):
+        raise HuntPackError("route waypoints must be a list")
+    for index, entry in enumerate(route_raw["waypoints"], 1):
+        waypoint = _keys(entry, f"waypoint {index}", {"id", "mark", "action"})
+        _plain_text(waypoint["id"], f"waypoint {index} id")
+        _plain_text(waypoint["action"], f"waypoint {index} action")
     route_name = route_raw.get("name")
     try:
         route = route_from_data(route_name, route_raw, validate_assets=True)

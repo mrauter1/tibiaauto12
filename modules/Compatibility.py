@@ -7,7 +7,7 @@ never replayed by this module.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 import queue
@@ -28,10 +28,12 @@ from tibia_client.compatibility import (
     EvidenceSource,
     OPERATIONS,
     Outcome,
+    ProbeEvidence,
     ProbeFeature,
     compatibility_filename,
     context_from_calibration,
     export_evidence_bundle,
+    key_operation,
     load_profile,
     save_profile,
 )
@@ -124,6 +126,18 @@ def _frame_valid(probe: ProbeFeature) -> bool:
                for sensor, value in probe.before.items())
 
 
+def _add_probe_evidence(
+    profile: CompatibilityProfile, evidence: ProbeEvidence
+) -> CompatibilityProfile:
+    """Add a deliberately tested supported operation and its evidence together."""
+    if evidence.operation not in profile.declared_operations:
+        profile = replace(
+            profile,
+            declared_operations=(*profile.declared_operations, evidence.operation),
+        )
+    return profile.add_evidence(evidence)
+
+
 def _window_titles(configuration: Mapping[str, Any]) -> tuple[str, str]:
     values = configuration.get("capture_title", ""), configuration.get("input_title", "")
     return tuple(value.strip() if isinstance(value, str) else "" for value in values)  # type: ignore[return-value]
@@ -160,7 +174,9 @@ class Compatibility:
         self.pending_kind: str | None = None
         self.pending_point: tuple[int, int] | None = None
         self.pending_token: Any = None
+        self._probe_generation: int | None = None
         self._probe_started = self._awaiting_confirmation = self._cancel_requested = False
+        self._cancel_stop_pending = False
         self._closed, self._countdown_id = False, None
         self._calibration: Mapping[str, Any] = {}
         self._preview_frame = self._preview_mapping = self._photo = None
@@ -514,8 +530,11 @@ class Compatibility:
             self.status.set("Capture a fresh matching client preview before arming input.")
             return
         try:
-            token, guard = self._begin_probe()
             operation = self.operation.get()
+            if operation in ("press", "modified_press"):
+                operation = key_operation(self.hotkey.get())
+                self.operation.set(operation)
+            token, guard = self._begin_probe()
             probe = ProbeFeature(operation, self._action(), evidence_source=self._source(),
                                  intended_target=self.target_label.get(), context_guard=guard)
             self.pending_point = self.selected_point if operation in _POINT_OPERATIONS else None
@@ -528,7 +547,9 @@ class Compatibility:
 
     def _queue_probe(self, probe: ProbeFeature, kind: str, token: Any) -> None:
         self.pending_probe, self.pending_kind, self.pending_token = probe, kind, token
+        self._probe_generation = None
         self._probe_started = self._awaiting_confirmation = self._cancel_requested = False
+        self._cancel_stop_pending = False
         self._set_confirm_enabled(False)
         self.capture_after_button.configure(state="disabled")
         self._update_controls()
@@ -539,13 +560,24 @@ class Compatibility:
             return
         if remaining:
             purpose = "capture" if self.pending_probe.action is None else self.pending_probe.operation
+            declaration = ""
+            if (
+                self.pending_probe.action is not None
+                and self.profile is not None
+                and self.pending_probe.operation not in self.profile.declared_operations
+            ):
+                declaration = (
+                    f" {self.pending_probe.operation} will be added to this profile only if "
+                    "you confirm the completed probe."
+                )
             self.status.set(f"ARMED — foreground the configured game. One {purpose} in {remaining}… "
-                            "Keep it foregrounded until completion is reported here.")
+                            "Keep it foregrounded until completion is reported here."
+                            + declaration)
             self._countdown_id = self.window.after(1000, self._countdown, remaining - 1)
             return
         self._countdown_id = None
         try:
-            self.session.start_probe(self.pending_probe)
+            self._probe_generation = self.session.start_probe(self.pending_probe)
             self._probe_started = True
             self.status.set("Probe started. Keep the game foregrounded through post-probe capture.")
         except Exception as exc:
@@ -562,16 +594,40 @@ class Compatibility:
                     self.session.feature_status(ProbeFeature.name), probe,
                     capture_only=probe.action is None)
                 if state == "running":
-                    self.status.set(f"{detail}. Keep the configured game foregrounded.")
+                    if self._cancel_requested:
+                        message = (
+                            "Cancellation requested; waiting for the stop operation to finish."
+                            if self._cancel_stop_pending else
+                            "The probe is still active; retry cancellation."
+                        )
+                        self.status.set(message)
+                    else:
+                        self.status.set(f"{detail}. Keep the configured game foregrounded.")
+                elif self._cancel_requested:
+                    if self._cancel_stop_pending:
+                        self.status.set(
+                            "Probe is inactive; finishing cancellation before retry is enabled."
+                        )
+                    else:
+                        self.status.set(
+                            "Probe discarded after cancellation; no evidence was saved. "
+                            "You may retry."
+                        )
+                        self._clear_pending()
                 elif state == "failed":
-                    prefix = "Probe cancelled" if self._cancel_requested else "Probe incomplete"
-                    self.status.set(f"{prefix}: {detail}. No evidence was saved; retry.")
+                    self.status.set(f"Probe incomplete: {detail}. No evidence was saved; retry.")
                     self._clear_pending()
                 elif not self._awaiting_confirmation:
                     self._complete_probe(probe)
             except Exception as exc:
-                self.status.set(f"Probe status failed: {exc}. No evidence was saved; retry.")
-                self._clear_pending()
+                if self._cancel_requested and self._cancel_stop_pending:
+                    self.status.set(
+                        f"Probe status failed during cancellation: {exc}. "
+                        "Waiting for the stop operation to finish."
+                    )
+                else:
+                    self.status.set(f"Probe status failed: {exc}. No evidence was saved; retry.")
+                    self._clear_pending()
         try:
             self.window.after(100, self._poll)
         except tk.TclError:
@@ -610,17 +666,22 @@ class Compatibility:
             return
         dispatch = probe.dispatch_outcome.value
         automatic = probe.automatic_outcome.value
-        observed = ("post-action capture complete" if probe.after else
+        observed = ("post-action observations complete" if probe.after else
                     "terminal result recorded; no post-action observation was available")
         action = probe.action
         action_detail = (
             f"key={action.key!r}" if action and action.kind is ActionKind.PRESS else
             f"point={action.point!r}, destination={action.destination!r}"
         )
+        refreshed = self._refresh_after_action_preview(probe)
         self.status.set(
             f"{probe.operation} ({action_detail}) at target {probe.intended_target!r}: "
             f"OS dispatch={dispatch}; automatic confirmation={automatic}; {observed}. "
-            "You may now assess this exact armed target.")
+            + (
+                "The displayed preview was refreshed from the post-action capture. "
+                if refreshed else ""
+            )
+            + "You may now assess this exact armed target.")
         self._awaiting_confirmation = True
         self._set_confirm_enabled(True, probe.operation)
         self.cancel_button.configure(state="normal")
@@ -633,7 +694,9 @@ class Compatibility:
                 pass
         self._countdown_id = None
         self.pending_probe = self.pending_kind = self.pending_point = self.pending_token = None
+        self._probe_generation = None
         self._probe_started = self._awaiting_confirmation = self._cancel_requested = False
+        self._cancel_stop_pending = False
         self._set_confirm_enabled(False)
         if not preserve_capture:
             self.capture_confirm.pack_forget()
@@ -654,12 +717,61 @@ class Compatibility:
             self.status.set("Countdown cancelled. No capture, input, or evidence occurred.")
             self._clear_pending()
             return
+        if self._awaiting_confirmation:
+            self.status.set("Completed probe discarded; no evidence was saved. You may retry.")
+            self._clear_pending()
+            return
+        if self._cancel_requested and self._cancel_stop_pending:
+            self.status.set("Cancellation already requested; waiting for the probe to stop.")
+            return
         self._cancel_requested = True
+        self._cancel_stop_pending = True
+        self._set_confirm_enabled(False)
+        self.cancel_button.configure(state="disabled")
         self.status.set("Cancelling; waiting for inactive status…")
-        self._run_background(lambda: self.session.stop_feature(ProbeFeature.name),
-                             lambda _value, error: self.status.set(
-                                 f"Cancel failed: {error}" if error else
-                                 "Cancellation requested; waiting for inactive status."))
+        probe = self.pending_probe
+        generation = self._probe_generation
+
+        def stopped(_value, error):
+            if self.pending_probe is probe:
+                self._cancel_stop_pending = False
+                self.status.set(
+                    f"Cancel failed: {error}" if error else
+                    "Cancellation requested; waiting for inactive status."
+                )
+                if error:
+                    self.cancel_button.configure(state="normal")
+
+        self._run_background(
+            lambda: self.session.stop_feature(
+                ProbeFeature.name, expected_generation=generation
+            ),
+            stopped,
+        )
+
+    def _refresh_after_action_preview(self, probe: ProbeFeature) -> bool:
+        """Display the post-action frame when it still matches the armed context."""
+        callback = getattr(self.session, "preview_frame", None)
+        if (
+            self.pending_probe is not probe
+            or not any(
+                sensor.kind is SensorKind.FRAME_VALID and value is True
+                for sensor, value in probe.after.items()
+            )
+            or not callable(callback)
+            or self.profile is None
+        ):
+            return False
+        try:
+            self._validate_token(self.pending_token)
+            frame = callback()
+            if frame is None or tuple(frame.size) != self.profile.context.capture_size:
+                return False
+            self._validate_token(self.pending_token)
+            self._set_preview(frame)
+        except Exception:
+            return False
+        return True
 
     def _set_preview(self, frame: Any) -> None:
         self._preview_frame = frame
@@ -792,7 +904,12 @@ class Compatibility:
         self._render_preview()
 
     def confirm(self, result: Outcome) -> None:
-        if self.profile is None or self.pending_probe is None or not self._awaiting_confirmation:
+        if (
+            self.profile is None
+            or self.pending_probe is None
+            or not self._awaiting_confirmation
+            or self._cancel_requested
+        ):
             return
         try:
             probe = self.pending_probe
@@ -806,7 +923,7 @@ class Compatibility:
             )
             if alignment is Outcome.PASS and evidence.dispatch is not Outcome.PASS:
                 raise ValueError("alignment cannot pass when OS dispatch did not pass")
-            updated = self.profile.add_evidence(evidence)
+            updated = _add_probe_evidence(self.profile, evidence)
             if self.pending_point is not None and alignment is not Outcome.UNVERIFIED:
                 updated = updated.add_alignment(AlignmentEvidence(
                     updated.context.fingerprint,
@@ -968,11 +1085,15 @@ class Compatibility:
                 self.window.after_cancel(self._countdown_id)
             except tk.TclError:
                 pass
-        if self.pending_probe is not None and self._probe_started:
+        generation = self._probe_generation
+        if self.pending_probe is not None and self._probe_started and generation is not None:
             threading.Thread(
-                target=lambda: self.session.stop_feature(ProbeFeature.name),
+                target=lambda generation=generation: self.session.stop_feature(
+                    ProbeFeature.name, expected_generation=generation
+                ),
                 name="compatibility-close-cancel", daemon=True).start()
         self.pending_probe = self.pending_token = None
+        self._probe_generation = None
         self.window.destroy()
 
 

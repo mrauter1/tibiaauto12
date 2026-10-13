@@ -29,7 +29,10 @@ that any input method is undetectable or approved by a server.
    actually happened after completion. Test plain and modified keys, left/right
    clicks, dragging, cursor restoration and battle-list selection independently
    as needed. A mouse target must be selected from a current captured preview;
-   Shift-click selects the drag destination.
+   Shift-click selects the drag destination. Key probes automatically select
+   plain or modified-key testing from the entered hotkey. Testing an additional
+   supported operation adds it to the profile when you confirm its result;
+   cancelling discards the pending evidence and leaves the tool ready to retry.
 6. Verify the mapped point separately from the operation's visible response.
    Alignment needs the center and points in all four corners of the view.
    Equal dimensions alone are insufficient. Use safe visible controls; the
@@ -57,6 +60,10 @@ it does not silently carry passes into a different context.
 | Simulation/replay result | Useful offline evidence; cannot unlock a live profile |
 | Alignment | Separately confirmed capture/input point mapping across the view |
 | Capture check | Transport, visual validity and an operator-observed visible change |
+
+Cursor telemetry can include positions outside the client area. Missing or
+invalid telemetry does not change an already completed native dispatch into a
+failure; cursor restoration remains a separately assessed result.
 
 These are local evidence records, not cryptographic attestations. A live-source
 label identifies the actual desktop pipeline used; it does not prove a game
@@ -87,11 +94,13 @@ visible-change check demonstrates one observed transition, not future freshness.
 Do not interpret repeated identical images as conclusive freeze detection.
 
 - **Pause navigation** suspends CaveBot while independent support modules keep
-  running. The route remains locked. Resume requires fresh observations and
-  valid profile requirements.
+  running. Its navigation, combat, loot and stand timers retain their remaining
+  time. The route remains locked. Resume requires fresh observations and valid
+  profile requirements.
 - **STOP ALL**, also available as **Ctrl+Shift+F12** when the global keyboard hook
   is available, cancels all feature generations, queued actions and pending
-  confirmations. Restart modules explicitly. An already executing OS call
+  confirmations, including start requests waiting when Stop All was pressed.
+  Restart modules explicitly. An already executing OS call
   cannot be undone; cancellation prevents subsequent work and releases input
   through the existing backend cleanup path.
 - Capture failure, malformed capture or fatal scheduler failure can close the

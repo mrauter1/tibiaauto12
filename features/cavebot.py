@@ -261,13 +261,35 @@ class CaveBotFeature:
         self._pending = None
         self._set_status("Paused", "navigation_paused")
 
-    def on_resume(self) -> None:
-        """Restore the policy phase; the session supplies a fresh observation."""
+    def on_resume(self, *, paused_for: float = 0.0) -> None:
+        """Restore the phase and preserve the remaining time on every timer."""
 
         previous = self._pre_pause_status
+        if (
+            not isinstance(paused_for, Real)
+            or isinstance(paused_for, bool)
+            or not math.isfinite(paused_for)
+            or paused_for < 0
+        ):
+            raise ValueError("paused_for must be a finite non-negative number")
         self._pre_pause_status = None
+        elapsed = float(paused_for)
+        self._mode_started = self._shift_time(self._mode_started, elapsed)
+        self._deadline = self._shift_time(self._deadline, elapsed)
+        self._combat_deadline = self._shift_time(self._combat_deadline, elapsed)
+        self._loot_started = self._shift_time(self._loot_started, elapsed)
+        if self._selected_wait is not None:
+            target, frame, ready_at = self._selected_wait
+            self._selected_wait = (target, frame, ready_at + elapsed)
+        if self._follow_wait is not None:
+            frame, ready_at = self._follow_wait
+            self._follow_wait = (frame, ready_at + elapsed)
         if previous is not None:
             self._status = previous
+
+    @staticmethod
+    def _shift_time(value: float | None, elapsed: float) -> float | None:
+        return None if value is None else value + elapsed
 
     def _set_status(self, phase: str, reason: str, **changes: Any) -> None:
         self._status = replace(self._status, phase=phase, reason=reason, **changes)

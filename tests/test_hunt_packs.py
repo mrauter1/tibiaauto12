@@ -1,6 +1,8 @@
 from copy import deepcopy
+from dataclasses import replace
 import json
 import os
+from types import SimpleNamespace
 
 import pytest
 
@@ -153,6 +155,33 @@ def test_strict_schema_rejects_runtime_fields_paths_and_wrong_types(mutate, mess
         hunt_pack_from_data(data)
 
 
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    (
+        (lambda route: route.update(future_policy="must-preserve"), "route.*unknown field"),
+        (lambda route: route.pop("name"), "route.*missing field.*name"),
+        (lambda route: route["waypoints"][0].pop("id"), "waypoint 1.*missing field.*id"),
+        (lambda route: route["waypoints"][0].pop("action"), "waypoint 1.*missing field.*action"),
+        (lambda route: route["waypoints"][0].update(id=""), "waypoint 1 id"),
+        (lambda route: route["waypoints"][0].update(id=7), "waypoint 1 id"),
+        (lambda route: route["waypoints"][0].update(action=1), "waypoint 1 action"),
+    ),
+)
+def test_pack_route_never_silently_migrates_or_drops_versioned_fields(mutate, message):
+    data = pack().as_dict()
+    mutate(data["route"])
+    with pytest.raises(HuntPackError, match=message):
+        hunt_pack_from_data(data)
+
+
+def test_standalone_legacy_route_migration_remains_available():
+    from engine.CaveBot.routes import route_from_data
+
+    route = route_from_data("legacy", [{"mark": "Flag", "type": 1}])
+    assert route.waypoints[0].id == "waypoint-1"
+    assert route.waypoints[0].action.value == "Walk"
+
+
 @pytest.mark.parametrize("constant", ("NaN", "Infinity", "-Infinity"))
 def test_nonfinite_numbers_are_rejected(constant):
     payload = pack().to_json().replace('"stand_seconds": 2', f'"stand_seconds": {constant}')
@@ -224,3 +253,116 @@ def test_invalid_loader_document_fails_before_partial_mutation():
         apply_support_to_loader_document(document, support())
     # Preparation must be atomic even before ConfManager performs its atomic file replace.
     assert document == before
+
+
+def test_bind_refreshes_open_support_windows_and_close_keeps_imported_settings(tmp_path, monkeypatch):
+    from conf.conf_manager import ConfManager
+    from modules.AutoHeal import AutoHeal
+    from modules.AutoMana import AutoMana
+    from modules.AutoHur import AutoHur
+    from modules.FoodEater import FoodEater
+    from modules.TimedSpells import TimedSpells
+    from modules.CaveBot import CaveBot
+    from modules import support_ui
+    from tibia_client.hunt_packs import support_from_loaders
+
+    class Variable:
+        def __init__(self, value):
+            self.value = value
+
+        def get(self):
+            return self.value
+
+        def set(self, value):
+            self.value = value
+
+    class Table:
+        def __init__(self):
+            self.rows = {"old": ("F1", 999)}
+
+        def get_children(self):
+            return tuple(self.rows)
+
+        def delete(self, key):
+            del self.rows[key]
+
+        def insert(self, _parent, _where, *, values):
+            self.rows[str(len(self.rows))] = values
+
+        def item(self, key, _column):
+            return self.rows[key]
+
+    control = SimpleNamespace(configure=lambda **kwargs: None)
+    starts = []
+    client = SimpleNamespace(
+        feature_status=lambda name: SimpleNamespace(active=False),
+        stop_feature=lambda name: None,
+        start_feature=lambda feature: starts.append(feature),
+    )
+    monkeypatch.setattr(ConfManager, "path", lambda name: tmp_path / name)
+    selected = pack()
+    names = tuple(selected.support.loader_updates())
+    ConfManager.set({"Loaders": {name: {} for name in (*names, "CaveBotLoader")}}, "GUILoader.json")
+    windows = []
+    for cls, loader in zip((AutoHeal, AutoMana, AutoHur, FoodEater, TimedSpells), names):
+        module = object.__new__(cls)
+        module._client = client
+        module.ui = object.__new__(support_ui.SupportWindow)
+        module.ui.owner = True
+        module.ui.window = SimpleNamespace(winfo_exists=lambda: True, destroy=lambda: None)
+        module.ui.status = lambda text: None
+        module.ui._on_close = module.close
+        module.button = module.key_widget = control
+        module.key = Variable("F1")
+        module.interval = Variable("999")
+        module.instant = Variable(False)
+        module._controls = ()
+        module.table = Table()
+        module._vars = [
+            (label, Variable(True), Variable("10"), Variable("F1"), ())
+            for label in (("One", "Two", "Three") if cls is AutoHeal else ("One", "Two"))
+        ]
+        module.ui.bind_loader(loader, module._apply_settings)
+        windows.append(module)
+    cave = object.__new__(CaveBot)
+    cave._client = client
+    try:
+        cave._apply_pack_configuration(selected)
+        assert windows[2].key.get() == selected.support.haste_hotkey
+        assert windows[3].key.get() == selected.support.food_hotkey
+        assert windows[0]._vars[0][2].get() == "85"
+        assert windows[1]._vars[0][2].get() == "70"
+        assert windows[4]._rows() == (("F7", 12.5),)
+        assert windows[4].instant.get() is True
+        assert support_from_loaders(support_ui.read_loader) == selected.support
+        for module in windows:
+            module.ui.close()
+        assert support_from_loaders(support_ui.read_loader) == selected.support
+        assert not starts
+        assert all(name not in support_ui._loader_windows for name in names)
+    finally:
+        for name in names:
+            support_ui._loader_windows.pop(name, None)
+
+
+def test_pack_export_preserves_independent_imported_name():
+    from modules.CaveBot import CaveBot
+
+    imported = replace(pack(), name="display-name")
+    ui = object.__new__(CaveBot)
+    ui._imported_pack, ui._unapplied_import = imported, True
+    ui._local_binding = None
+    ui._route = imported.route
+    ui._route_name = lambda: imported.route.name
+    def variable(value):
+        return SimpleNamespace(get=lambda: value)
+    ui.walk_enabled = variable(imported.cavebot.walking)
+    ui.follow = variable(imported.cavebot.follow)
+    ui.loot_enabled = variable(imported.cavebot.loot)
+    ui.stand = variable(imported.cavebot.stand_seconds)
+    ui.attack_enabled = [(variable(True),) for target in imported.targets]
+    ui.monster_names = [(variable(target.name),) for target in imported.targets]
+    ui.priorities = [(variable(target.priority),) for target in imported.targets]
+    exported = ui._current_pack()
+    assert exported.name == imported.name
+    assert exported.route == imported.route

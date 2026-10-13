@@ -21,6 +21,7 @@ import tempfile
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from conf.conf_manager import ConfManager
+from conf.HexMapKeys import KeyToHex
 from core.Getters import validate_calibration
 from core.paths import scripts_path
 from tibia_client.models import (
@@ -57,6 +58,10 @@ OPERATIONS = (
     "cursor_restore",
     "battle_list_click",
 )
+
+_PHYSICAL_CURSOR_OPERATIONS = frozenset({
+    "left_click", "right_click", "drag", "battle_list_click",
+})
 
 
 class CompatibilityError(ValueError):
@@ -129,6 +134,29 @@ def _today(value: str) -> str:
     except ValueError as exc:
         raise CompatibilityError("test_date must use YYYY-MM-DD") from exc
     return value
+
+
+def key_operation(key: str) -> str:
+    """Return the compatibility operation represented by a supported hotkey.
+
+    Keys come from the native-free backend key map. Spacing and modifier case
+    follow the input facade's parser; key names remain backend-exact.
+    """
+
+    if not isinstance(key, str) or not key.strip():
+        raise CompatibilityError("probe hotkey must be non-empty text")
+    parts = [part.strip() for part in key.split("+")]
+    if len(parts) == 1 and parts[0] in KeyToHex:
+        return "press"
+    if (
+        len(parts) == 2
+        and parts[0].lower() in {"ctrl", "shift"}
+        and parts[1] in KeyToHex
+    ):
+        return "modified_press"
+    raise CompatibilityError(
+        f"unsupported probe hotkey {key!r}; choose a backend-supported key"
+    )
 
 
 @dataclass(frozen=True)
@@ -342,8 +370,8 @@ class ProbeEvidence:
             value = getattr(self, name)
             if value is not None:
                 point = tuple(value)
-                if len(point) != 2 or any(type(item) is not int or item < 0 for item in point):
-                    raise CompatibilityError(f"{name} must contain non-negative integers")
+                if len(point) != 2 or any(type(item) is not int for item in point):
+                    raise CompatibilityError(f"{name} must contain integers")
                 object.__setattr__(self, name, point)
         if self.destination is not None:
             destination = tuple(self.destination)
@@ -663,6 +691,15 @@ class CompatibilityProfile:
             return Outcome.UNVERIFIED
         for item in reversed(self.evidence):
             if item.operation == operation and item.context_fingerprint == self.context.fingerprint:
+                # Older schema-v1 records may not contain the optional key.
+                # Keep those usable, but never let an explicitly recorded key
+                # satisfy the other press category.
+                if operation in ("press", "modified_press") and item.key:
+                    try:
+                        if key_operation(item.key) != operation:
+                            continue
+                    except CompatibilityError:
+                        continue
                 result = item.outcome
                 if operation == "cursor_restore" and result is Outcome.PASS:
                     if (
@@ -841,6 +878,17 @@ def validate_profile_context(
     except TypeError:
         operations = ()
         reasons.append("feature required_operations() did not return an iterable")
+    if (
+        current_context.environment.input_mode == "physical"
+        and any(
+            isinstance(operation, str) and operation in _PHYSICAL_CURSOR_OPERATIONS
+            for operation in operations
+        )
+    ):
+        # Do not hash feature-provided values here. The normal validation loop
+        # below reports malformed/unknown entries without turning the guard
+        # itself into an exception.
+        operations = (*operations, "cursor_restore")
     for operation in operations:
         if operation not in OPERATIONS:
             reasons.append(f"feature requires unknown operation {operation!r}")
@@ -887,8 +935,12 @@ def _validate_probe_operation(operation: str, action: Action) -> None:
     }
     if action.kind is not kinds[operation]:
         raise CompatibilityError(f"operation {operation!r} requires action kind {kinds[operation].value}")
-    if operation == "modified_press" and "+" not in action.key:
-        raise CompatibilityError("modified_press key must include a modifier, for example 'ctrl+F1'")
+    if action.kind is ActionKind.PRESS:
+        actual = key_operation(action.key)
+        if actual != operation:
+            raise CompatibilityError(
+                f"hotkey {action.key!r} is a {actual} probe, not {operation}"
+            )
 
 
 class ProbeFeature:
@@ -1021,8 +1073,8 @@ class ProbeFeature:
         for name, value in (("cursor_original", cursor_original), ("cursor_final", cursor_final)):
             if value is not None:
                 point = tuple(value)
-                if len(point) != 2 or any(type(item) is not int or item < 0 for item in point):
-                    raise CompatibilityError(f"{name} metadata must be a client-local point")
+                if len(point) != 2 or any(type(item) is not int for item in point):
+                    raise CompatibilityError(f"{name} metadata must be an integer coordinate pair")
                 setattr(self, name, point)
 
     def evidence(
@@ -1229,5 +1281,5 @@ __all__ = [
     "OPERATIONS", "Outcome", "ProbeEvidence", "ProbeFeature",
     "activation_guard", "calibration_digest", "compatibility_filename",
     "context_from_calibration", "export_evidence_bundle", "load_current_context",
-    "load_profile", "save_profile", "validate_profile_context",
+    "key_operation", "load_profile", "save_profile", "validate_profile_context",
 ]

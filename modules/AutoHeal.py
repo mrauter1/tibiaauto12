@@ -50,7 +50,15 @@ class AutoHeal:
         self.button = ttk.Button(self.ui.body, text="AutoHealing: OFF", command=self.toggle)
         self.button.grid(row=5, column=0, columnspan=4, sticky="ew", pady=5)
         self.ui.status_label.grid(row=6, column=0, columnspan=4, sticky="w")
+        self.ui.bind_loader("HealthLoader", self._apply_settings)
         self.ui.report_feature(self._client, "AutoHeal", on_inactive=self._feature_stopped)
+
+    def _apply_settings(self, data):
+        for label, enabled, percent, key, _ in self._vars:
+            enabled.set(data[f"LifeCheckStage{label}"])
+            percent.set(str(data[f"LifePercentageStage{label}"]))
+            key.set(data[f"LifeHotkeyStage{label}"])
+        self._feature_stopped()
 
     def _feature_stopped(self, error=None):
         del error

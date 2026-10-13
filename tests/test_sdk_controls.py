@@ -165,6 +165,50 @@ def test_concurrent_stop_all_keeps_start_latched_until_owner_finishes():
     session.close()
 
 
+def test_replacement_started_before_stop_all_cannot_install_after_it_returns():
+    clock = Clock()
+    adapter = Adapter(clock)
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    old = Feature("same", ("F1",))
+    stale_replacement = Feature("same", ("F2",))
+    explicit_restart = Feature("same", ("F3",))
+    session.start_feature(old)
+    old_record = session._records["same"]
+    outcome = []
+
+    old_record.callback_lock.acquire()
+    try:
+        def replace():
+            try:
+                outcome.append(session.start_feature(stale_replacement))
+            except Exception as exc:
+                outcome.append(exc)
+
+        worker = threading.Thread(target=replace)
+        worker.start()
+        assert old_record.cancelled.wait(1)
+
+        # RLock ownership reproduces the window where Stop All can quiesce the
+        # old callback while the replacement remains blocked outside lifecycle.
+        assert session.stop_all() == ("same",)
+        assert not session.is_active("same")
+        # This generation begins after Stop All and must survive the older
+        # replacement when that thread is allowed to continue.
+        assert session.start_feature(explicit_restart) == 2
+    finally:
+        old_record.callback_lock.release()
+
+    worker.join(1)
+    assert not worker.is_alive()
+    assert len(outcome) == 1
+    assert isinstance(outcome[0], RuntimeError)
+    assert "stop all" in str(outcome[0])
+    assert session.is_active("same")
+    session.tick_once()
+    assert [action.key for action in adapter.actions] == ["F3"]
+    session.close()
+
+
 def test_profile_invalidation_is_rechecked_before_later_dispatch():
     clock = Clock()
     adapter = Adapter(clock)
@@ -199,19 +243,35 @@ def test_profile_invalidation_is_rechecked_before_later_dispatch():
 def test_pause_navigation_keeps_support_running_and_resume_is_fresh():
     clock = Clock()
     adapter = Adapter(clock)
-    cavebot = Feature("CaveBot", ("F1",))
+
+    class NavigationFeature(Feature):
+        def __init__(self):
+            super().__init__("CaveBot", ("F1",))
+            self.pause_called = False
+            self.paused_for = None
+
+        # A generic zero-argument hook remains valid.
+        def on_pause(self):
+            self.pause_called = True
+
+        def on_resume(self, *, paused_for):
+            self.paused_for = paused_for
+
+    cavebot = NavigationFeature()
     support = Feature("AutoHeal", ("F2",))
     session = ClientSession(adapter, clock=clock, autostart=False)
     session.start_feature(cavebot)
     session.start_feature(support)
 
     assert session.pause_navigation()
+    assert cavebot.pause_called
     assert session.diagnostics().paused_features == ("CaveBot",)
     session.tick_once()
     assert [action.key for action in adapter.actions] == ["F2"]
 
     clock.value += 0.01
     assert session.resume_navigation()
+    assert cavebot.paused_for == pytest.approx(0.01)
     session.tick_once()
     assert [action.key for action in adapter.actions] == ["F2", "F1"]
     assert session.feature_status("CaveBot").active
@@ -319,6 +379,59 @@ def test_probe_bypasses_profile_evidence_but_is_strictly_exclusive():
     session.stop_all()
     with pytest.raises(RuntimeError, match="profile deliberately unavailable"):
         session.start_feature(Feature("ordinary", ("F1",)))
+    session.close()
+
+
+def test_probe_metadata_getter_failure_does_not_rewrite_executed_action():
+    clock = Clock()
+
+    class TelemetryAdapter(Adapter):
+        @property
+        def last_cursor_transition(self):
+            raise OSError("cursor API unavailable")
+
+    adapter = TelemetryAdapter(clock)
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    probe = ProbeFeature("press", Action(ActionKind.PRESS, key="F1"))
+    session.start_probe(probe)
+
+    session.tick_once()
+
+    assert adapter.actions == [Action(ActionKind.PRESS, key="F1")]
+    assert probe.result is not None and probe.result.state is ResultState.EXECUTED
+    assert session.feature_status(probe.name).phase != "Failed"
+    assert any(
+        "cursor API unavailable" in reason
+        for reason in session.diagnostics().failure_reasons
+    )
+    session.close()
+
+
+def test_probe_metadata_callback_failure_does_not_rewrite_executed_action():
+    clock = Clock()
+
+    class TelemetryAdapter(Adapter):
+        last_cursor_transition = ((1, 2), (1, 2))
+
+    adapter = TelemetryAdapter(clock)
+    session = ClientSession(adapter, clock=clock, autostart=False)
+    probe = ProbeFeature("press", Action(ActionKind.PRESS, key="F1"))
+
+    def broken_metadata(**_metadata):
+        raise ValueError("malformed optional telemetry")
+
+    probe.on_dispatch_metadata = broken_metadata
+    session.start_probe(probe)
+
+    session.tick_once()
+
+    assert adapter.actions == [Action(ActionKind.PRESS, key="F1")]
+    assert probe.result is not None and probe.result.state is ResultState.EXECUTED
+    assert session.feature_status(probe.name).phase != "Failed"
+    assert any(
+        "malformed optional telemetry" in reason
+        for reason in session.diagnostics().failure_reasons
+    )
     session.close()
 
 

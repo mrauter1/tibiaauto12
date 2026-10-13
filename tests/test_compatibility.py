@@ -18,7 +18,9 @@ from tibia_client.compatibility import (
     Outcome,
     ProbeEvidence,
     ProbeFeature,
+    activation_guard,
     export_evidence_bundle,
+    key_operation,
     load_profile,
     save_profile,
     validate_profile_context,
@@ -108,7 +110,8 @@ def operation(ctx, name="press", source=EvidenceSource.LIVE, **changes):
         dispatch=Outcome.PASS,
         operator_confirmation=Outcome.PASS,
         source=source,
-        key="F12" if name in ("press", "modified_press") else "",
+        key=("Ctrl + F12" if name == "modified_press" else "F12")
+        if name in ("press", "modified_press") else "",
         intended_target="visible test control",
         before=("frame_valid:-=True",),
         after=("frame_valid:-=True",),
@@ -152,6 +155,71 @@ def test_activation_requires_capture_alignment_and_exact_operation_evidence():
     ready = validate_profile_context(verified_profile(), ctx, ("press",))
     assert ready.allowed
     assert ready.reasons == ()
+
+
+def test_hotkey_operation_matches_supported_input_grammar_and_probe_category():
+    for key in ("F1", "enter", "esc", "left_arrow", "a"):
+        assert key_operation(key) == "press"
+    for key in ("ctrl+F1", "Ctrl + enter", "SHIFT+esc", "shift + left_arrow", "ctrl+a"):
+        assert key_operation(key) == "modified_press"
+    with pytest.raises(CompatibilityError, match="unsupported probe hotkey"):
+        key_operation("Alt + F1")
+    with pytest.raises(CompatibilityError, match="unsupported probe hotkey"):
+        key_operation("A")
+    with pytest.raises(CompatibilityError, match="modified_press"):
+        ProbeFeature("press", Action(ActionKind.PRESS, key="ctrl+F1"))
+    with pytest.raises(CompatibilityError, match="press"):
+        ProbeFeature("modified_press", Action(ActionKind.PRESS, key="F1"))
+
+
+def test_explicitly_mislabeled_key_evidence_cannot_replace_valid_press_evidence():
+    ctx = context()
+    valid = operation(ctx, "press", key="F1")
+    mislabeled = operation(ctx, "press", key="Ctrl + F1")
+    profile = CompatibilityProfile(
+        "Hunt.json", ctx, ("press",), (valid, mislabeled), alignment(ctx),
+        (capture_check(ctx),),
+    )
+    assert profile.operation_outcome("press") is Outcome.PASS
+    only_mislabeled = replace(profile, evidence=(mislabeled,))
+    assert only_mislabeled.operation_outcome("press") is Outcome.UNVERIFIED
+
+
+def test_physical_mouse_validation_includes_cursor_restore_but_messages_do_not():
+    physical = context()
+    physical_profile = CompatibilityProfile(
+        "Hunt.json", physical, ("left_click",),
+        (operation(physical, "left_click"),), alignment(physical),
+        (capture_check(physical),),
+    )
+    direct = validate_profile_context(physical_profile, physical, ("left_click",))
+    assert not direct.allowed
+    assert any("cursor_restore" in reason for reason in direct.reasons)
+
+    class MouseFeature:
+        @staticmethod
+        def required_operations():
+            return ("left_click",)
+
+    guarded = activation_guard(physical_profile, physical)(MouseFeature())
+    assert guarded == direct
+
+    messages = context(environment=environment(input_mode="messages"))
+    message_profile = CompatibilityProfile(
+        "Hunt.json", messages, ("left_click",),
+        (operation(messages, "left_click"),), alignment(messages),
+        (capture_check(messages),),
+    )
+    assert validate_profile_context(message_profile, messages, ("left_click",)).allowed
+
+
+def test_physical_dependency_expansion_reports_unhashable_unknown_operations():
+    physical = context()
+    profile = verified_profile()
+    check = validate_profile_context(profile, physical, ("left_click", ["malformed"]))
+    assert not check.allowed
+    assert any("unknown operation" in reason for reason in check.reasons)
+    assert any("cursor_restore" in reason for reason in check.reasons)
 
 
 def test_simulation_cannot_unlock_capture_alignment_or_operation():
@@ -235,6 +303,32 @@ def test_cursor_telemetry_is_recorded_as_automatic_confirmation():
         alignment(context()), (capture_check(context()),),
     )
     assert profile.operation_outcome("cursor_restore") is Outcome.PASS
+
+
+def test_signed_cursor_telemetry_round_trips_when_cursor_starts_outside_client(
+    tmp_path, monkeypatch
+):
+    monkeypatch.setattr(compatibility, "scripts_path", lambda name: tmp_path / str(name))
+    ctx = context()
+    probe = ProbeFeature(
+        "cursor_restore", Action(ActionKind.LEFT_CLICK, point=(10, 20)),
+        evidence_source=EvidenceSource.LIVE,
+    )
+    probe.tick(frame_context())
+    probe.on_dispatch_metadata(cursor_original=(-12, 4), cursor_final=(-12, 4))
+    probe.on_result(ActionResult(
+        "probe:1", probe.name, "compatibility-probe", ResultState.EXECUTED, 10.1
+    ))
+    item = probe.evidence(ctx)
+    assert item.automatic_confirmation is Outcome.PASS
+    profile = CompatibilityProfile(
+        "Hunt.json", ctx, ("cursor_restore",), (item,), alignment(ctx),
+        (capture_check(ctx),),
+    )
+    save_profile(profile, "signed.json")
+    loaded = load_profile("signed.json")
+    assert loaded.evidence[0].cursor_original == (-12, 4)
+    assert loaded.operation_outcome("cursor_restore") is Outcome.PASS
 
 
 def frame_context(frame_id=1):

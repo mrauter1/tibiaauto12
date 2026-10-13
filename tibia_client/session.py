@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections import deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+import inspect
 import itertools
 import math
 from types import MappingProxyType
@@ -130,6 +131,7 @@ class _FeatureRecord:
     cancelled: threading.Event = field(default_factory=threading.Event)
     callback_lock: threading.RLock = field(default_factory=threading.RLock)
     paused: bool = False
+    paused_at: float | None = None
     transition: str | None = None
 
 
@@ -245,6 +247,10 @@ class ClientSession:
         self._close_status_recorded = False
         self._recorder_error: BaseException | None = None
         self._stopping_all = False
+        # Unlike ``_stopping_all``, this remains changed after Stop All returns.
+        # A start that was already waiting on a callback can therefore tell that
+        # it crossed a completed stop boundary and must not install itself.
+        self._stop_epoch = 0
         self._readiness_reason: str | None = "not checked"
         self._profile_allowed: bool | None = None
         self._profile_reasons: tuple[str, ...] = ()
@@ -587,6 +593,7 @@ class ClientSession:
                 raise RuntimeError(f"client session is closed{detail}")
             if self._stopping_all:
                 raise RuntimeError("stop all automation is in progress")
+            stop_epoch = self._stop_epoch
             if any(
                 record.active and self._is_probe(record.feature)
                 for record in self._records.values()
@@ -603,6 +610,8 @@ class ClientSession:
                     raise RuntimeError(f"client session is closed{detail}")
                 if self._stopping_all:
                     raise RuntimeError("stop all automation is in progress")
+                if self._stop_epoch != stop_epoch:
+                    raise RuntimeError("stop all automation completed while feature was starting")
                 if any(
                     record.active and self._is_probe(record.feature)
                     for record in self._records.values()
@@ -642,7 +651,7 @@ class ClientSession:
                             raise RuntimeError(
                                 "automation cannot start while a compatibility probe is active"
                             )
-                    return self._start_feature(feature)
+                    return self._start_feature(feature, stop_epoch=stop_epoch)
 
     def start_probe(self, feature: Feature) -> int:
         """Start the one concrete compatibility probe in exclusive mode."""
@@ -654,6 +663,12 @@ class ClientSession:
             raise RuntimeError("compatibility probe support is unavailable") from exc
         if type(feature) is not ProbeFeature:
             raise TypeError("start_probe() requires tibia_client.compatibility.ProbeFeature")
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("client session is closed")
+            if self._stopping_all:
+                raise RuntimeError("stop all automation is in progress")
+            stop_epoch = self._stop_epoch
         reasons = self._activation_reasons(feature, bypass_profile=True)
         if reasons:
             raise RuntimeError("probe activation blocked: " + "; ".join(reasons))
@@ -663,11 +678,13 @@ class ClientSession:
                     raise RuntimeError("client session is closed")
                 if self._stopping_all:
                     raise RuntimeError("stop all automation is in progress")
+                if self._stop_epoch != stop_epoch:
+                    raise RuntimeError("stop all automation completed while probe was starting")
                 if any(record.active for record in self._records.values()):
                     raise RuntimeError("compatibility probes require all automation to be stopped")
-            return self._start_feature(feature)
+            return self._start_feature(feature, stop_epoch=stop_epoch)
 
-    def _start_feature(self, feature: Feature) -> int:
+    def _start_feature(self, feature: Feature, *, stop_epoch: int) -> int:
         name = getattr(feature, "name", None)
         if not isinstance(name, str) or not name.strip():
             raise ValueError("feature.name must be non-empty text")
@@ -683,6 +700,8 @@ class ClientSession:
             if self._closed:
                 detail = f": {self._closed_reason}" if self._closed_reason else ""
                 raise RuntimeError(f"client session is closed{detail}")
+            if self._stopping_all or self._stop_epoch != stop_epoch:
+                raise RuntimeError("stop all automation completed while feature was starting")
             previous = self._records.get(name)
             if (
                 previous is not None
@@ -715,6 +734,8 @@ class ClientSession:
             if self._closed:
                 detail = f": {self._closed_reason}" if self._closed_reason else ""
                 raise RuntimeError(f"client session is closed{detail}")
+            if self._stopping_all or self._stop_epoch != stop_epoch:
+                raise RuntimeError("stop all automation completed while feature was starting")
             generation = self._generations.get(name, 0) + 1
             self._generations[name] = generation
             self._feature_instances.append(feature_reference)
@@ -732,13 +753,23 @@ class ClientSession:
             runtime.start(self._runtime_name, self._run)
         return generation
 
-    def stop_feature(self, name: str) -> bool:
+    def stop_feature(
+        self, name: str, *, expected_generation: int | None = None
+    ) -> bool:
         self._guard_recorder_reentry("stop a feature")
         if not isinstance(name, str) or not name:
             raise ValueError("feature name must be non-empty")
         with self._lock:
             record = self._records.get(name)
             if record is None or not record.active:
+                return False
+            if (
+                expected_generation is not None
+                and (
+                    type(expected_generation) is not int
+                    or record.generation != expected_generation
+                )
+            ):
                 return False
             # Native actions see cancellation before stop waits for a feature
             # callback, sensor calculation, or policy tick to return.
@@ -818,6 +849,7 @@ class ClientSession:
             if self._stopping_all:
                 return ()
             self._stopping_all = True
+            self._stop_epoch += 1
             records = [record for record in self._records.values() if record.active]
             for record in records:
                 record.cancelled.set()
@@ -851,6 +883,7 @@ class ClientSession:
                 for record in current:
                     record.active = False
                     record.paused = False
+                    record.paused_at = None
                     record.transition = None
                     record.phase = "Stopped"
                     record.error = None
@@ -911,6 +944,19 @@ class ClientSession:
             record.cancelled.set()
             record.phase = "Paused"
         try:
+            paused_at = self._now()
+        except Exception:
+            paused_at = self._failure_time()
+        with self._lock:
+            if (
+                self._records.get(record.name) is record
+                and record.active
+                and record.transition == "pause"
+            ):
+                # Freeze feature time from the operator's pause request, not
+                # from the end of a potentially slow callback-quiescence wait.
+                record.paused_at = paused_at
+        try:
             with self._callback_barrier(record, "pause navigation"):
                 try:
                     now = self._now()
@@ -936,9 +982,7 @@ class ClientSession:
                     self._terminal(
                         item, ResultState.CANCELLED, now, "navigation paused", deliver=False
                     )
-                callback = getattr(record.feature, "on_pause", None)
-                if callable(callback):
-                    callback()
+                self._call_feature_hook(record.feature, "on_pause", at=now)
         except Exception:
             with self._lock:
                 if self._records.get(record.name) is record and record.active:
@@ -1004,9 +1048,12 @@ class ClientSession:
                         or record.transition != "resume"
                     ):
                         return False
-                callback = getattr(record.feature, "on_resume", None)
-                if callable(callback):
-                    callback()
+                with self._lock:
+                    paused_at = record.paused_at
+                paused_for = 0.0 if paused_at is None else max(0.0, now - paused_at)
+                self._call_feature_hook(
+                    record.feature, "on_resume", at=now, paused_for=paused_for
+                )
         except Exception:
             with self._lock:
                 if self._records.get(record.name) is record and record.active:
@@ -1026,6 +1073,7 @@ class ClientSession:
                 record.transition = None
                 record.cancelled = threading.Event()
                 record.paused = False
+                record.paused_at = None
                 record.next_due = now
                 record.phase = "Resuming"
                 self._ready = False
@@ -1039,6 +1087,33 @@ class ClientSession:
         if self._autostart:
             runtime.start(self._runtime_name, self._run)
         return True
+
+    @staticmethod
+    def _call_feature_hook(feature: Feature, name: str, **metadata: float) -> None:
+        """Invoke an optional hook, supplying only metadata it opts into."""
+
+        callback = getattr(feature, name, None)
+        if not callable(callback):
+            return
+        try:
+            parameters = inspect.signature(callback).parameters
+        except (TypeError, ValueError):
+            callback()
+            return
+        accepts_metadata = any(
+            parameter.kind is inspect.Parameter.VAR_KEYWORD
+            for parameter in parameters.values()
+        )
+        kwargs = {
+            key: value
+            for key, value in metadata.items()
+            if accepts_metadata
+            or (
+                key in parameters
+                and parameters[key].kind is not inspect.Parameter.POSITIONAL_ONLY
+            )
+        }
+        callback(**kwargs)
 
     def _invalidate_record(self, record: _FeatureRecord, reason: str, now: float) -> bool:
         with self._lock:
@@ -1683,33 +1758,34 @@ class ClientSession:
                 return
 
             if self._is_probe(record.feature):
-                transition = getattr(self._adapter, "last_cursor_transition", None)
-                if callable(transition):
-                    transition = transition()
-                if transition is not None:
-                    try:
+                try:
+                    transition = getattr(self._adapter, "last_cursor_transition", None)
+                    if callable(transition):
+                        transition = transition()
+                    if transition is not None:
                         original, final = transition
                         callback = getattr(record.feature, "on_dispatch_metadata", None)
                         if callable(callback):
                             with record.callback_lock:
                                 with self._lock:
-                                    if not self._is_current_locked(record):
-                                        raise runtime.CancelledError("probe generation cancelled")
-                                callback(cursor_original=original, cursor_final=final)
-                    except runtime.CancelledError:
-                        self._terminal(
-                            item, ResultState.CANCELLED,
-                            self._failure_time(execution_at), "generation cancelled",
-                        )
-                        return
-                    except Exception as exc:
-                        failed_at = self._failure_time(execution_at)
-                        self._terminal(
-                            item, ResultState.FAILED, failed_at,
-                            f"probe dispatch metadata failed: {type(exc).__name__}: {exc}",
-                        )
-                        self._fail_feature(record, exc, failed_at)
-                        return
+                                    current = self._is_current_locked(record)
+                                if current:
+                                    callback(cursor_original=original, cursor_final=final)
+                except Exception as exc:
+                    # Cursor restoration telemetry is useful evidence, but it is
+                    # observed only after the native action has already happened.
+                    # Losing it must not rewrite that executed action as failed.
+                    detail = (
+                        "probe dispatch telemetry unavailable: "
+                        f"{type(exc).__name__}: {exc}"
+                    )
+                    with self._lock:
+                        self._failure_reasons.append(detail)
+                    self._record(
+                        "telemetry", self._failure_time(execution_at), item.owner,
+                        request_id=item.request_id, generation=item.generation,
+                        key=item.request.key, available=False, detail=detail,
+                    )
 
             try:
                 completed_at = self._now()

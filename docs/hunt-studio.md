@@ -47,9 +47,9 @@ press **Save** before activation.
    missing or unverified capability is reported and no settings are applied.
 4. If all checks pass, Bind local applies the CaveBot and support settings through one atomic
    configuration update. It refuses to do this while a support feature is active.
-5. Close and reopen any support configuration windows that were already open. Existing windows
-   keep their current widget values; newly opened windows load the imported settings. Start each
-   support feature explicitly. Import and binding never start automation.
+5. Open support configuration windows refresh immediately with the imported settings; reopening
+   them is unnecessary. Start each support feature explicitly when ready. Import and binding
+   never start automation.
 6. Choose **Save** to write the imported route, then start CaveBot. Activation rechecks that the
    same local profile and calibration are still selected. A profile change, resize that
    invalidates calibration, or newly missing capability requires binding again.

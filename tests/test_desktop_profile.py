@@ -35,7 +35,8 @@ def configured(tmp_path, monkeypatch):
         source=compat.EvidenceSource.LIVE))
     profile = profile.add_evidence(compat.ProbeEvidence(
         "press", context.fingerprint, at, dispatch=compat.Outcome.PASS,
-        operator_confirmation=compat.Outcome.PASS, source=compat.EvidenceSource.LIVE))
+        operator_confirmation=compat.Outcome.PASS, source=compat.EvidenceSource.LIVE,
+        key="F12"))
     compat.save_profile(profile)
     return profile
 
@@ -62,6 +63,20 @@ def test_only_verified_operations_project_to_capabilities(configured):
     assert gate.check(("press",)).allowed
     assert not gate.check(("left_click",)).allowed
     assert gate.status()["capabilities"] == ("press", "sensor.health", "sensor.target")
+
+
+def test_controller_uses_shared_physical_cursor_restore_dependency(configured):
+    gate = controller()
+    ctx = gate.profile.context
+    at = "2026-10-13T00:00:02+00:00"
+    gate.profile = gate.profile.add_evidence(compat.ProbeEvidence(
+        "left_click", ctx.fingerprint, at, dispatch=compat.Outcome.PASS,
+        operator_confirmation=compat.Outcome.PASS, source=compat.EvidenceSource.LIVE,
+        point=(10, 20),
+    ))
+    check = gate.check(("left_click",))
+    assert not check.allowed
+    assert any("cursor_restore" in reason for reason in check.reasons)
 
 
 def test_binding_change_latches_until_explicit_reload_but_handles_are_not_durable(configured):

@@ -117,11 +117,7 @@ class DesktopProfileController:
                 return ActivationCheck(False, (self._reason,))
             if self.profile is None or self.context is None:
                 return ActivationCheck(False, ("No compatibility profile loaded",))
-            required = tuple(required_operations)
-            if (self.context.environment.input_mode == "physical"
-                    and set(required).intersection({"left_click", "right_click", "drag", "battle_list_click"})):
-                required = tuple(dict.fromkeys((*required, "cursor_restore")))
-            check = validate_profile_context(self.profile, self.context, required)
+            check = validate_profile_context(self.profile, self.context, required_operations)
             reasons = check.reasons
             if self._binding_key != (self.context.fingerprint, self._stamps[:2]):
                 reasons = (*reasons, "Verify a visible capture change for the selected windows this session")
