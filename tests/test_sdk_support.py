@@ -71,6 +71,7 @@ def test_feature_modules_only_import_sdk_pure_policies_and_standard_library():
         "features.support",
         "tibia_client",
         "tibia_client.models",
+        "tibia_client.hunt_plan",
     }
     forbidden_standard_library = {"ctypes", "subprocess", "threading", "tkinter"}
     violations = []

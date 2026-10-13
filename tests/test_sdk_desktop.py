@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
+from PIL import Image
 import pytest
 import time
 
@@ -12,6 +13,7 @@ from tibia_client.capture import CaptureProcess
 from tibia_client.models import (
     Action, ActionKind, Marker, Quality, Reading, Sensor, SensorKind, Target,
 )
+from tibia_client.visual import VisualProfile
 
 
 class Token:
@@ -153,8 +155,132 @@ def test_capabilities_declare_implemented_input_and_sensors_only():
     assert "battle_list_click" in message.capabilities().operations
     assert "cursor_restore" not in message.capabilities().operations
     assert "cursor_restore" in physical.capabilities().operations
-    assert set(message.capabilities().sensors) == {kind.value for kind in SensorKind}
+    expected = {kind.value for kind in SensorKind} - {SensorKind.VISUAL.value}
+    assert set(message.capabilities().sensors) == expected
     assert message.evidence_source == "simulation"
+
+
+def test_visual_profile_dispatches_on_observation_frame_and_can_be_reconfigured(tmp_path):
+    context = np.asarray(
+        [
+            [[1, 90, 210], [220, 4, 30], [20, 200, 60]],
+            [[250, 130, 9], [50, 70, 230], [170, 15, 150]],
+        ],
+        dtype=np.uint8,
+    )
+    target = np.asarray(
+        [
+            [[210, 10, 20], [10, 180, 60]],
+            [[15, 220, 190], [230, 110, 30]],
+        ],
+        dtype=np.uint8,
+    )
+    Image.fromarray(context).save(tmp_path / "context.png")
+    Image.fromarray(target).save(tmp_path / "target.png")
+    profile = VisualProfile(
+        {
+            "trade.ready": {
+                "kind": "template",
+                "template": "target.png",
+                "context": {"template": "context.png", "region": [0, 0, 8, 8]},
+                "search_region": [8, 0, 20, 12],
+            }
+        },
+        base_path=tmp_path,
+    )
+
+    class VisualProvider:
+        def __init__(self):
+            self.calls = 0
+
+        def capture(self):
+            self.calls += 1
+            pixels = np.full((120, 180, 3), 31, dtype=np.uint8)
+            pixels[2:4, 2:5] = context
+            pixels[5:7, 11:13] = target
+            return Frame(pixels)
+
+    provider = VisualProvider()
+    adapter = DesktopAdapter(
+        0,
+        hotkey=FakeHotkey(),
+        capture_provider=provider,
+        visual_profile=profile,
+    )
+    sensor = Sensor(SensorKind.VISUAL, (0, 0, 20, 12), "trade.ready")
+
+    batch = adapter.observe([sensor], Token())
+
+    assert provider.calls == 1
+    assert adapter.visual_profile is profile
+    assert SensorKind.VISUAL.value in adapter.capabilities().sensors
+    assert batch.readings[sensor].quality is Quality.KNOWN
+    assert batch.readings[sensor].value["position"] == (12, 6)
+    adapter.configure_visual_profile(None)
+    assert adapter.visual_profile.spec_ids == ()
+    assert SensorKind.VISUAL.value not in adapter.capabilities().sensors
+
+
+def test_visual_work_budget_returns_unknown_without_suppressing_other_sensors(
+    tmp_path, monkeypatch
+):
+    context = np.asarray(
+        [
+            [[1, 90, 210], [220, 4, 30], [20, 200, 60]],
+            [[250, 130, 9], [50, 70, 230], [170, 15, 150]],
+        ],
+        dtype=np.uint8,
+    )
+    target = np.asarray(
+        [
+            [[210, 10, 20], [10, 180, 60]],
+            [[15, 220, 190], [230, 110, 30]],
+        ],
+        dtype=np.uint8,
+    )
+    Image.fromarray(context).save(tmp_path / "context.png")
+    Image.fromarray(target).save(tmp_path / "target.png")
+    profile = VisualProfile(
+        {
+            "ready": {
+                "kind": "template",
+                "template": "target.png",
+                "context": {
+                    "template": "context.png",
+                    "region": [0, 0, 8, 8],
+                },
+                "search_region": [8, 0, 20, 12],
+            }
+        },
+        base_path=tmp_path,
+    )
+
+    class TwoRegionProvider:
+        def capture(self):
+            pixels = np.full((120, 180, 3), 31, dtype=np.uint8)
+            for offset in (0, 30):
+                pixels[2:4, offset + 2 : offset + 5] = context
+                pixels[5:7, offset + 11 : offset + 13] = target
+            return Frame(pixels)
+
+    monkeypatch.setattr(desktop, "MAX_VISUAL_WORK_PIXELS", 480)
+    adapter = DesktopAdapter(
+        0,
+        hotkey=FakeHotkey(),
+        capture_provider=TwoRegionProvider(),
+        visual_profile=profile,
+    )
+    first = Sensor(SensorKind.VISUAL, (0, 0, 20, 12), "ready")
+    over_budget = Sensor(SensorKind.VISUAL, (30, 0, 50, 12), "ready")
+    heartbeat = Sensor(SensorKind.FRAME_VALID)
+
+    batch = adapter.observe((first, over_budget, heartbeat), Token())
+
+    assert batch.readings[first].quality is Quality.KNOWN
+    assert batch.readings[first].value["present"] is True
+    assert batch.readings[over_budget].quality is Quality.UNKNOWN
+    assert "work budget" in batch.readings[over_budget].detail
+    assert batch.readings[heartbeat] == Reading(True)
 
 
 def test_live_evidence_provenance_requires_default_native_composition(monkeypatch):

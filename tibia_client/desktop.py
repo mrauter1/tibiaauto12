@@ -7,6 +7,7 @@ capture runs in :class:`tibia_client.capture.CaptureProcess`.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 import math
 from numbers import Integral
 import time
@@ -31,6 +32,11 @@ from tibia_client.models import (
     Sensor,
     SensorKind,
     Target,
+)
+from tibia_client.visual import (
+    MAX_SENSOR_PIXELS,
+    MAX_VISUAL_WORK_PIXELS,
+    VisualProfile,
 )
 
 
@@ -66,9 +72,15 @@ class DesktopAdapter:
         hotkey: Any | None = None,
         capture_provider: Any | None = None,
         clock: Any | None = None,
+        visual_profile: VisualProfile | Mapping[str, object] | None = None,
     ) -> None:
         if isinstance(mouse_mode, bool) or mouse_mode not in (0, 1):
             raise ValueError("mouse_mode must be 0 (message) or 1 (physical)")
+        compiled_visual_profile = (
+            visual_profile
+            if isinstance(visual_profile, VisualProfile)
+            else VisualProfile(visual_profile)
+        )
         self.mouse_mode = int(mouse_mode)
         native_hotkey = hotkey is None
         self.hotkey = hotkey if hotkey is not None else Hotkey(self.mouse_mode)
@@ -102,6 +114,7 @@ class DesktopAdapter:
         )
         self._last_capture_at: float | None = None
         self._capture_error: str | None = None
+        self._visual_profile = compiled_visual_profile
         self._last_cursor_transition: (
             tuple[tuple[int, int], tuple[int, int]] | None
         ) = None
@@ -131,10 +144,29 @@ class DesktopAdapter:
         ]
         if self.mouse_mode == 1:
             operations.append("cursor_restore")
+        sensors = [kind.value for kind in SensorKind]
+        if not self._visual_profile:
+            sensors.remove(SensorKind.VISUAL.value)
         return AdapterCapabilities(
             operations=tuple(operations),
-            sensors=tuple(sorted(kind.value for kind in SensorKind)),
+            sensors=tuple(sorted(sensors)),
         )
+
+    @property
+    def visual_profile(self) -> VisualProfile:
+        """Return the immutable currently installed visual registry."""
+
+        return self._visual_profile
+
+    def configure_visual_profile(
+        self,
+        profile: VisualProfile | Mapping[str, object] | None,
+    ) -> None:
+        """Atomically install a compiled profile without capture or input."""
+
+        if self._closed:
+            raise DesktopAdapterError("desktop adapter is closed")
+        self._visual_profile = profile if isinstance(profile, VisualProfile) else VisualProfile(profile)
 
     def _backend_check(self, name: str) -> bool:
         backend = getattr(self.hotkey, "SendToClient", None)
@@ -281,8 +313,7 @@ class DesktopAdapter:
             )
         return Reading(button.center)
 
-    @staticmethod
-    def _validate_sensor(sensor: Sensor, frame: Frame) -> None:
+    def _validate_sensor(self, sensor: Sensor, frame: Frame) -> None:
         """Validate every requested geometry before any detector executes."""
 
         if not isinstance(sensor, Sensor):
@@ -312,28 +343,40 @@ class DesktopAdapter:
             if sensor.region:
                 raise ValueError("follow sensor does not take a region")
             return
+        if sensor.kind is SensorKind.VISUAL:
+            region = validate_region(_region(sensor, 4), frame.size)
+            if (region[2] - region[0]) * (region[3] - region[1]) > MAX_SENSOR_PIXELS:
+                raise ValueError(
+                    f"visual sensor exceeds the {MAX_SENSOR_PIXELS} pixel budget"
+                )
+            if not sensor.name.strip():
+                raise ValueError("visual sensor needs a spec id")
+            if sensor.name not in self._visual_profile:
+                raise ValueError(f"visual profile has no spec {sensor.name!r}")
+            return
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
 
-    @classmethod
-    def _read(cls, sensor: Sensor, frame: Frame) -> Reading:
+    def _read(self, sensor: Sensor, frame: Frame) -> Reading:
         if sensor.kind is SensorKind.FRAME_VALID:
             return Reading(True)
         if sensor.kind in (SensorKind.HEALTH, SensorKind.MANA):
-            return cls._bar(sensor, frame)
+            return self._bar(sensor, frame)
         if sensor.kind is SensorKind.RING_EMPTY:
-            return cls._present("images/PlayerStats/NoRing.png", sensor, frame)
+            return self._present("images/PlayerStats/NoRing.png", sensor, frame)
         if sensor.kind is SensorKind.AMULET_EMPTY:
-            return cls._present("images/PlayerStats/NoAmulet.png", sensor, frame)
+            return self._present("images/PlayerStats/NoAmulet.png", sensor, frame)
         if sensor.kind is SensorKind.HASTED:
-            return cls._present("images/PlayerStats/Hur.png", sensor, frame)
+            return self._present("images/PlayerStats/Hur.png", sensor, frame)
         if sensor.kind is SensorKind.HUNGRY:
-            return cls._present("images/PlayerStats/Starving.png", sensor, frame)
+            return self._present("images/PlayerStats/Starving.png", sensor, frame)
         if sensor.kind is SensorKind.TARGET:
-            return cls._target(sensor, frame)
+            return self._target(sensor, frame)
         if sensor.kind is SensorKind.MARKER:
-            return cls._marker(sensor, frame)
+            return self._marker(sensor, frame)
         if sensor.kind is SensorKind.FOLLOW:
-            return cls._follow(sensor, frame)
+            return self._follow(sensor, frame)
+        if sensor.kind is SensorKind.VISUAL:
+            return self._visual_profile.read(sensor, frame)
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
 
     def observe(self, sensors: Sequence[Sensor], token: Any) -> ObservationBatch:
@@ -380,6 +423,8 @@ class DesktopAdapter:
         readings: dict[Sensor, Reading] = {}
         cache: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
         invalid: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
+        visual_work = 0
+        budgeted_visual: set[tuple[SensorKind, tuple[int, ...], str]] = set()
         # Geometry and required names are checked as a distinct pass so an
         # invalid request cannot invoke a detector before it is rejected.
         for sensor in sensors:
@@ -395,6 +440,23 @@ class DesktopAdapter:
                     Quality.ERROR,
                     f"{sensor.kind.value} detector failed: {type(exc).__name__}: {exc}",
                 )
+            else:
+                key = sensor.kind, sensor.region, sensor.name
+                if sensor.kind is SensorKind.VISUAL and key not in budgeted_visual:
+                    budgeted_visual.add(key)
+                    left, top, right, bottom = sensor.region
+                    # A spec can inspect both its context and target/count
+                    # subregions. Charging twice the enclosing sensor area is
+                    # a conservative upper bound independent of overlap.
+                    cost = 2 * (right - left) * (bottom - top)
+                    if visual_work + cost > MAX_VISUAL_WORK_PIXELS:
+                        invalid[key] = Reading(
+                            None,
+                            Quality.UNKNOWN,
+                            "visual observation work budget exceeded",
+                        )
+                    else:
+                        visual_work += cost
         for sensor in sensors:
             token.checkpoint()
             key = sensor.kind, sensor.region, sensor.name

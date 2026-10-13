@@ -65,6 +65,30 @@ def test_only_verified_operations_project_to_capabilities(configured):
     assert gate.status()["capabilities"] == ("press", "sensor.health", "sensor.target")
 
 
+def test_workflow_context_binding_cannot_follow_a_reloaded_different_context(configured):
+    gate = controller()
+
+    class Workflow:
+        desktop_context_fingerprint = gate.context.fingerprint
+
+        def required_operations(self):
+            return ("press",)
+
+    feature = Workflow()
+    assert gate(feature).allowed
+    feature.desktop_context_fingerprint = "other-context"
+    check = gate(feature)
+    assert not check.allowed
+    assert "workflow desktop context changed" in check.reasons[0]
+
+
+def test_visual_capability_refresh_does_not_promote_live_input_evidence(configured):
+    gate = controller()
+    gate.set_adapter_capabilities(AdapterCapabilities(("press", "drag"), ("health", "visual")))
+    assert gate.status()["capabilities"] == ("press", "sensor.health", "sensor.visual")
+    assert not gate.check(("drag",)).allowed
+
+
 def test_controller_uses_shared_physical_cursor_restore_dependency(configured):
     gate = controller()
     ctx = gate.profile.context

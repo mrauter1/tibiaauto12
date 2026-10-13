@@ -65,6 +65,7 @@ class SensorKind(str, Enum):
     TARGET = "target"
     MARKER = "marker"
     FOLLOW = "follow"
+    VISUAL = "visual"
 
 
 @dataclass(frozen=True)

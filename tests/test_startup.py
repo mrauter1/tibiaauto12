@@ -275,6 +275,9 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         root_module.OpenCompatibility()
         root_module.OpenTraceViewer()
         root_module.OpenHuntConsole()
+        workflow = root_module.OpenHuntWorkflow()
+        workflow.close()
+        assert root_module.OpenHuntWorkflow() is workflow
         gui_module.application_root().update_idletasks()
     finally:
         from tibia_client.application import close_client

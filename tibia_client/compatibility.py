@@ -18,6 +18,7 @@ import re
 import shutil
 import stat
 import tempfile
+from types import MappingProxyType
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from conf.conf_manager import ConfManager
@@ -30,6 +31,7 @@ from tibia_client.models import (
     ActionResult,
     Confirmation,
     FeatureContext,
+    Observation,
     Priority,
     Request,
     Requirement,
@@ -998,6 +1000,7 @@ class ProbeFeature:
         self.automatic_outcome = Outcome.UNVERIFIED
         self.before: dict[Sensor, Any] = {}
         self.after: dict[Sensor, Any] = {}
+        self.observations: Mapping[Sensor, Observation] = MappingProxyType({})
         self.cursor_original: tuple[int, int] | None = None
         self.cursor_final: tuple[int, int] | None = None
 
@@ -1022,6 +1025,12 @@ class ProbeFeature:
 
     def tick(self, context: FeatureContext) -> Step:
         if not self._issued:
+            # Preserve quality, age and frame identity for detector inspection,
+            # even after the scheduler retires this one-shot capture policy.
+            self.observations = MappingProxyType({
+                sensor: observation for sensor in self._sensors
+                if (observation := context.snapshot.observations.get(sensor)) is not None
+            })
             self.before = self._values(context, self._sensors)
             self._issued = True
             if self.action is None:

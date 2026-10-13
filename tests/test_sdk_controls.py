@@ -454,6 +454,9 @@ def test_capture_only_probe_populates_bounded_preview_and_stop_invalidates_it():
     session.tick_once()
 
     assert session.preview_frame() is frame
+    frame_id = session.snapshot.frame_id
+    assert session.preview_frame(expected_frame_id=frame_id) is frame
+    assert session.preview_frame(expected_frame_id=frame_id + 1) is None
     assert not session.is_active("CompatibilityProbe")
     session.stop_all()
     assert session.preview_frame() is None
