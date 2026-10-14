@@ -429,8 +429,9 @@ class ResourceSequenceRecorder:
             raise ResourceSequenceError("resource sequence manifest exceeds byte limit")
         try:
             manifest = self._staging / "session.json"
-            manifest.write_bytes(encoded)
-            with manifest.open("rb") as stream:
+            with manifest.open("wb") as stream:
+                stream.write(encoded)
+                stream.flush()
                 os.fsync(stream.fileno())
             self._staging.rename(self.path)
             self._closed = True

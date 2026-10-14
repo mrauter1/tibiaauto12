@@ -375,6 +375,7 @@ def test_tesseract_helper_is_bounded_and_parses_normalized_box_scores(monkeypatc
         return subprocess.CompletedProcess(command, 0, tsv, b"")
 
     monkeypatch.setattr(subprocess, "run", completed)
+    monkeypatch.setattr("tibia_client.adaptive_text.shutil.which", lambda executable: executable)
     helper = TesseractOCR(executable="/usr/bin/tesseract")
     boxes = helper.read_text_boxes(np.full((20, 30, 3), 72, dtype=np.uint8), timeout=30)
 
@@ -394,6 +395,7 @@ def test_tesseract_numeric_reader_uses_a_digit_and_comma_whitelist(monkeypatch):
         return subprocess.CompletedProcess(command, 0, b"", b"")
 
     monkeypatch.setattr(subprocess, "run", completed)
+    monkeypatch.setattr("tibia_client.adaptive_text.shutil.which", lambda executable: executable)
     helper = TesseractOCR(executable="/usr/bin/tesseract")
 
     assert helper.read_number_boxes(np.full((20, 30, 3), 72, dtype=np.uint8)) == ()

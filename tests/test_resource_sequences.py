@@ -188,6 +188,27 @@ def test_sequence_roundtrip_preserves_frame_timestamp_hash_truth_and_deduplicate
     )
 
 
+def test_sequence_flushes_writable_manifest_before_publication(tmp_path, monkeypatch):
+    original_fsync = os.fsync
+    synced_sizes = []
+
+    def require_writable_sync(fd):
+        # Windows requires a writable descriptor for fsync. A zero-byte write
+        # enforces the same requirement on Linux without changing the file.
+        os.write(fd, b"")
+        size = os.fstat(fd).st_size
+        assert size > 0, "buffered manifest must be flushed before fsync"
+        assert not (tmp_path / "sequence").exists()
+        original_fsync(fd)
+        synced_sizes.append(size)
+
+    monkeypatch.setattr(os, "fsync", require_writable_sync)
+    path = make_sequence(tmp_path)
+
+    assert synced_sizes
+    assert len(load_resource_sequence(path).frames) == 2
+
+
 def test_dedup_identity_includes_dimensions_for_equal_rgb_byte_streams(tmp_path):
     path = tmp_path / "reshape-sequence"
     with ResourceSequenceRecorder(
