@@ -1,0 +1,1822 @@
+{
+  "schema": "tibiaauto.screenshot-corpus",
+  "version": 1,
+  "box_format": "xyxy-half-open",
+  "generated_at": "2026-10-14",
+  "notes": [
+    "Boxes are absolute full-image [left, top, right, bottom] coordinates; right and bottom are excluded.",
+    "Resource boxes tightly enclose numeric glyphs (including displayed thousands separators), not row labels.",
+    "Confirmed means the target Paulistinha Qt-style client family, not a confirmed exact build.",
+    "Legacy similar fixtures must not be counted as same-version or full-screenshot coverage.",
+    "No synthetic image is included. Exact versions remain unknown when no build string or authoritative source states one.",
+    "The supplied executable was independently identified as a modified CipSoft 15.30 Qt6 client, but that binary context does not prove which build produced any screenshot.",
+    "The 1016x706 Kalibra, 970x637 cluttered, and 1400x788 Yonabra images are development/train data because their initial failures were inspected; their notes preserve the unseen outcomes."
+  ],
+  "screenshots": [
+    {
+      "id": "user-paulistinha-20261013",
+      "file": "originals/user-paulistinha-20261013.png",
+      "split": "train",
+      "classification": "confirmed",
+      "client_class": "target_official_style",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "user_upload",
+        "page_url": null,
+        "image_url": null,
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": "Matusalah"
+      },
+      "integrity": {
+        "sha256": "8e0d74453d0d0ad57e104e434dca7941763f1f0d33b1c399b932effd55763176",
+        "width": 1919,
+        "height": 1079,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Paulistinha OT client with an official-style Qt-era layout",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The visible title is 'Paulistinha Ot - Matusalah' and the frame uses the official-style dockable Tibia interface. Appearance alone does not prove the implementation or build, and no version string is visible."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1481,
+          29,
+          1697,
+          313
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 710,
+          "visible": true,
+          "box": [
+            1644,
+            61,
+            1673,
+            72
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1085,
+          "visible": true,
+          "box": [
+            1631,
+            78,
+            1673,
+            90
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 4,
+          "visible": true,
+          "box": [
+            1664,
+            96,
+            1673,
+            107
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 192,
+          "visible": true,
+          "box": [
+            1645,
+            113,
+            1673,
+            125
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Only confirmed target-family full desktop screenshot currently available.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "target_family",
+        "evidence": "User reference: Paulistinha Ot title; Skills dock with Hit Points, Mana, Soul Points, Capacity in four adjacent rows; bold light labels, right-aligned values, textured dark background, modern dock controls, compass, store and action bars. This is the target itself; exact version is not displayed."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-01-0i483jb",
+      "file": "originals/portal-tibia-2016-01-0i483jb.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/0i483jb.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "2b4a2fa0c9861bdc45f0c0df076bfcff4923d15c11c456842d000df9c99e2a30",
+        "width": 397,
+        "height": 356,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          223,
+          1,
+          394,
+          350
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 185,
+          "visible": true,
+          "box": [
+            351,
+            75,
+            369,
+            83
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 90,
+          "visible": true,
+          "box": [
+            356,
+            89,
+            369,
+            97
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            351,
+            103,
+            369,
+            111
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 78,
+          "visible": true,
+          "box": [
+            356,
+            117,
+            369,
+            125
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-02-VtukRkf",
+      "file": "originals/portal-tibia-2016-02-VtukRkf.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/VtukRkf.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "4170819ed8cc9517e54874d9bca8eb3ade5d542b1feaed6042b4fde39a45289c",
+        "width": 402,
+        "height": 393,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          225,
+          35,
+          399,
+          384
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 185,
+          "visible": true,
+          "box": [
+            343,
+            101,
+            361,
+            109
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 90,
+          "visible": true,
+          "box": [
+            348,
+            115,
+            361,
+            123
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            343,
+            129,
+            361,
+            137
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 394,
+          "visible": true,
+          "box": [
+            341,
+            143,
+            361,
+            151
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-03-dUqF9aj",
+      "file": "originals/portal-tibia-2016-03-dUqF9aj.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/dUqF9aj.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "7841fdc845d1ff775294b114f061d7124b6ac1de60a1a4ee8185dfa5b1e768a7",
+        "width": 485,
+        "height": 382,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          284,
+          26,
+          446,
+          382
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 185,
+          "visible": true,
+          "box": [
+            404,
+            98,
+            422,
+            106
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 90,
+          "visible": true,
+          "box": [
+            409,
+            112,
+            422,
+            120
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            404,
+            126,
+            422,
+            134
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 157,
+          "visible": true,
+          "box": [
+            404,
+            140,
+            422,
+            148
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-04-P9brcLm",
+      "file": "originals/portal-tibia-2016-04-P9brcLm.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/P9brcLm.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "9c21e594ff4314579ef4ea11a73e2398e70a3535b78dc7d514fa56c3096ff1d4",
+        "width": 450,
+        "height": 381,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          245,
+          25,
+          442,
+          378
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 180,
+          "visible": true,
+          "box": [
+            364,
+            95,
+            382,
+            103
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 85,
+          "visible": true,
+          "box": [
+            369,
+            109,
+            382,
+            117
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            364,
+            123,
+            382,
+            131
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 451,
+          "visible": true,
+          "box": [
+            364,
+            137,
+            382,
+            145
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-08-L1QY5z1",
+      "file": "originals/portal-tibia-2016-08-L1QY5z1.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/L1QY5z1.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "14d5d6406c03487179ae4306fa72ef470d1a622712b685211ced11d6dee11fd7",
+        "width": 398,
+        "height": 393,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          230,
+          58,
+          394,
+          393
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 185,
+          "visible": true,
+          "box": [
+            349,
+            116,
+            367,
+            124
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 90,
+          "visible": true,
+          "box": [
+            354,
+            130,
+            367,
+            138
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            349,
+            144,
+            367,
+            152
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 141,
+          "visible": true,
+          "box": [
+            349,
+            158,
+            367,
+            166
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-09-BnumJDC",
+      "file": "originals/portal-tibia-2016-09-BnumJDC.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/BnumJDC.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "2801f9568699cafc4970d9a36031388c858ff6db5956661f9b486e27edc07851",
+        "width": 389,
+        "height": 368,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          228,
+          4,
+          389,
+          368
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 260,
+          "visible": true,
+          "box": [
+            355,
+            79,
+            375,
+            87
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 71,
+          "visible": true,
+          "box": [
+            362,
+            93,
+            375,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            355,
+            107,
+            375,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 106,
+          "visible": true,
+          "box": [
+            355,
+            121,
+            375,
+            129
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "portal-tibia-2016-10-Ttu3X5q",
+      "file": "originals/portal-tibia-2016-10-Ttu3X5q.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+        "image_url": "https://i.imgur.com/Ttu3X5q.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2016-01-10/11",
+        "character": null
+      },
+      "integrity": {
+        "sha256": "ebab25fd3ba6597df9534645060a0e59e4b31a1b9e683bcbb68aa9c39002be47",
+        "width": 328,
+        "height": 345,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "CipSoft legacy native client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The source page identifies these as Tibia character screenshots and was posted 2016-01-11; its UI predates the Qt client released later in 2016. The post date does not prove an exact installed version."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          143,
+          0,
+          301,
+          345
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 6080,
+          "visible": true,
+          "box": [
+            251,
+            72,
+            281,
+            82
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 2055,
+          "visible": true,
+          "box": [
+            251,
+            86,
+            281,
+            96
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            251,
+            100,
+            281,
+            110
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1335,
+          "visible": true,
+          "box": [
+            253,
+            114,
+            281,
+            124
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real Skills-panel crop served by Imgur as a WebP transcode. Retained as an explicit legacy transfer case; it is neither a full screenshot nor evidence for the target Qt client.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "unknown",
+        "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+      }
+    },
+    {
+      "id": "tibiadecorations-2024-full-window",
+      "file": "originals/tibiadecorations-2024-full-window.png",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_no_skills_panel",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://tibiadecorations.com/quality-screenshots/",
+        "image_url": "https://tibiadecorations.com/wp-content/uploads/2024/01/full-window.png",
+        "retrieved_at": "2026-10-13",
+        "posted_at": "2024-01",
+        "character": "Makadamia"
+      },
+      "integrity": {
+        "sha256": "a7a0800a9a9ea0943b1e7fa80aa6c104962e399c7fb05e8aaec0112a073ba08b",
+        "width": 1920,
+        "height": 1017,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "official Tibia client",
+        "version": null,
+        "confidence": "high_family_only",
+        "evidence": "The supported Tibia fansite's screenshot guide presents this as a Tibia full-window capture. The article does not state a client build, so the exact version is unknown."
+      },
+      "skills_panel": {
+        "visible": false,
+        "box": null
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "notes": "Real 1920x1017 full-window official-client example with the Skills panel closed. The alternate top/equipment widgets are deliberately not annotated as Skills rows.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Whole-window negative control has matching modern textured docks, health/mana bars, compass, store and action bars. Skills panel is closed, so resource-row equivalence cannot be observed here. Used for real full-frame negative safety only, not positive numeric evidence."
+      }
+    },
+    {
+      "id": "dfg-kalibra-ek362",
+      "file": "originals/dfg-kalibra-ek362.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/pt/tibia/contas/ek-362-kalibra-2-dummy-de-treino-917867645",
+        "image_url": "https://cdn.dfg.com.br/itemimages/917867645-ek-362-kalibra-2-dummy-de-treino-TDR2.webp",
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": null
+      },
+      "integrity": {
+        "sha256": "e6956b2c23c9ace6b2cac6436bab5d5fb110d3f169b04b6539b8da31c795c201",
+        "width": 1016,
+        "height": 706,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "official-style Qt-era Tibia layout",
+        "version": null,
+        "confidence": "medium_family_only",
+        "evidence": "The DFG listing identifies the game as Tibia and the screenshot shows the same dockable Qt-era UI family. The marketplace page does not state or prove a client build."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          169,
+          508
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 5480,
+          "visible": true,
+          "box": [
+            116,
+            94,
+            150,
+            104
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1855,
+          "visible": true,
+          "box": [
+            117,
+            108,
+            150,
+            118
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            128,
+            122,
+            150,
+            130
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 2476,
+          "visible": true,
+          "box": [
+            116,
+            136,
+            150,
+            146
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real 1016x706 full client image with a left-docked Skills panel and all four resource rows visible. Retained as a same-family transfer case; exact version unknown. This was moved from heldout to train after its first failed read was inspected during development of the generic fallback.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Visible Skills resource rows use the same labels/order/right-aligned values and dock styling. Expanded skill names below resources do not change the four target rows. Client edges are truncated or uncertain; this is supplemental source-crop evidence, not a full supported-resolution capture. No resource-contract version incompatibility was found in the visible panel; whole-client equivalence is not established."
+      }
+    },
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "file": "originals/dfg-list-978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-B03E-1924049.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/50-loyalty-rp-535-com-itens-retro-pvp-978242455",
+        "image_url": "https://cdn.dfg.com.br/itemimages/978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-B03E-1924049.webp",
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": null
+      },
+      "integrity": {
+        "sha256": "f45f0622dc352ad5daaec7cda7671e0cd1f8a4424924aa17925da2cc363ff771",
+        "width": 1920,
+        "height": 1080,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "official-style Qt-era Tibia layout",
+        "version": null,
+        "confidence": "medium_family_only",
+        "evidence": "The Tibia account listing title and visible dockable interface support the client family classification. No authoritative build string is present."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          172,
+          437
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 5455,
+          "visible": true,
+          "box": [
+            120,
+            92,
+            154,
+            102
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 7995,
+          "visible": true,
+          "box": [
+            120,
+            106,
+            154,
+            116
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            133,
+            120,
+            154,
+            130
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 4250,
+          "visible": true,
+          "box": [
+            120,
+            134,
+            154,
+            144
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real 1920x1080 full-client image with a left-docked Skills panel, providing a layout and resolution transfer case. Exact version is unknown.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Inspected whole preserved image against target: same resource labels and four-row order, right-aligned comma-grouped values, textured Skills dock and window controls, modern compass/store/action bars. Left docking, additional Level/XP rows, backpack columns and smaller glyphs are visible layout/rendering differences; no version-defining incompatibility was found in the resource-reader contract. Treated interchangeable for those four resources only. Source already contains seller-applied marks; no edits added."
+      }
+    },
+    {
+      "id": "dfg-pvp-ek133",
+      "file": "originals/dfg-related-998237216-vendo-ek-133-mundo-pvp-disponivel-para-transferencia-4DOS.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/en/tibia/vendo-ek-133-mundo-pvp-disponivel-para-transferencia-998237216",
+        "image_url": "https://cdn.dfg.com.br/itemimages/998237216-vendo-ek-133-mundo-pvp-disponivel-para-transferencia-4DOS.webp",
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": null
+      },
+      "integrity": {
+        "sha256": "c951ee1f1175900804f916a4f7372545234ebd4a07202eb572828ff66a60bb18",
+        "width": 970,
+        "height": 637,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "official-style Qt-era Tibia layout",
+        "version": null,
+        "confidence": "medium_family_only",
+        "evidence": "The Tibia account listing and visible dockable interface support the family classification. The screenshot itself does not expose a client build."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          638,
+          21,
+          814,
+          417
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2060,
+          "visible": true,
+          "box": [
+            758,
+            118,
+            792,
+            126
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 560,
+          "visible": true,
+          "box": [
+            770,
+            132,
+            792,
+            140
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            770,
+            146,
+            792,
+            154
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 2207,
+          "visible": true,
+          "box": [
+            758,
+            161,
+            792,
+            169
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Source-cropped 970x637 client image with a right-side Skills panel and overlapping Quest Log window. On its initial unseen evaluation, one layout was found and health, mana, and capacity were exact at the annotated locations; the Soul region was omitted/UNKNOWN with zero incorrect-known values. It became train data once that failure was inspected.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Visible Skills resource labels/order and dock styling match the target; Quest Log overlaps the game view. The right HUD and window extent are visibly truncated, so this is a source crop, not a 970x637 supported-resolution full client. No resource-contract version incompatibility was found in the visible panel; full-client equivalence is not established."
+      }
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "file": "originals/dfg-917013286-ustebra-ek177-DWTG.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/com-ek-em-ustebra-177-skill-113-106-axe-917013286",
+        "image_url": "https://cdn.dfg.com.br/itemimages/917013286-conta-tibia-com-ek-em-ustebra-177-skill-113-106-axe-DWTG.webp",
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": "Tobhi"
+      },
+      "integrity": {
+        "sha256": "c7d3eabd6d7c31309582d48b39bb531739b3c423e1ec9aa34fdab32bba6929cb",
+        "width": 1920,
+        "height": 1009,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "official-style Qt-era Tibia layout",
+        "version": null,
+        "confidence": "medium_family_only",
+        "evidence": "The DFG page identifies the listing as Tibia, and the preserved full-window image shows the dockable official-style client with a Skills panel. Neither the page nor the image exposes an authoritative client build."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1743,
+          463,
+          1917,
+          895
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2720,
+          "visible": true,
+          "box": [
+            1864,
+            559,
+            1898,
+            569
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 541,
+          "visible": true,
+          "box": [
+            1876,
+            573,
+            1897,
+            581
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1877,
+            587,
+            1898,
+            595
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1451,
+          "visible": true,
+          "box": [
+            1865,
+            601,
+            1897,
+            611
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real 1920x1009 full-client image with a narrow right-docked Skills panel. The untouched heldout image was exact for all four resources on its first evaluation and was not used to tune the reader. Exact version is unknown.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Inspected whole preserved image: same resource labels, row order, right-aligned values, Skills chrome, compass/store and action bars as target. Panel is lower in the right dock; Level/XP rows are visible above resources. These are real layout differences. No version-defining incompatibility was found in the resource-reader contract, so treated interchangeable for these fields. File dimensions are not proof of a supported in-game resolution."
+      }
+    },
+    {
+      "id": "dfg-yonabra-ek195",
+      "file": "originals/dfg-974104750-yonabra-ek195-FQ2C.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-974104750",
+        "image_url": "https://cdn.dfg.com.br/itemimages/974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-FQ2C.webp",
+        "retrieved_at": "2026-10-13",
+        "posted_at": null,
+        "character": "Heinschalle"
+      },
+      "integrity": {
+        "sha256": "cb48bade572118b9885f529644b04f676d61575e4b50a8523a2925d29a7dcbbf",
+        "width": 1400,
+        "height": 788,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "official-style Qt-era Tibia layout",
+        "version": null,
+        "confidence": "medium_family_only",
+        "evidence": "The DFG page identifies the listing as Tibia, and the full-window image title and dockable interface support the official-style family classification. A date visible in game content is not a client build identifier."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1143,
+          20,
+          1271,
+          383
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2969,
+          "visible": true,
+          "box": [
+            1232,
+            90,
+            1256,
+            97
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1025,
+          "visible": true,
+          "box": [
+            1232,
+            101,
+            1256,
+            108
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1240,
+            111,
+            1256,
+            118
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1676,
+          "visible": true,
+          "box": [
+            1232,
+            122,
+            1256,
+            130
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "notes": "Real 1400x788 full-client image with a compact right-docked Skills panel and macOS window chrome. Initial unseen evaluation returned no layout and zero candidates. It became train data once that failure was inspected and reported for reader development. Exact version is unknown.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+        "status": "visually_equivalent",
+        "evidence": "Inspected complete macOS window against target: same Hit Points/Mana/Soul Points/Capacity rows, right value column, Skills dock controls, modern compass/store and action bars. Smaller antialiased glyphs, macOS title bar and additional analyzers differ visibly; no resource-contract version incompatibility was found. Treated interchangeable for resource recognition, with rendering variation explicitly tested. Native display scale and any publisher resizing are unknown."
+      }
+    },
+    {
+      "id": "dfg-gentebra-rp193-PPNB",
+      "file": "originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/paladin-lvl-193-skills-101-na-barra-gentebra-906563910",
+        "image_url": "https://cdn.dfg.com.br/itemimages/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp",
+        "retrieved_at": "2026-10-14",
+        "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+        "posted_at": null,
+        "character": null
+      },
+      "client": {
+        "family": "official-style dockable Tibia interface",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Full client capture with live gameplay. Skills is docked on the right. Dark dock chrome, toolbar glyph family, Hit Points/Mana/Soul Points/Capacity order, numeric alignment, bars, and adjacent equipment/store stack match the target reader contract. Dock position differs from some sources but is a supported layout difference, not evidence of a client-version change."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1005,
+          0,
+          1182,
+          421
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1969,
+          "visible": true,
+          "box": [
+            1129,
+            92,
+            1162,
+            102
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1451,
+          "visible": true,
+          "box": [
+            1129,
+            106,
+            1161,
+            116
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1140,
+            120,
+            1162,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 330,
+          "visible": true,
+          "box": [
+            1140,
+            134,
+            1162,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+      },
+      "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+      "integrity": {
+        "sha256": "0393813276aa22d994a7de0c27a183f34fb69bef7a0540b9992de61b7f6fcf42",
+        "width": 1360,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "render_equivalence": {
+        "status": "visually_equivalent",
+        "evidence": "Full client capture with live gameplay. Skills is docked on the right. Dark dock chrome, toolbar glyph family, Hit Points/Mana/Soul Points/Capacity order, numeric alignment, bars, and adjacent equipment/store stack match the target reader contract. Dock position differs from some sources but is a supported layout difference, not evidence of a client-version change.",
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    },
+    {
+      "id": "dfg-lutabra-ed312-IBIV",
+      "file": "originals/917674539-conta-tibia-ed-lvl-312-ml-102-rp-116-skills-113-lutabra-IBIV.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/ed-lvl-312-ml-102-rp-116-skills-113-lutabra-917674539",
+        "image_url": "https://cdn.dfg.com.br/itemimages/917674539-conta-tibia-ed-lvl-312-ml-102-rp-116-skills-113-lutabra-IBIV.webp",
+        "retrieved_at": "2026-10-14",
+        "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+        "posted_at": null,
+        "character": null
+      },
+      "client": {
+        "family": "official-style dockable Tibia interface",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Full client capture with live gameplay. Skills is docked on the left; the target uses a right dock. Header controls, textured chrome, label order, glyph styling, right-aligned numeric column, and surrounding resource rows are visually equivalent for the reader contract."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          173,
+          251
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1705,
+          "visible": true,
+          "box": [
+            121,
+            92,
+            154,
+            102
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 5578,
+          "visible": true,
+          "box": [
+            121,
+            106,
+            154,
+            116
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            133,
+            120,
+            154,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 862,
+          "visible": true,
+          "box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+      },
+      "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+      "integrity": {
+        "sha256": "77123450db0c79e2e4c1585947c69b0c3870c1de509e0d712df92c651c376ccd",
+        "width": 1360,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "render_equivalence": {
+        "status": "visually_equivalent",
+        "evidence": "Full client capture with live gameplay. Skills is docked on the left; the target uses a right dock. Header controls, textured chrome, label order, glyph styling, right-aligned numeric column, and surrounding resource rows are visually equivalent for the reader contract.",
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    },
+    {
+      "id": "dfg-loyalty-ek277-OL5J",
+      "file": "originals/940604669-tibia-account-35-loyalt-ek-277-skill-120-115-OL5J.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/account-35-loyalt-ek-277-skill-120-115-940604669",
+        "image_url": "https://cdn.dfg.com.br/itemimages/940604669-tibia-account-35-loyalt-ek-277-skill-120-115-OL5J.webp",
+        "retrieved_at": "2026-10-14",
+        "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+        "posted_at": null,
+        "character": "Rook Hatake"
+      },
+      "client": {
+        "family": "official-style dockable Tibia interface",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Full Windows desktop/client capture with the modern Skills dock on the right and a Character dialog simultaneously showing the same four resource values. The dock itself matches the target contract, but the duplicate labels/values create a natural ambiguity control; it should not be an automatic-layout positive."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1137,
+          19,
+          1272,
+          400
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 4220,
+          "visible": true,
+          "box": [
+            1231,
+            84,
+            1256,
+            91
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1101,
+          "visible": true,
+          "box": [
+            1232,
+            94,
+            1255,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1241,
+            104,
+            1256,
+            110
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 4141,
+          "visible": true,
+          "box": [
+            1231,
+            115,
+            1254,
+            121
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+      },
+      "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+      "expected_final_unknown_fields": [
+        "resource_health",
+        "resource_mana",
+        "resource_soul",
+        "resource_capacity"
+      ],
+      "abstention_reason": "Two complete resource presentations are visible; automatic panel choice is not authorized by the generic label constellation.",
+      "ambiguity_evidence": "The right Skills dock and central Cyclopedia Character dialog both display Hit Points 4220, Mana 1101, Soul Points 100 and Capacity 4141. A unique panel cannot be inferred from these four labels alone; require selection.",
+      "secondary_resource_presentation": {
+        "kind": "character_dialog",
+        "same_values": true,
+        "box": [
+          454,
+          191,
+          954,
+          578
+        ]
+      },
+      "integrity": {
+        "sha256": "c8d5dae68539510bfbe3050347079d2db7ed19a1a8f81987332c582b35e3ef15",
+        "width": 1400,
+        "height": 788,
+        "format": "WEBP"
+      },
+      "render_equivalence": {
+        "status": "visually_equivalent",
+        "evidence": "Full Windows desktop/client capture with the modern Skills dock on the right and a Character dialog simultaneously showing the same four resource values. The dock itself matches the target contract, but the duplicate labels/values create a natural ambiguity control; it should not be an automatic-layout positive.",
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    },
+    {
+      "id": "dfg-calmera-ek246-D9BJ",
+      "file": "originals/951064454-knight-tibia-global-level-246-skill-106-mundo-calmera-D9BJ.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/knight-global-level-246-skill-106-mundo-calmera-951064454",
+        "image_url": "https://cdn.dfg.com.br/itemimages/951064454-knight-tibia-global-level-246-skill-106-mundo-calmera-D9BJ.webp",
+        "retrieved_at": "2026-10-14",
+        "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+        "posted_at": null,
+        "character": null
+      },
+      "client": {
+        "family": "official-style dockable Tibia interface",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Full client capture with the Market dialog open and the complete Skills dock visible on the right. Skills chrome, header buttons, resource-label order, number column and equipment/store stack are visually equivalent to the target reader contract despite different open content and window proportions."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1034,
+          0,
+          1218,
+          439
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3755,
+          "visible": true,
+          "box": [
+            1162,
+            96,
+            1196,
+            105
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 928,
+          "visible": true,
+          "box": [
+            1175,
+            111,
+            1196,
+            119
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1176,
+            127,
+            1196,
+            135
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 5988,
+          "visible": true,
+          "box": [
+            1163,
+            142,
+            1196,
+            152
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+      },
+      "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+      "evaluation_history": {
+        "first_full_evaluation": "reports/iterations/iteration-03-real-originals.json",
+        "first_evaluation_date": "2026-10-14",
+        "reason_for_train": "First preserved-original evaluation exposed template discovery gaps; inspected for diagnosis after the archived run. Source pixels and manual numeric truth unchanged."
+      },
+      "integrity": {
+        "sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+        "width": 1400,
+        "height": 665,
+        "format": "WEBP"
+      },
+      "render_equivalence": {
+        "status": "visually_equivalent",
+        "evidence": "Full client capture with the Market dialog open and the complete Skills dock visible on the right. Skills chrome, header buttons, resource-label order, number column and equipment/store stack are visually equivalent to the target reader contract despite different open content and window proportions.",
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    },
+    {
+      "id": "dfg-laudera-knight64-PD1G",
+      "file": "originals/957011807-tibia-global-nivel-64-mundo-laudera-knight-PD1G.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/global-nivel-64-mundo-laudera-knight-957011807",
+        "image_url": "https://cdn.dfg.com.br/itemimages/957011807-tibia-global-nivel-64-mundo-laudera-knight-PD1G.webp",
+        "retrieved_at": "2026-10-14",
+        "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+        "posted_at": null,
+        "character": "Lacerda Label"
+      },
+      "client": {
+        "family": "visibly different Tibia Beta interface",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1250,
+          346,
+          1399,
+          480
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1025,
+          "visible": true,
+          "box": [
+            1351,
+            406,
+            1380,
+            414
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 330,
+          "visible": true,
+          "box": [
+            1361,
+            418,
+            1380,
+            425
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1362,
+            430,
+            1380,
+            437
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1785,
+          "visible": true,
+          "box": [
+            1351,
+            443,
+            1380,
+            451
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+      },
+      "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+      "evaluation_history": {
+        "first_full_evaluation": "reports/iterations/iteration-03-real-originals.json",
+        "first_evaluation_date": "2026-10-14",
+        "reason_for_train": "First preserved-original evaluation exposed template discovery gaps; inspected for diagnosis after the archived run. Source pixels and manual numeric truth unchanged."
+      },
+      "integrity": {
+        "sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+        "width": 1400,
+        "height": 678,
+        "format": "WEBP"
+      },
+      "render_equivalence": {
+        "status": "visibly_different",
+        "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture.",
+        "reviewed_at": "2026-10-14",
+        "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    }
+  ]
+}

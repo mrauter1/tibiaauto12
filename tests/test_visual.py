@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from types import MappingProxyType
+from types import MappingProxyType, SimpleNamespace
 
 import numpy as np
 from PIL import Image
 import pytest
 
 from core.perception import Frame
-from tibia_client.models import Quality, Sensor, SensorKind
+from tibia_client.models import Quality, Reading, Sensor, SensorKind
 import tibia_client.visual as visual
 from tibia_client.visual import VisualProfile, VisualProfileError
 
@@ -88,6 +88,158 @@ def _grouped_count_config(**changes):
     }
     config.update(changes)
     return config
+
+
+def test_adaptive_metadata_is_count_only_strict_and_fingerprinted(tmp_path):
+    _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    ordinary = VisualProfile({"mana": _grouped_count_config()}, base_path=tmp_path)
+    adaptive_config = _grouped_count_config(
+        adaptive={"reader": "paulistinha-skills-v1", "field": "resource_mana"}
+    )
+    adaptive = VisualProfile({"mana": adaptive_config}, base_path=tmp_path)
+
+    assert adaptive["mana"].adaptive.reader == "paulistinha-skills-v1"
+    assert adaptive["mana"].adaptive.field == "resource_mana"
+    assert adaptive.fingerprint != ordinary.fingerprint
+
+    ocr_config = _grouped_count_config(
+        adaptive={
+            "reader": "paulistinha-skills-v1",
+            "field": "resource_mana",
+            "use_ocr": True,
+        }
+    )
+    ocr = VisualProfile({"mana": ocr_config}, base_path=tmp_path)
+    assert ocr["mana"].adaptive.use_ocr is True
+    assert ocr.fingerprint != adaptive.fingerprint
+
+    malformed = _grouped_count_config(
+        adaptive={"reader": "paulistinha-skills-v1", "field": "other"}
+    )
+    with pytest.raises(visual.VisualProfileError, match="bundled Skills resource"):
+        VisualProfile({"mana": malformed}, base_path=tmp_path)
+    invalid_ocr = _grouped_count_config(
+        adaptive={
+            "reader": "paulistinha-skills-v1",
+            "field": "resource_mana",
+            "use_ocr": 1,
+        }
+    )
+    with pytest.raises(visual.VisualProfileError, match="use_ocr must be boolean"):
+        VisualProfile({"mana": invalid_ocr}, base_path=tmp_path)
+    mixed = _grouped_count_config(
+        adaptive={
+            "reader": "paulistinha-skills-v1",
+            "field": "resource_health",
+            "use_ocr": True,
+        }
+    )
+    with pytest.raises(visual.VisualProfileError, match="same OCR policy"):
+        VisualProfile(
+            {"mana": adaptive_config, "health": mixed}, base_path=tmp_path
+        )
+
+
+def test_direct_adaptive_read_honors_selected_panel_hint(tmp_path, monkeypatch):
+    _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    profile = VisualProfile(
+        {
+            "mana": _grouped_count_config(
+                adaptive={
+                    "reader": "paulistinha-skills-v1",
+                    "field": "resource_mana",
+                    "use_ocr": True,
+                }
+            )
+        },
+        base_path=tmp_path,
+    )
+    calls = []
+    layout = SimpleNamespace(fingerprint="adaptive-layout", regions={"resource_mana": (1, 1, 2, 2)})
+
+    class Reader:
+        def discover(self, frame, *, selection=None, use_ocr=False):
+            calls.append((frame, selection, use_ocr))
+            return SimpleNamespace(layout=layout, detail="", candidates=(layout,))
+
+        def read(self, frame, selected, *, use_ocr=False):
+            assert selected is layout
+            calls.append((frame, "read", use_ocr))
+            return {
+                "resource_mana": Reading(
+                    {"present": True, "position": None, "count": 1085, "score": 1.0}
+                )
+            }
+
+    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    frame = Frame(np.ones((20, 60, 3), dtype=np.uint8))
+    reading = profile.read(Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana"), frame)
+
+    assert reading.value["count"] == 1085
+    assert reading.diagnostics["layout_revision"] == "adaptive-layout"
+    assert calls == [(frame, (0, 0, 60, 11), True), (frame, "read", True)]
+
+    narrow = VisualProfile(
+        {
+            "soul": _grouped_count_config(
+                max_digits=3,
+                adaptive={
+                    "reader": "paulistinha-skills-v1",
+                    "field": "resource_mana",
+                    "use_ocr": True,
+                },
+            )
+        },
+        base_path=tmp_path,
+    )
+    rejected = narrow.read(
+        Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "soul"), frame
+    )
+    assert rejected.quality is Quality.UNKNOWN
+    assert rejected.value is None
+    assert rejected.diagnostics["configured_max_digits"] == 3
+
+
+@pytest.mark.parametrize("key", ["reader", "field"])
+@pytest.mark.parametrize("bad", [[], {}, 42, None])
+def test_adaptive_identity_validation_reports_profile_errors(tmp_path, key, bad):
+    _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    metadata = {"reader": "paulistinha-skills-v1", "field": "resource_mana"}
+    metadata[key] = bad
+    with pytest.raises(VisualProfileError, match=f"adaptive {key}"):
+        VisualProfile({"mana": _grouped_count_config(adaptive=metadata)}, base_path=tmp_path)
+
+
+@pytest.mark.parametrize("ambiguous", [False, True])
+def test_direct_adaptive_read_only_broadens_missing_hint(tmp_path, monkeypatch, ambiguous):
+    _patterns(tmp_path)
+    _save(tmp_path / "comma.png", _rgb(("1", "1")))
+    profile = VisualProfile({"mana": _grouped_count_config(adaptive={
+        "reader": "paulistinha-skills-v1", "field": "resource_mana",
+    })}, base_path=tmp_path)
+    selections = []
+    layout = SimpleNamespace(fingerprint="moved", regions={"resource_mana": (1, 1, 2, 2)})
+
+    class Reader:
+        def discover(self, frame, *, selection=None, use_ocr=False):
+            selections.append(selection)
+            if selection is not None:
+                return SimpleNamespace(layout=None, detail="ambiguous" if ambiguous else "missing",
+                                       candidates=(layout, layout) if ambiguous else ())
+            return SimpleNamespace(layout=layout, detail="", candidates=(layout,))
+
+        def read(self, frame, selected, *, use_ocr=False):
+            return {"resource_mana": Reading({"count": 1085})}
+
+    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    frame = Frame(np.ones((20, 60, 3), dtype=np.uint8))
+    region = (0, 0, 60, 11)
+    reading = profile.read(Sensor(SensorKind.VISUAL, region, "mana"), frame)
+    assert selections == ([region] if ambiguous else [region, None])
+    assert reading.quality is (Quality.UNKNOWN if ambiguous else Quality.KNOWN)
 
 
 def _put_count(canvas, text, *, comma_y=5):
@@ -692,3 +844,71 @@ def test_profile_rejects_unsafe_evidence_thresholds(tmp_path, change):
 
     with pytest.raises(VisualProfileError):
         VisualProfile({"unsafe": config}, base_path=tmp_path)
+
+
+def test_direct_adaptive_read_recovers_a_row_missing_during_setup(tmp_path):
+    from pathlib import Path
+    from tibia_client.adaptive import ResourceReader
+    from tibia_client.resource_profiles import apply_adaptive_resource_preset
+
+    path = Path(__file__).parents[1] / 'tests/fixtures/resources/paulistinha-skills.png'
+    with Image.open(path) as image:
+        pixels = np.asarray(image.convert('RGB'))
+    complete = Frame(pixels)
+    reader = ResourceReader()
+    original = reader.discover(complete)
+    capacity = next(a for a in original.layout.anchors if a.field == 'resource_capacity')
+    partial = pixels.copy()
+    left, top, right, bottom = capacity.box
+    partial[top:bottom, left:right] = 42
+    source = Frame(partial)
+    result = apply_adaptive_resource_preset(
+        {'bindings': {}, 'visual': {}}, source,
+        calibration_size=source.size, base_dir=tmp_path,
+    )
+    assert result.readings['resource_capacity'].quality is Quality.UNKNOWN
+    profile = VisualProfile(result.document['visual'], base_path=tmp_path)
+    restored = profile.read(result.bindings['resource_capacity'], complete)
+    assert restored.quality is Quality.KNOWN
+    assert restored.value['count'] == 192
+
+
+def test_adaptive_fingerprint_covers_actual_bundle_not_inactive_count_options(tmp_path, monkeypatch):
+    from pathlib import Path
+    import shutil
+
+    _patterns(tmp_path)
+    _save(tmp_path / 'comma.png', _rgb(('1', '1')))
+    root = Path(__file__).parents[1]
+    bundle = tmp_path / 'bundle'
+    shutil.copytree(root / 'profiles/paulistinha-skills-v1', bundle)
+    monkeypatch.setattr(visual, 'project_path', lambda _path: str(bundle))
+    config = _grouped_count_config(adaptive={
+        'reader': 'paulistinha-skills-v1', 'field': 'resource_mana',
+    })
+    before = VisualProfile({'mana': config}, base_path=tmp_path).fingerprint
+    config['score'] = 0.999
+    config['context']['score'] = 0.9
+    assert VisualProfile({'mana': config}, base_path=tmp_path).fingerprint == before
+
+    # The alternate anchor bank is used at runtime even when this individual
+    # spec's historical context template points somewhere else.
+    native = bundle / 'labels/native/soul.png'
+    with Image.open(native) as image:
+        pixels = np.asarray(image.convert('RGB')).copy()
+    pixels[0, 0] = (255, 0, 0)
+    _save(native, pixels)
+    after = VisualProfile({'mana': config}, base_path=tmp_path).fingerprint
+    assert after != before
+    # Later rendering banks and separator variants also invalidate cached
+    # readings even if the legacy JSON points only to the original bank.
+    alternate = bundle / 'labels/alternate/test/soul.png'
+    alternate.parent.mkdir(parents=True)
+    _save(alternate, pixels)
+    alternate_fingerprint = VisualProfile({'mana': config}, base_path=tmp_path).fingerprint
+    assert alternate_fingerprint != after
+    _save(bundle / 'comma-test.png', _rgb(('1', '1')))
+    separator_fingerprint = VisualProfile({'mana': config}, base_path=tmp_path).fingerprint
+    assert separator_fingerprint != alternate_fingerprint
+    config['max_digits'] = 5
+    assert VisualProfile({'mana': config}, base_path=tmp_path).fingerprint != separator_fingerprint

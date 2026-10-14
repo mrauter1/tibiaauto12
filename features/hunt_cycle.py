@@ -8,7 +8,7 @@ committed.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from enum import Enum
 import json
 import math
@@ -112,6 +112,8 @@ class _PendingAction:
     loot_item: str | None = None
     matched_count_delta: tuple[str, str] | None = None
     dispatch_unknown: bool = False
+    layout_revisions: dict[str, str] = field(default_factory=dict)
+    layout_revision_verified: bool = True
 
 
 class HuntCheckpointError(ValueError):
@@ -611,6 +613,7 @@ class HuntCycleFeature:
             extra=extra,
             loot_item=loot_item,
             matched_count_delta=matched_count_delta,
+            layout_revisions=self._layout_revisions(context, ids),
         )
         self._set_status("dispatching_guarded_action")
         self._save_checkpoint()  # Persist intent before the session can dispatch it.
@@ -662,12 +665,43 @@ class HuntCycleFeature:
                 return False
         return True
 
+    def _layout_revisions(
+        self, context: FeatureContext, sensor_ids: Iterable[str]
+    ) -> dict[str, str]:
+        revisions: dict[str, str] = {}
+        for sensor_id in sensor_ids:
+            sensor = self.bindings.get(sensor_id)
+            observation = None if sensor is None else context.snapshot.observations.get(sensor)
+            revision = (
+                None
+                if observation is None
+                else observation.diagnostics.get("layout_revision")
+            )
+            if isinstance(revision, str) and revision:
+                revisions[sensor_id] = revision
+        return revisions
+
+    def _pending_layout_changed(
+        self, context: FeatureContext, pending: _PendingAction
+    ) -> bool:
+        if not pending.layout_revision_verified:
+            return True
+        if not pending.layout_revisions:
+            return False
+        current = self._layout_revisions(context, pending.layout_revisions)
+        return any(
+            current.get(sensor_id) != revision
+            for sensor_id, revision in pending.layout_revisions.items()
+        )
+
     def _tick_pending(self, context: FeatureContext) -> Step:
         pending = self._pending
         if pending is None:
             return self._step()
         if pending.dispatched_at is None:
             if pending.dispatch_unknown:
+                if self._pending_layout_changed(context, pending):
+                    return self._manual("layout_changed_after_uncertain_dispatch")
                 confirmed = self._pending_confirmed(context, pending)
                 if confirmed is True:
                     self._pending = None
@@ -679,10 +713,20 @@ class HuntCycleFeature:
                     return self._manual("dispatch_result_unknown")
                 self._set_status("reconciling_uncertain_dispatch")
                 return self._step()
+            if self._pending_layout_changed(context, pending):
+                # No dispatch result has been observed, so cancel the queued
+                # request that was bound to the old layout.  A later tick can
+                # establish a fresh baseline before issuing a new request.
+                self._pending = None
+                self._set_status("queued_action_layout_changed")
+                self._save_checkpoint()
+                return self._step(cancel_keys=(pending.request_key,))
             if context.now - pending.issued_at >= max(1.0, self.interval * 4):
                 return self._manual("dispatch_result_unknown")
             self._set_status("waiting_for_dispatch_result")
             return self._step()
+        if self._pending_layout_changed(context, pending):
+            return self._manual("layout_changed_after_dispatch")
         confirmed = self._pending_confirmed(context, pending)
         if confirmed is True:
             self._pending = None
@@ -1123,6 +1167,17 @@ class HuntCycleFeature:
         baselines = data.get("baselines")
         if action is None or not isinstance(baselines, Mapping):
             return None
+        relevant_ids = {
+            *baselines,
+            *action.require_present,
+            *(item for item in (action.target_id, action.destination_id) if item),
+        }
+        saved_revisions = data.get("layout_revisions")
+        current_revisions = self._layout_revisions(context, relevant_ids)
+        revision_verified = (
+            saved_revisions is not None
+            and set(current_revisions).issubset(saved_revisions)
+        )
         return _PendingAction(
             action=action,
             baselines=dict(baselines),
@@ -1135,6 +1190,8 @@ class HuntCycleFeature:
             extra=extra,
             loot_item=loot_item,
             matched_count_delta=matched_count_delta,
+            layout_revisions=dict(saved_revisions or {}),
+            layout_revision_verified=revision_verified,
         )
 
     def _tick_resume(self, context: FeatureContext) -> Step | None:
@@ -1147,6 +1204,10 @@ class HuntCycleFeature:
             # The restored baseline frame is this first post-restart frame. Check
             # it directly once; later manual re-checks require a newer frame.
             pending.baseline_frame = -1
+            if self._pending_layout_changed(context, pending):
+                self._resume_pending = None
+                self._pending = pending
+                return self._manual("interrupted_action_layout_unverified")
             confirmed = self._pending_confirmed(context, pending)
             pending.baseline_frame = context.snapshot.frame_id
             if confirmed is True:
@@ -1229,6 +1290,9 @@ class HuntCycleFeature:
                 self._manual_check_requested = False
                 if self._pending is None:
                     self._set_status("manual_recheck_has_no_machine_reconcilable_effect")
+                    return self._step()
+                if self._pending_layout_changed(context, self._pending):
+                    self._set_status("manual_reconciliation_still_required")
                     return self._step()
                 confirmed = self._pending_confirmed(context, self._pending)
                 if confirmed is True:
@@ -1326,6 +1390,11 @@ class HuntCycleFeature:
                 "request_key": self._pending.request_key,
                 "dispatched_at": self._pending.dispatched_at,
                 "loot_item": self._pending.loot_item,
+                "layout_revisions": (
+                    self._pending.layout_revisions
+                    if self._pending.layout_revision_verified
+                    else None
+                ),
             }
         phase = self._manual_origin.value if self._phase is CyclePhase.MANUAL and self._manual_origin else self._phase.value
         return {
@@ -1426,11 +1495,13 @@ class HuntCycleFeature:
             if pending is not None:
                 if not isinstance(pending, Mapping):
                     raise HuntCheckpointError("checkpoint pending action must be an object")
-                pending_keys = {
+                required_pending_keys = {
                     "action_id", "mutating", "baselines", "attempts",
                     "baseline_frame", "request_key", "dispatched_at", "loot_item",
                 }
-                if set(pending) != pending_keys:
+                if not required_pending_keys.issubset(pending) or set(pending) - (
+                    required_pending_keys | {"layout_revisions"}
+                ):
                     raise HuntCheckpointError("checkpoint pending action fields are invalid")
                 action_id = pending.get("action_id")
                 mutating = pending.get("mutating")
@@ -1440,6 +1511,7 @@ class HuntCycleFeature:
                 request_key = pending.get("request_key")
                 dispatched_at = pending.get("dispatched_at")
                 loot_item = pending.get("loot_item")
+                layout_revisions = pending.get("layout_revisions", {})
                 if type(mutating) is not bool:
                     raise HuntCheckpointError("checkpoint pending mutation flag is invalid")
                 if (
@@ -1458,6 +1530,22 @@ class HuntCycleFeature:
                     raise HuntCheckpointError("checkpoint pending frame is invalid")
                 if not isinstance(request_key, str) or not request_key.strip():
                     raise HuntCheckpointError("checkpoint pending request key is invalid")
+                if (
+                    layout_revisions is not None
+                    and (
+                        not isinstance(layout_revisions, Mapping)
+                        or any(
+                        not isinstance(key, str)
+                        or key not in self.bindings
+                        or not isinstance(value, str)
+                        or not value
+                        for key, value in layout_revisions.items()
+                        )
+                    )
+                ):
+                    raise HuntCheckpointError(
+                        "checkpoint pending layout revisions are invalid"
+                    )
                 if dispatched_at is not None and (
                     isinstance(dispatched_at, bool)
                     or not isinstance(dispatched_at, (int, float))

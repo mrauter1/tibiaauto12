@@ -1,0 +1,42 @@
+........................................................................ [  9%]
+........................................................................ [ 18%]
+........................................................................ [ 27%]
+........................................................................ [ 37%]
+........................................................................ [ 46%]
+........................................................................ [ 55%]
+.......................F................................................ [ 65%]
+........................................................................ [ 74%]
+........................................................................ [ 83%]
+..................................s..................................... [ 93%]
+.....................................................                    [100%]
+=================================== FAILURES ===================================
+_____ test_scaled_confirmed_capture_imports_and_compiles_as_an_sdk_profile _____
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-236/test_scaled_confirmed_capture_0')
+
+    def test_scaled_confirmed_capture_imports_and_compiles_as_an_sdk_profile(tmp_path):
+        with Image.open(CONFIRMED_CAPTURE) as source:
+            # Keep the confirmed Skills resource rows and nearby panel structure.
+            crop = np.asarray(source.convert("RGB").crop((1450, 20, 1740, 160)))
+        scaled = cv2.resize(crop, None, fx=0.75, fy=0.75, interpolation=cv2.INTER_LINEAR)
+        frame = Frame(scaled, source="offline:confirmed-scaled-0.75.png")
+        document = {"bindings": {}, "visual": {}, "operator_notes": {"keep": True}}
+
+        result = apply_adaptive_resource_preset(
+            document,
+            frame,
+            calibration_size=frame.size,
+            base_dir=tmp_path,
+        )
+        profile = VisualProfile.from_data(result.document["visual"], base_path=tmp_path)
+
+        assert result.document["operator_notes"] == {"keep": True}
+>       assert result.readings["resource_health"].value["count"] == 710
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not subscriptable
+
+tests/test_resource_profiles_adaptive.py:188: TypeError
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_startup.py:207: Windows GUI smoke gate
+FAILED tests/test_resource_profiles_adaptive.py::test_scaled_confirmed_capture_imports_and_compiles_as_an_sdk_profile
+1 failed, 771 passed, 1 skipped in 69.04s (0:01:09)

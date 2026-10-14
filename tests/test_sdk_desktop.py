@@ -10,6 +10,7 @@ from core.perception import CaptureError, Frame, Match
 from tibia_client import desktop
 from tibia_client.desktop import DesktopAdapter, DesktopAdapterError
 from tibia_client.capture import CaptureProcess
+from tibia_client.adaptive_runtime import AdaptiveResourceTracker, CaptureInputMapping
 from tibia_client.models import (
     Action, ActionKind, Marker, Quality, Reading, Sensor, SensorKind, Target,
 )
@@ -281,6 +282,100 @@ def test_visual_work_budget_returns_unknown_without_suppressing_other_sensors(
     assert batch.readings[over_budget].quality is Quality.UNKNOWN
     assert "work budget" in batch.readings[over_budget].detail
     assert batch.readings[heartbeat] == Reading(True)
+
+
+def test_adaptive_visuals_keep_sensor_identity_and_do_not_delay_health(tmp_path, monkeypatch):
+    context = np.asarray(
+        [[[10, 20, 30], [40, 50, 60]], [[70, 80, 90], [100, 110, 120]]],
+        dtype=np.uint8,
+    )
+    Image.fromarray(context).save(tmp_path / "context.png")
+    digit = np.asarray([[[255, 255, 255]]], dtype=np.uint8)
+    for number in range(10):
+        Image.fromarray(digit).save(tmp_path / f"{number}.png")
+    profile = VisualProfile(
+        {
+            "resource_health": {
+                "kind": "count",
+                "context": {"template": "context.png", "region": [0, 0, 4, 4]},
+                "count_region": [4, 0, 10, 6],
+                "digits": {str(number): f"{number}.png" for number in range(10)},
+                "adaptive": {
+                    "reader": "paulistinha-skills-v1",
+                    "field": "resource_health",
+                },
+            }
+        },
+        base_path=tmp_path,
+    )
+    order = []
+
+    class Bars:
+        def __init__(self, _name):
+            pass
+
+        def scan(self, *_args, **_kwargs):
+            order.append("health")
+            return 42
+
+    class Tracker(AdaptiveResourceTracker):
+        def read(self, _frame, requests):
+            assert order == ["health"]
+            order.append("adaptive")
+            return {
+                sensor: Reading(
+                    {"present": True, "position": (4, 5), "count": 710, "score": 0.99},
+                    diagnostics={"layout_revision": "panel-a"},
+                )
+                for sensor in requests
+            }
+
+    monkeypatch.setattr(desktop, "ScanStages", Bars)
+    visual_sensor = Sensor(SensorKind.VISUAL, (0, 0, 10, 6), "resource_health")
+    health_sensor = Sensor(SensorKind.HEALTH, (1, 1))
+    adapter = DesktopAdapter(
+        0,
+        hotkey=FakeHotkey(),
+        capture_provider=Provider(),
+        visual_profile=profile,
+        adaptive_tracker=Tracker(),
+    )
+
+    batch = adapter.observe((visual_sensor, health_sensor), Token())
+
+    assert order == ["health", "adaptive"]
+    assert batch.readings[health_sensor].value == 42
+    assert batch.readings[visual_sensor].value["count"] == 710
+    assert batch.readings[visual_sensor].value["position"] == (4, 5)
+    assert batch.readings[visual_sensor].diagnostics["capture_position"] == (4, 5)
+    assert set(batch.readings) == {health_sensor, visual_sensor}
+
+    class BrokenTracker(AdaptiveResourceTracker):
+        def read(self, _frame, _requests):
+            raise RuntimeError("worker bookkeeping failed")
+
+    broken = DesktopAdapter(
+        0,
+        hotkey=FakeHotkey(),
+        capture_provider=Provider(),
+        visual_profile=profile,
+        adaptive_tracker=BrokenTracker(),
+    ).observe((visual_sensor, health_sensor), Token())
+    assert broken.readings[health_sensor].value == 42
+    assert broken.readings[visual_sensor].quality is Quality.UNKNOWN
+    assert "tracker failed" in broken.readings[visual_sensor].detail
+
+
+def test_desktop_rejects_nonidentity_capture_input_mapping_before_observation():
+    mapping = CaptureInputMapping((180, 120), (360, 240))
+
+    with pytest.raises(ValueError, match="only 1:1 capture/input mapping"):
+        DesktopAdapter(
+            0,
+            hotkey=FakeHotkey(),
+            capture_provider=Provider(),
+            coordinate_mapping=mapping,
+        )
 
 
 def test_live_evidence_provenance_requires_default_native_composition(monkeypatch):

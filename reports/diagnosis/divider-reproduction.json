@@ -1,0 +1,13 @@
+{
+  "scope": "Manual pixel intervention on one inspected failure, not a detector implementation or benchmark improvement.",
+  "case_id": "dfg-retro-pvp-rp535::panel-scale-2",
+  "before_found": false,
+  "after_found": true,
+  "values": {
+    "resource_health": 5455,
+    "resource_mana": 7995,
+    "resource_soul": 100,
+    "resource_capacity": 4250
+  },
+  "exact": true
+}

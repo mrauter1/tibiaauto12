@@ -30,6 +30,7 @@ venv
 .venv/
 .pytest_cache/
 .ruff_cache/
+.work/
 scripts/NewConfig.json
 scripts/Loads.json
 scripts/*.json.lock
