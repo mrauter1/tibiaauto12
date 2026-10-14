@@ -1,0 +1,52 @@
+{
+  "scope": "Diagnostic rerun of all 193 cases with eligible unknown fields in adaptive_templates_ocr, not a new technique benchmark. No production reader changes.",
+  "git_commit": "b5e30916491595fa8d4ca67ce44b459a62178437",
+  "baseline_sha256": "121aeb6deba068f2245c52ba4ffb11861ccbd206bd0f2cc967d7a8589125f251",
+  "traced_cases": 193,
+  "failure_fields_by_stage": {
+    "individual_region_rejected": 26,
+    "numeric_reader_rejected": 98,
+    "anchor_constellation_missing": 332,
+    "individual_anchor_missing": 36,
+    "value_column_missing": 20
+  },
+  "numeric_and_row_reasons": {
+    "resource row does not have a unique complete value in the verified column": {
+      "count": 62
+    },
+    "number contains an ambiguous digit": {
+      "count": 8,
+      "top_candidate_matches_truth": 5
+    },
+    "number contains a weakly matched digit": {
+      "count": 51,
+      "top_candidate_matches_truth": 3
+    },
+    "number shape is unstable near the foreground threshold": {
+      "count": 3,
+      "top_candidate_matches_truth": 3
+    },
+    "number contains a weakly matched thousands separator": {
+      "count": 33,
+      "top_candidate_matches_truth": 25
+    },
+    "multi-digit number has a leading zero": {
+      "count": 2,
+      "top_candidate_matches_truth": 0
+    },
+    "number contains a glyph with unsupported topology": {
+      "count": 1
+    }
+  },
+  "baseline_output_differences": [],
+  "implementation_matches_baseline": true,
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "opencv": "4.11.0",
+    "numpy": "2.2.6",
+    "pillow": "11.3.0",
+    "pytesseract": null,
+    "tesseract": "tesseract 5.3.4"
+  }
+}

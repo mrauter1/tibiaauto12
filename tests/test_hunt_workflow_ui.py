@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 from PIL import Image
 
+from core.perception import Frame
 from modules.HuntWorkflow import (
     CropIntent,
     HuntWorkflow,
@@ -19,6 +20,10 @@ from modules.HuntWorkflow import (
     rebase_visual_paths,
     relative_template_path,
     status_text,
+)
+from tibia_client.resource_profiles import (
+    ResourcePanelCandidate,
+    ResourcePresetCandidates,
 )
 
 
@@ -38,6 +43,8 @@ class FakeController:
         self.calls = []
         self.control_epoch = 11
         self.resource_error = None
+        self.adaptive_resource_error = None
+        self.adaptive_resource_choices = None
 
     def validate(self, data, base_dir):
         self.calls.append(("validate", data, Path(base_dir)))
@@ -80,6 +87,54 @@ class FakeController:
             document=updated,
             readings={"resource_soul": SimpleNamespace(value={"count": 4})},
             bindings={},
+        )
+
+    def apply_adaptive_resource_preset(
+        self, data, frame_path, base_dir, *, selection=None, use_ocr=False,
+    ):
+        self.calls.append((
+            "adaptive_resource_preset", data, Path(frame_path), Path(base_dir),
+            selection, use_ocr,
+        ))
+        if self.adaptive_resource_error is not None:
+            raise self.adaptive_resource_error
+        if self.adaptive_resource_choices is not None and selection is None:
+            return self.adaptive_resource_choices
+        updated = deepcopy(data)
+        updated["bindings"]["resource_soul"] = {
+            "name": "resource_soul", "region": [5, 6, 35, 26],
+        }
+        adaptive = {"reader": "paulistinha-skills-v1", "field": "resource_soul"}
+        if use_ocr:
+            adaptive["use_ocr"] = True
+        updated["visual"]["resource_soul"] = {"kind": "count", "adaptive": adaptive}
+        return SimpleNamespace(
+            document=updated,
+            readings={"resource_soul": SimpleNamespace(value={"count": 17}, diagnostics={})},
+            bindings={"resource_soul": SimpleNamespace(region=(5, 6, 35, 26))},
+            frame=Frame(Image.open(frame_path).convert("RGB"), source="offline:test.png"),
+        )
+
+    def apply_adaptive_resource_candidate(
+        self, data, choices, candidate_index, base_dir, *, use_ocr=False,
+    ):
+        self.calls.append((
+            "adaptive_resource_candidate", data, choices, candidate_index, Path(base_dir), use_ocr,
+        ))
+        selected = choices.candidates[candidate_index]
+        updated = deepcopy(data)
+        updated["bindings"]["resource_soul"] = {
+            "name": "resource_soul", "region": list(selected.bounds),
+        }
+        updated["visual"]["resource_soul"] = {
+            "kind": "count",
+            "adaptive": {"reader": "paulistinha-skills-v1", "field": "resource_soul"},
+        }
+        return SimpleNamespace(
+            document=updated,
+            readings={"resource_soul": SimpleNamespace(value={"count": 23}, diagnostics={})},
+            bindings={"resource_soul": SimpleNamespace(region=selected.bounds)},
+            frame=choices.frame,
         )
 
 
@@ -163,6 +218,15 @@ class FakeText:
         self.modified = bool(value)
 
 
+class StateWidget:
+    def __init__(self):
+        self.state = None
+
+    def configure(self, **values):
+        if "state" in values:
+            self.state = values["state"]
+
+
 def realistic_editor(tmp_path):
     ui = headless_ui(tmp_path)
     ui.window = None
@@ -187,6 +251,9 @@ def realistic_editor(tmp_path):
     ui.visual_template = ui.visual_vars["template"]
     ui.crop_target = Value("Match template")
     ui.capture_file = Value("")
+    ui.resource_panel_region = Value("")
+    ui.resource_use_ocr = Value(False)
+    ui.visual_mode = Value("Ordinary detector: the fields below control recognition.")
     ui.route_tree = FakeTree()
     ui.supply_tree = FakeTree()
     ui.action_tree = FakeTree()
@@ -301,6 +368,30 @@ def test_save_as_rebases_optional_thousands_separator_asset(tmp_path):
     assert variant.resolve() == (old_base / "templates/mana/6-alt-2.png").resolve()
 
 
+def test_save_as_rebases_assets_without_changing_adaptive_metadata(tmp_path):
+    old_base, new_base = tmp_path / "old", tmp_path / "new"
+    value = default_workflow_document()
+    value["visual"] = {
+        "resource_mana": {
+            "kind": "count",
+            "context": {"template": "assets/context.png", "region": [0, 0, 10, 10]},
+            "digits": {str(number): f"assets/{number}.png" for number in range(10)},
+            "count_region": [10, 0, 40, 10],
+            "adaptive": {
+                "reader": "paulistinha-skills-v1",
+                "field": "resource_mana",
+            },
+        }
+    }
+
+    moved = rebase_visual_paths(value, old_base, new_base)
+
+    assert moved["visual"]["resource_mana"]["adaptive"] == value["visual"]["resource_mana"]["adaptive"]
+    assert (new_base / moved["visual"]["resource_mana"]["digits"]["0"]).resolve() == (
+        old_base / "assets/0.png"
+    ).resolve()
+
+
 def test_structured_visual_update_preserves_advanced_tuning(tmp_path):
     ui = headless_ui(tmp_path)
     ui.data["visual"] = {
@@ -329,6 +420,114 @@ def test_structured_visual_update_preserves_advanced_tuning(tmp_path):
     assert item["max_matches"] == 4
     assert item["template"] == "new.png"
     assert item["context"]["score"] == 0.96
+
+
+def test_adaptive_visual_selection_locks_legacy_fields_without_changing_json(tmp_path):
+    ui = realistic_editor(tmp_path)
+    normal_entry, normal_combo, convert = StateWidget(), StateWidget(), StateWidget()
+    ui._visual_legacy_widgets = ((normal_entry, "normal"), (normal_combo, "readonly"))
+    ui._visual_convert_button = convert
+    spec = {
+        "kind": "count",
+        "context": {"template": "guard.png", "region": [0, 0, 8, 8], "score": 0.91},
+        "digits": {str(number): f"digits/{number}.png" for number in range(10)},
+        "count_region": [8, 0, 48, 10],
+        "score": 0.92,
+        "max_digits": 5,
+        "adaptive": {
+            "reader": "paulistinha-skills-v1",
+            "field": "resource_mana",
+            "use_ocr": True,
+        },
+    }
+    ui.data["visual"] = {"resource_mana": deepcopy(spec)}
+    ui._refresh_visual_trees()
+    ui.visual_tree.selected = ("resource_mana",)
+
+    ui._select_visual()
+
+    assert ui._visual_adaptive is True
+    assert normal_entry.state == normal_combo.state == "disabled"
+    assert convert.state == "normal"
+    assert "bundled label and number recognition" in ui.visual_mode.get()
+    before = deepcopy(ui.data)
+    ui._collect_structured()
+    assert ui.data == before
+    assert ui.data["visual"]["resource_mana"] == spec
+
+    # Even a programmatic Add/update cannot rewrite inactive compatibility
+    # settings that the adaptive form deliberately keeps read-only.
+    ui.visual_vars["score"].set("0.11")
+    ui.visual_vars["digits_dir"].set("other-digits")
+    assert ui._put_visual(silent=True)
+    assert ui.data["visual"]["resource_mana"] == spec
+
+
+def test_explicit_adaptive_conversion_removes_only_metadata_and_reenables_ordinary_fields(tmp_path):
+    ui = realistic_editor(tmp_path)
+    normal_entry, normal_combo, convert = StateWidget(), StateWidget(), StateWidget()
+    ui._visual_legacy_widgets = ((normal_entry, "normal"), (normal_combo, "readonly"))
+    ui._visual_convert_button = convert
+    spec = {
+        "kind": "count",
+        "context": {"template": "guard.png", "region": [0, 0, 8, 8], "score": 0.91},
+        "digits": {str(number): f"digits/{number}.png" for number in range(10)},
+        "count_region": [8, 0, 48, 10],
+        "score": 0.92,
+        "foreground": [250, 250, 250],
+        "tolerance": 10,
+        "max_digits": 5,
+        "adaptive": {"reader": "paulistinha-skills-v1", "field": "resource_mana"},
+    }
+    ui.data["visual"] = {"resource_mana": deepcopy(spec)}
+    ui._refresh_visual_trees()
+    ui.visual_tree.selected = ("resource_mana",)
+    ui._select_visual()
+
+    ui.convert_adaptive_visual()
+
+    expected = deepcopy(spec)
+    expected.pop("adaptive")
+    assert ui.data["visual"]["resource_mana"] == expected
+    assert ui._visual_adaptive is False
+    assert normal_entry.state == "normal"
+    assert normal_combo.state == "readonly"
+    assert convert.state == "disabled"
+    assert "ordinary count detector" in ui.message.get()
+
+    ui.visual_vars["kind"].set("template")
+    ui.visual_vars["template"].set("mana.png")
+    ui.visual_vars["region"].set("8, 0, 48, 10")
+    assert ui._put_visual()
+    converted = ui.data["visual"]["resource_mana"]
+    assert converted["kind"] == "template"
+    assert "adaptive" not in converted
+
+
+def test_selecting_ordinary_visual_after_adaptive_restores_legacy_controls(tmp_path):
+    ui = realistic_editor(tmp_path)
+    legacy, convert = StateWidget(), StateWidget()
+    ui._visual_legacy_widgets = ((legacy, "normal"),)
+    ui._visual_convert_button = convert
+    ui.data["visual"] = {
+        "adaptive": {
+            "kind": "count", "context": {}, "digits": {},
+            "adaptive": {"reader": "paulistinha-skills-v1", "field": "resource_health"},
+        },
+        "ordinary": {"kind": "count", "context": {}, "digits": {}},
+    }
+    ui._refresh_visual_trees()
+    ui.visual_tree.selected = ("adaptive",)
+    ui._select_visual()
+    assert legacy.state == "disabled"
+
+    ui.visual_tree.selected = ("ordinary",)
+    ui._select_visual()
+
+    assert ui._visual_adaptive is False
+    assert legacy.state == "normal"
+    assert convert.state == "disabled"
+    assert "adaptive" in ui.data["visual"]["adaptive"]
 
 
 def test_document_replacement_clears_stale_entity_forms(tmp_path):
@@ -854,6 +1053,103 @@ def test_default_resource_import_is_disabled_during_live_inspection(tmp_path):
     assert ui.controller.calls == []
 
 
+def test_adaptive_resource_detection_uses_optional_region_and_keeps_result_offline(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (40, 30), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui.resource_panel_region.set("2, 3, 38, 28")
+    ui.resource_use_ocr.set(True)
+    ui._mark_clean()
+
+    ui.detect_resource_panel()
+
+    call = ui.controller.calls[-1]
+    assert call[0] == "adaptive_resource_preset"
+    assert call[4:] == ((2, 3, 38, 28), True)
+    assert ui.data["visual"]["resource_soul"]["adaptive"] == {
+        "reader": "paulistinha-skills-v1", "field": "resource_soul", "use_ocr": True,
+    }
+    assert ui._inspection_readings["resource_soul"].value["count"] == 17
+    assert ui.data != ui._clean_document
+    assert all(call[0] != "save" for call in ui.controller.calls)
+    assert "offline only" in ui.message.get()
+
+
+def test_adaptive_resource_detection_rejects_bad_region_without_mutating(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (40, 30), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui.resource_panel_region.set("3, 4, 3, 20")
+    before = deepcopy(ui.data)
+
+    ui.detect_resource_panel()
+
+    assert ui.data == before
+    assert ui.controller.calls == []
+    assert "Resource panel region" in ui.message.get()
+
+
+def test_failed_adaptive_resource_detection_preserves_pending_edits(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (40, 30), "black").save(source)
+    ui.capture_file.set(str(source))
+    ui.plan_id.set("edited-before-detection")
+    ui.controller.adaptive_resource_error = ValueError(
+        "resource panel is ambiguous; select the intended panel area and retry"
+    )
+
+    ui.detect_resource_panel()
+
+    assert ui.data["plan"]["id"] == "edited-before-detection"
+    assert ui.controller.calls[-1][0] == "adaptive_resource_preset"
+    assert "select the intended panel area" in ui.message.get()
+
+
+def test_ambiguous_resource_detection_uses_one_click_choice_and_same_offline_frame(tmp_path):
+    ui = realistic_editor(tmp_path)
+    source = tmp_path / "client-frame.png"
+    Image.new("RGB", (200, 100), "black").save(source)
+    ui.capture_file.set(str(source))
+    frame = Frame(Image.new("RGB", (200, 100), "navy"), source="offline:fixed.png")
+    layouts = (
+        SimpleNamespace(bounds=(5, 5, 95, 45)),
+        SimpleNamespace(bounds=(105, 5, 195, 45)),
+    )
+    candidates = tuple(
+        ResourcePanelCandidate(
+            layout.bounds,
+            {"resource_soul": (layout.bounds[0] + 40, 10, layout.bounds[2] - 5, 20)},
+            1.0,
+            layout,
+        )
+        for layout in layouts
+    )
+    choices = ResourcePresetCandidates("resource panel is ambiguous", candidates, frame)
+    ui.controller.adaptive_resource_choices = choices
+    shown = []
+
+    def choose(value, callback):
+        shown.append(value)
+        callback(1)
+
+    ui._show_resource_candidates = choose
+
+    ui.detect_resource_panel()
+
+    assert shown == [choices]
+    assert [call[0] for call in ui.controller.calls] == [
+        "adaptive_resource_preset", "adaptive_resource_candidate",
+    ]
+    assert ui.controller.calls[1][3] == 1
+    assert ui.data["bindings"]["resource_soul"]["region"] == [105, 5, 195, 45]
+    assert ui._last_inspection_frame is frame
+    assert ui._inspection_offline is True
+    assert "Soul=23" in ui.message.get()
+
+
 def test_runtime_return_control_is_dispatched_off_the_ui_thread(tmp_path):
     ui = headless_ui(tmp_path)
     work = []
@@ -1051,8 +1347,10 @@ def test_inspection_renders_and_clears_ambiguity_candidates(monkeypatch):
     ui._last_inspection_frame = SimpleNamespace(image=Image.new("RGB", (100, 100)))
     ui._inspection_result_bindings = {"corpse": {"region": [0, 0, 50, 50]}}
     ui._inspection_readings = {"corpse": {
+        "value": {"count": 8},
         "diagnostics": {
             "type": "visual_ambiguity", "scope": "target",
+            "effective_region": (5, 10, 25, 30),
             "boxes": ((10, 20, 30, 40), (40, 50, 60, 70)), "scores": (0.91, 0.90),
         }
     }}
@@ -1062,6 +1360,8 @@ def test_inspection_renders_and_clears_ambiguity_candidates(monkeypatch):
     assert [item[1]["outline"] for item in ui.inspection_canvas.rectangles] == [
         "#00e5ff", "#ff3b30", "#ff3b30",
     ]
+    assert ui.inspection_canvas.rectangles[0][0] == (10.0, 15.0, 30.0, 35.0)
+    assert any(item[1]["text"] == "corpse=8" for item in ui.inspection_canvas.texts)
     assert any("corpse target 0.910" in item[1]["text"] for item in ui.inspection_canvas.texts)
 
     ui._inspection_readings = {}

@@ -1,0 +1,47 @@
+{
+  "schema": "tibiaauto.resource-diagnostic",
+  "version": 1,
+  "case_id": "dfg-retro-pvp-rp535::panel-scale-2",
+  "technique": "adaptive_templates_ocr",
+  "result": "verified_layout_chrome_rejection",
+  "base_anchors": {
+    "count": 4,
+    "fields": ["resource_health", "resource_mana", "resource_soul", "resource_capacity"],
+    "scale": 1.6,
+    "scores": [0.775, 0.788, 0.816, 0.860]
+  },
+  "forced_fallbacks": {
+    "refinement_anchor_scores": [0.943, 0.935, 0.947, 0.942],
+    "ocr_anchor_count": 4,
+    "layout_after_refinement": false,
+    "layout_after_ocr": false,
+    "layout_after_refinement_and_ocr": false
+  },
+  "layout_probe": {
+    "correct_numeric_right_edge": 308,
+    "numeric_runs": {
+      "resource_health": [240, 184, 308, 204],
+      "resource_mana": [240, 212, 308, 232],
+      "resource_soul": [266, 240, 308, 256],
+      "resource_capacity": [240, 268, 308, 288]
+    },
+    "decoy_run": {
+      "x_range": [320, 321],
+      "description": "one-pixel panel divider passes the row-run height filter in three rows and forms a second aligned column"
+    },
+    "code_path": "tibia_client/adaptive.py:_layout builds columns and rejects len(columns) != 1 before running the panel-divider detector",
+    "original_layout": false
+  },
+  "controlled_mask_probe": {
+    "change": "set columns x=319..321 to background value 42 in a temporary in-memory copy",
+    "layout_found": true,
+    "values": {
+      "resource_health": 5455,
+      "resource_mana": 7995,
+      "resource_soul": 100,
+      "resource_capacity": 4250
+    },
+    "all_values_exact": true
+  },
+  "conclusion": "Anchor refinement alone cannot recover this case. Chrome must be identified or excluded before the unique-column decision; after removing the divider, current numeric recognition is exact."
+}

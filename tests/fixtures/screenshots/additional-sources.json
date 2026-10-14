@@ -1,0 +1,470 @@
+[
+  {
+    "id": "dfg-gentebra-rp193-PPNB",
+    "file": "originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp",
+    "split": "heldout",
+    "classification": "similar",
+    "client_class": "official_style_transfer",
+    "expected_discovery": true,
+    "coverage": "full_screenshot",
+    "data_origin": "real",
+    "asset_fidelity": "source_transcode",
+    "source": {
+      "kind": "web",
+      "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/paladin-lvl-193-skills-101-na-barra-gentebra-906563910",
+      "image_url": "https://cdn.dfg.com.br/itemimages/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp",
+      "retrieved_at": "2026-10-14",
+      "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+      "posted_at": null,
+      "character": null
+    },
+    "client": {
+      "family": "official-style dockable Tibia interface",
+      "version": null,
+      "confidence": "visual_review_only",
+      "evidence": "Full client capture with live gameplay. Skills is docked on the right. Dark dock chrome, toolbar glyph family, Hit Points/Mana/Soul Points/Capacity order, numeric alignment, bars, and adjacent equipment/store stack match the target reader contract. Dock position differs from some sources but is a supported layout difference, not evidence of a client-version change."
+    },
+    "skills_panel": {
+      "visible": true,
+      "box": [
+        1005,
+        0,
+        1182,
+        421
+      ]
+    },
+    "labels": {
+      "resource_health": {
+        "value": 1969,
+        "visible": true,
+        "box": [
+          1129,
+          92,
+          1162,
+          102
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_mana": {
+        "value": 1451,
+        "visible": true,
+        "box": [
+          1129,
+          106,
+          1161,
+          116
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_soul": {
+        "value": 200,
+        "visible": true,
+        "box": [
+          1140,
+          120,
+          1162,
+          128
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_capacity": {
+        "value": 330,
+        "visible": true,
+        "box": [
+          1140,
+          134,
+          1162,
+          142
+        ],
+        "verification": "manual_verified"
+      }
+    },
+    "capture_fidelity": {
+      "downloaded_bytes_preserved": true,
+      "native_resolution_verified": false,
+      "display_scale": null,
+      "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+    },
+    "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference."
+  },
+  {
+    "id": "dfg-lutabra-ed312-IBIV",
+    "file": "originals/917674539-conta-tibia-ed-lvl-312-ml-102-rp-116-skills-113-lutabra-IBIV.webp",
+    "split": "heldout",
+    "classification": "similar",
+    "client_class": "official_style_transfer",
+    "expected_discovery": true,
+    "coverage": "full_screenshot",
+    "data_origin": "real",
+    "asset_fidelity": "source_transcode",
+    "source": {
+      "kind": "web",
+      "page_url": "https://www.dfg.com.br/tibia/contas/ed-lvl-312-ml-102-rp-116-skills-113-lutabra-917674539",
+      "image_url": "https://cdn.dfg.com.br/itemimages/917674539-conta-tibia-ed-lvl-312-ml-102-rp-116-skills-113-lutabra-IBIV.webp",
+      "retrieved_at": "2026-10-14",
+      "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+      "posted_at": null,
+      "character": null
+    },
+    "client": {
+      "family": "official-style dockable Tibia interface",
+      "version": null,
+      "confidence": "visual_review_only",
+      "evidence": "Full client capture with live gameplay. Skills is docked on the left; the target uses a right dock. Header controls, textured chrome, label order, glyph styling, right-aligned numeric column, and surrounding resource rows are visually equivalent for the reader contract."
+    },
+    "skills_panel": {
+      "visible": true,
+      "box": [
+        0,
+        0,
+        173,
+        251
+      ]
+    },
+    "labels": {
+      "resource_health": {
+        "value": 1705,
+        "visible": true,
+        "box": [
+          121,
+          92,
+          154,
+          102
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_mana": {
+        "value": 5578,
+        "visible": true,
+        "box": [
+          121,
+          106,
+          154,
+          116
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_soul": {
+        "value": 100,
+        "visible": true,
+        "box": [
+          133,
+          120,
+          154,
+          128
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_capacity": {
+        "value": 862,
+        "visible": true,
+        "box": [
+          132,
+          134,
+          154,
+          142
+        ],
+        "verification": "manual_verified"
+      }
+    },
+    "capture_fidelity": {
+      "downloaded_bytes_preserved": true,
+      "native_resolution_verified": false,
+      "display_scale": null,
+      "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+    },
+    "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference."
+  },
+  {
+    "id": "dfg-loyalty-ek277-OL5J",
+    "file": "originals/940604669-tibia-account-35-loyalt-ek-277-skill-120-115-OL5J.webp",
+    "split": "heldout",
+    "classification": "similar",
+    "client_class": "official_style_transfer",
+    "expected_discovery": false,
+    "coverage": "full_screenshot",
+    "data_origin": "real",
+    "asset_fidelity": "source_transcode",
+    "source": {
+      "kind": "web",
+      "page_url": "https://www.dfg.com.br/tibia/contas/account-35-loyalt-ek-277-skill-120-115-940604669",
+      "image_url": "https://cdn.dfg.com.br/itemimages/940604669-tibia-account-35-loyalt-ek-277-skill-120-115-OL5J.webp",
+      "retrieved_at": "2026-10-14",
+      "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+      "posted_at": null,
+      "character": "Rook Hatake"
+    },
+    "client": {
+      "family": "official-style dockable Tibia interface",
+      "version": null,
+      "confidence": "visual_review_only",
+      "evidence": "Full Windows desktop/client capture with the modern Skills dock on the right and a Character dialog simultaneously showing the same four resource values. The dock itself matches the target contract, but the duplicate labels/values create a natural ambiguity control; it should not be an automatic-layout positive."
+    },
+    "skills_panel": {
+      "visible": true,
+      "box": [
+        1137,
+        19,
+        1272,
+        400
+      ]
+    },
+    "labels": {
+      "resource_health": {
+        "value": 4220,
+        "visible": true,
+        "box": [
+          1231,
+          84,
+          1256,
+          91
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_mana": {
+        "value": 1101,
+        "visible": true,
+        "box": [
+          1232,
+          94,
+          1255,
+          101
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_soul": {
+        "value": 100,
+        "visible": true,
+        "box": [
+          1241,
+          104,
+          1256,
+          110
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_capacity": {
+        "value": 4141,
+        "visible": true,
+        "box": [
+          1231,
+          115,
+          1254,
+          121
+        ],
+        "verification": "manual_verified"
+      }
+    },
+    "capture_fidelity": {
+      "downloaded_bytes_preserved": true,
+      "native_resolution_verified": false,
+      "display_scale": null,
+      "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+    },
+    "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+    "expected_final_unknown_fields": [
+      "resource_health",
+      "resource_mana",
+      "resource_soul",
+      "resource_capacity"
+    ],
+    "abstention_reason": "Two complete resource presentations are visible; automatic panel choice is not authorized by the generic label constellation.",
+    "ambiguity_evidence": "The right Skills dock and central Cyclopedia Character dialog both display Hit Points 4220, Mana 1101, Soul Points 100 and Capacity 4141. A unique panel cannot be inferred from these four labels alone; require selection.",
+    "secondary_resource_presentation": {
+      "kind": "character_dialog",
+      "same_values": true,
+      "box": [
+        454,
+        191,
+        954,
+        578
+      ]
+    }
+  },
+  {
+    "id": "dfg-calmera-ek246-D9BJ",
+    "file": "originals/951064454-knight-tibia-global-level-246-skill-106-mundo-calmera-D9BJ.webp",
+    "split": "train",
+    "classification": "similar",
+    "client_class": "official_style_transfer",
+    "expected_discovery": true,
+    "coverage": "full_screenshot",
+    "data_origin": "real",
+    "asset_fidelity": "source_transcode",
+    "source": {
+      "kind": "web",
+      "page_url": "https://www.dfg.com.br/tibia/contas/knight-global-level-246-skill-106-mundo-calmera-951064454",
+      "image_url": "https://cdn.dfg.com.br/itemimages/951064454-knight-tibia-global-level-246-skill-106-mundo-calmera-D9BJ.webp",
+      "retrieved_at": "2026-10-14",
+      "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+      "posted_at": null,
+      "character": null
+    },
+    "client": {
+      "family": "official-style dockable Tibia interface",
+      "version": null,
+      "confidence": "visual_review_only",
+      "evidence": "Full client capture with the Market dialog open and the complete Skills dock visible on the right. Skills chrome, header buttons, resource-label order, number column and equipment/store stack are visually equivalent to the target reader contract despite different open content and window proportions."
+    },
+    "skills_panel": {
+      "visible": true,
+      "box": [
+        1034,
+        0,
+        1218,
+        439
+      ]
+    },
+    "labels": {
+      "resource_health": {
+        "value": 3755,
+        "visible": true,
+        "box": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_mana": {
+        "value": 928,
+        "visible": true,
+        "box": [
+          1175,
+          111,
+          1196,
+          119
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_soul": {
+        "value": 100,
+        "visible": true,
+        "box": [
+          1176,
+          127,
+          1196,
+          135
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_capacity": {
+        "value": 5988,
+        "visible": true,
+        "box": [
+          1163,
+          142,
+          1196,
+          152
+        ],
+        "verification": "manual_verified"
+      }
+    },
+    "capture_fidelity": {
+      "downloaded_bytes_preserved": true,
+      "native_resolution_verified": false,
+      "display_scale": null,
+      "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+    },
+    "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+    "evaluation_history": {
+      "first_full_evaluation": "reports/iterations/iteration-03-real-originals.json",
+      "first_evaluation_date": "2026-10-14",
+      "reason_for_train": "First preserved-original evaluation exposed template discovery gaps; inspected for diagnosis after the archived run. Source pixels and manual numeric truth unchanged."
+    }
+  },
+  {
+    "id": "dfg-laudera-knight64-PD1G",
+    "file": "originals/957011807-tibia-global-nivel-64-mundo-laudera-knight-PD1G.webp",
+    "split": "train",
+    "classification": "similar",
+    "client_class": "legacy_transfer",
+    "expected_discovery": true,
+    "coverage": "full_screenshot",
+    "data_origin": "real",
+    "asset_fidelity": "source_transcode",
+    "source": {
+      "kind": "web",
+      "page_url": "https://www.dfg.com.br/tibia/contas/global-nivel-64-mundo-laudera-knight-957011807",
+      "image_url": "https://cdn.dfg.com.br/itemimages/957011807-tibia-global-nivel-64-mundo-laudera-knight-PD1G.webp",
+      "retrieved_at": "2026-10-14",
+      "provenance_note": "Downloaded the listing gallery raw /itemimages/ CDN object without local image transformation. DFG serves WebP, so the uploader original encoding, scale and DPI are unknown.",
+      "posted_at": null,
+      "character": "Lacerda Label"
+    },
+    "client": {
+      "family": "visibly different Tibia Beta interface",
+      "version": null,
+      "confidence": "visual_review_only",
+      "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture."
+    },
+    "skills_panel": {
+      "visible": true,
+      "box": [
+        1250,
+        346,
+        1399,
+        480
+      ]
+    },
+    "labels": {
+      "resource_health": {
+        "value": 1025,
+        "visible": true,
+        "box": [
+          1351,
+          406,
+          1380,
+          414
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_mana": {
+        "value": 330,
+        "visible": true,
+        "box": [
+          1361,
+          418,
+          1380,
+          425
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_soul": {
+        "value": 100,
+        "visible": true,
+        "box": [
+          1362,
+          430,
+          1380,
+          437
+        ],
+        "verification": "manual_verified"
+      },
+      "resource_capacity": {
+        "value": 1785,
+        "visible": true,
+        "box": [
+          1351,
+          443,
+          1380,
+          451
+        ],
+        "verification": "manual_verified"
+      }
+    },
+    "capture_fidelity": {
+      "downloaded_bytes_preserved": true,
+      "native_resolution_verified": false,
+      "display_scale": null,
+      "publisher_processing": "WebP source object; encoding, prior resizing and capture settings are not independently verified."
+    },
+    "notes": "First evaluation source selected and manually annotated before running the frozen reader. Source bytes preserved exactly; source-side marks are retained. Numeric glyph boxes were independently tightened from the preserved pixels before inference.",
+    "evaluation_history": {
+      "first_full_evaluation": "reports/iterations/iteration-03-real-originals.json",
+      "first_evaluation_date": "2026-10-14",
+      "reason_for_train": "First preserved-original evaluation exposed template discovery gaps; inspected for diagnosis after the archived run. Source pixels and manual numeric truth unchanged."
+    }
+  }
+]

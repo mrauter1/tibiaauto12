@@ -22,6 +22,7 @@ from PIL import Image, ImageTk, UnidentifiedImageError
 
 from modules.HuntConsole import run_control
 from tibia_client.hunt_plan import hunt_plan_template
+from tibia_client.resource_profiles import ResourcePresetCandidates
 
 
 WORKFLOW_SCHEMA = "tibiaauto.hunt-workflow"
@@ -308,6 +309,27 @@ def inspection_text(status: Mapping[str, Any] | None) -> str:
     return "\n".join(lines)
 
 
+def _reading_value(reading: object) -> object:
+    return reading.get("value") if isinstance(reading, Mapping) else getattr(reading, "value", None)
+
+
+def _reading_diagnostics(reading: object) -> object:
+    return (
+        reading.get("diagnostics")
+        if isinstance(reading, Mapping)
+        else getattr(reading, "diagnostics", None)
+    )
+
+
+def _reading_effective_region(reading: object) -> object:
+    diagnostics = _reading_diagnostics(reading)
+    values = diagnostics if isinstance(diagnostics, (list, tuple)) else (diagnostics,)
+    for item in values:
+        if isinstance(item, Mapping) and "effective_region" in item:
+            return item["effective_region"]
+    return None
+
+
 class _CropDialog:
     """Select one crop from a saved image; it never reads the live client."""
 
@@ -449,6 +471,112 @@ class _CropDialog:
         self.window.destroy()
 
 
+class _ResourceCandidateDialog:
+    """Bounded, image-only chooser for verified ambiguous resource panels."""
+
+    _COLORS = ("#00e5ff", "#ff9800", "#e040fb", "#76ff03", "#ff5252", "#ffd740")
+
+    def __init__(
+        self,
+        owner: "HuntWorkflow",
+        choices: ResourcePresetCandidates,
+        on_select: Any,
+    ) -> None:
+        self.owner = owner
+        self.choices = choices
+        self.on_select = on_select
+        self.window = tk.Toplevel(owner.window)
+        self.window.title("Choose the resource panel")
+        self.window.geometry("920x560")
+        self.window.minsize(720, 440)
+        self.window.transient(owner.window)
+        self.window.protocol("WM_DELETE_WINDOW", self._close)
+
+        ttk.Label(
+            self.window,
+            text=(
+                "More than one verified resource panel was found in this saved capture. "
+                "Click the intended highlighted panel to continue."
+            ),
+            wraplength=880,
+            justify="left",
+        ).pack(fill="x", padx=10, pady=(10, 5))
+        body = ttk.Frame(self.window)
+        body.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.canvas = tk.Canvas(body, background="#202020", highlightthickness=0)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        buttons = ttk.Frame(body, width=230)
+        buttons.pack(side="right", fill="y", padx=(8, 0))
+        buttons.pack_propagate(False)
+        for index, candidate in enumerate(choices.candidates):
+            fields = ", ".join(
+                str(field).removeprefix("resource_").replace("_", " ").title()
+                for field in candidate.regions
+            )
+            button = ttk.Button(
+                buttons,
+                text=f"Use panel {index + 1}\n{fields}",
+                command=lambda selected=index: self._select(selected),
+            )
+            button.pack(fill="x", pady=(0, 6))
+        ttk.Button(buttons, text="Cancel", command=self._close).pack(fill="x", side="bottom")
+        self.canvas.bind("<Configure>", self._render)
+        self.window.grab_set()
+
+    def _render(self, _event: object = None) -> None:
+        image = self.choices.frame.image
+        width = max(2, self.canvas.winfo_width())
+        height = max(2, self.canvas.winfo_height())
+        scale = min((width - 12) / image.width, (height - 12) / image.height)
+        drawn_width = max(1, round(image.width * scale))
+        drawn_height = max(1, round(image.height * scale))
+        left, top = (width - drawn_width) // 2, (height - drawn_height) // 2
+        self.canvas.delete("all")
+        self.photo = ImageTk.PhotoImage(
+            image.resize((drawn_width, drawn_height), Image.Resampling.LANCZOS)
+        )
+        self.canvas.create_image(left, top, anchor="nw", image=self.photo)
+        for index, candidate in enumerate(self.choices.candidates):
+            color = self._COLORS[index % len(self._COLORS)]
+            x1, y1, x2, y2 = candidate.bounds
+            tag = f"candidate-{index}"
+            self.canvas.create_rectangle(
+                left + x1 * scale,
+                top + y1 * scale,
+                left + x2 * scale,
+                top + y2 * scale,
+                outline=color,
+                width=3,
+                tags=(tag,),
+            )
+            self.canvas.create_text(
+                left + x1 * scale + 4,
+                top + y1 * scale + 4,
+                anchor="nw",
+                fill=color,
+                text=f"Panel {index + 1}",
+                tags=(tag,),
+            )
+            self.canvas.tag_bind(tag, "<Button-1>", lambda _e, value=index: self._select(value))
+
+    def _select(self, index: int) -> None:
+        self.window.grab_release()
+        self.window.destroy()
+        self.owner._resource_candidate_dialog = None
+        self.on_select(index)
+
+    def _close(self) -> None:
+        try:
+            self.window.grab_release()
+        except tk.TclError:
+            pass
+        self.window.destroy()
+        self.owner._resource_candidate_dialog = None
+        self.owner.message.set(
+            "Resource panel selection cancelled; the workflow draft was not changed."
+        )
+
+
 class HuntWorkflow:
     """Workflow configuration, observation, and run controls."""
 
@@ -485,6 +613,8 @@ class HuntWorkflow:
         self._last_inspection_frame: Any = None
         self._inspection_readings: dict[str, Any] = {}
         self._inspection_photo: Any = None
+        self._inspection_offline = False
+        self._resource_candidate_dialog: _ResourceCandidateDialog | None = None
 
         self.window = tk.Toplevel(getattr(parent, "windowID", parent))
         self.window.title("Hunt Workflow")
@@ -529,7 +659,10 @@ class HuntWorkflow:
         )}
         self.visual_template = self.visual_vars["template"]
         self.capture_file = tk.StringVar()
+        self.resource_panel_region = tk.StringVar()
+        self.resource_use_ocr = tk.BooleanVar(value=False)
         self.crop_target = tk.StringVar(value="Match template")
+        self.visual_mode = tk.StringVar(value="Ordinary detector: the fields below control recognition.")
 
     def _form_values(self, name: str) -> dict[str, Any]:
         if name == "route":
@@ -575,6 +708,8 @@ class HuntWorkflow:
                 self.supply_optional.set(defaults["optional"])
             elif name == "action":
                 self.action_mutating.set(defaults["mutating"])
+            elif name == "visual":
+                self._set_visual_mode(False)
         self._bind_form(name)
 
     def _reset_entity_forms(self) -> None:
@@ -992,6 +1127,7 @@ class HuntWorkflow:
         self.visual_tree.bind("<<TreeviewSelect>>", self._select_visual)
         visual_form = ttk.Frame(spec_box)
         visual_form.pack(fill="x")
+        self._visual_legacy_widgets: list[tuple[tk.Widget, str]] = []
         fields = (("id", "Detector ID"), ("context_template", "Context template"),
                   ("context_region", "Context region"), ("template", "Match template"),
                   ("region", "Search / count region"), ("digits_dir", "Digit templates folder"),
@@ -1000,13 +1136,29 @@ class HuntWorkflow:
         kind = ttk.Combobox(visual_form, textvariable=self.visual_vars["kind"], values=("template", "count"), state="readonly", width=12)
         kind.grid(row=0, column=5, sticky="ew", padx=4)
         self._config_widgets.append(kind)
+        self._visual_legacy_widgets.append((kind, "readonly"))
         for index, (key, label) in enumerate(fields):
             row, block = index // 3, index % 3
             if row == 0 and block == 2:
                 row = 1
             elif row >= 1:
                 row += 1
-            self._entry(visual_form, row, block * 2, label, self.visual_vars[key], 19)
+            field = self._entry(visual_form, row, block * 2, label, self.visual_vars[key], 19)
+            if key != "id":
+                self._visual_legacy_widgets.append((field, "normal"))
+        mode = ttk.Frame(spec_box)
+        mode.pack(fill="x", pady=(4, 0))
+        ttk.Label(
+            mode, textvariable=self.visual_mode, justify="left", wraplength=820,
+        ).pack(side="left", fill="x", expand=True)
+        self._visual_convert_button = ttk.Button(
+            mode,
+            text="Convert to ordinary count",
+            command=self.convert_adaptive_visual,
+            state="disabled",
+        )
+        self._visual_convert_button.pack(side="right", padx=(8, 0))
+        self._config_widgets.append(self._visual_convert_button)
         self._form_buttons(spec_box, self._put_visual, self._remove_visual)
         offline = ttk.Frame(spec_box)
         offline.pack(fill="x", pady=(5, 0))
@@ -1020,23 +1172,41 @@ class HuntWorkflow:
         )
         target.pack(side="left", padx=(5, 0))
         self._config_widgets.append(target)
+        self._visual_legacy_widgets.append((target, "readonly"))
         choose = ttk.Button(offline, text="Load saved client capture…", command=self._choose_capture)
         choose.pack(side="left", padx=5)
         crop = ttk.Button(offline, text="Select crop and save template…", command=self._open_crop)
         crop.pack(side="left")
+        self._visual_legacy_widgets.append((crop, "normal"))
         preset = ttk.Frame(spec_box)
         preset.pack(fill="x", pady=(4, 0))
+        detect_resources = ttk.Button(
+            preset,
+            text="Detect resource panel from saved capture",
+            command=self.detect_resource_panel,
+        )
+        detect_resources.pack(side="left")
         add_resources = ttk.Button(
             preset,
-            text="Add default resource profile from saved capture",
+            text="Add exact legacy preset",
             command=self.add_resource_profile,
         )
-        add_resources.pack(side="left")
+        add_resources.pack(side="left", padx=(5, 0))
+        advanced = ttk.LabelFrame(spec_box, text="Advanced resource detection fallback", padding=4)
+        advanced.pack(fill="x", pady=(4, 0))
         ttk.Label(
-            preset,
-            text="Read resources from a saved client image.",
-        ).pack(side="left", padx=8)
-        self._config_widgets.extend((choose, crop, add_resources))
+            advanced,
+            text="Manual panel region (L,T,R,B):",
+        ).pack(side="left")
+        panel_region = ttk.Entry(advanced, textvariable=self.resource_panel_region, width=22)
+        panel_region.pack(side="left")
+        use_ocr = ttk.Checkbutton(
+            advanced, text="OCR fallback", variable=self.resource_use_ocr,
+        )
+        use_ocr.pack(side="left", padx=(5, 0))
+        self._config_widgets.extend(
+            (choose, crop, detect_resources, add_resources, panel_region, use_ocr)
+        )
         ttk.Label(frame, textvariable=self.inspection, justify="left", wraplength=1030).pack(fill="x", pady=(5, 0))
         self.inspection_canvas = tk.Canvas(frame, height=150, background="#202020")
         self.inspection_canvas.pack(fill="x", pady=(4, 0))
@@ -1242,6 +1412,17 @@ class HuntWorkflow:
             if isinstance(origin, str) and origin != visual_id and visual_id in visuals:
                 raise WorkflowEditorError(f"Detector ID {visual_id!r} is already in use")
             prior = visuals.get(prior_key)
+            if isinstance(prior, Mapping) and "adaptive" in prior:
+                if prior.get("kind") != kind:
+                    raise WorkflowEditorError(
+                        "Convert the adaptive detector to ordinary count before changing its kind"
+                    )
+                preserved = deepcopy(dict(prior))
+                if prior_key != visual_id:
+                    visuals.pop(prior_key, None)
+                    self._rename_visual_references(document, prior_key, visual_id)
+                visuals[visual_id] = preserved
+                return visual_id
             same_kind = isinstance(prior, Mapping) and prior.get("kind") == kind
             item: dict[str, Any] = deepcopy(dict(prior)) if same_kind else {}
             prior_context = item.get("context")
@@ -1434,6 +1615,7 @@ class HuntWorkflow:
         if self._active or not self._confirm_discard():
             return
         self.data, self.filename = default_workflow_document(), None
+        self._inspection_offline = False
         self._load_into_editor()
         self._mark_clean()
         self.message.set("New draft created. Placeholder routes and bindings must be configured.")
@@ -1449,11 +1631,14 @@ class HuntWorkflow:
                 if not isinstance(value, dict):
                     raise WorkflowEditorError("controller returned a non-object workflow")
                 old_data, old_filename = self.data, self.filename
+                old_inspection_offline = getattr(self, "_inspection_offline", False)
                 self.data, self.filename = deepcopy(value), filename
                 try:
+                    self._inspection_offline = False
                     self._load_into_editor()
                 except Exception:
                     self.data, self.filename = old_data, old_filename
+                    self._inspection_offline = old_inspection_offline
                     self._load_into_editor()
                     raise
                 self._mark_clean()
@@ -1650,6 +1835,7 @@ class HuntWorkflow:
             self._show_error(exc)
             return
         snapshot, base_dir = deepcopy(self.data), self.base_dir
+        self._inspection_offline = False
         self._inspection_bindings = deepcopy(snapshot.get("bindings", {}))
         self._inspection_result_bindings = self._inspection_bindings
         self._inspecting = True
@@ -1732,7 +1918,7 @@ class HuntWorkflow:
             self.runtime.set(f"Workflow status unavailable: {exc}")
         try:
             observed = self.controller.inspection_status()
-            if isinstance(observed, Mapping):
+            if isinstance(observed, Mapping) and not getattr(self, "_inspection_offline", False):
                 self.inspection.set(inspection_text(observed))
                 inspecting = bool(observed.get("active"))
                 if inspecting != self._inspecting:
@@ -1782,14 +1968,19 @@ class HuntWorkflow:
             image.resize((drawn_width, drawn_height), Image.Resampling.LANCZOS)
         )
         canvas.create_image(left, top, anchor="nw", image=self._inspection_photo)
+        readings = getattr(self, "_inspection_readings", {})
         bindings = getattr(
             self, "_inspection_result_bindings", getattr(self, "_inspection_bindings", {})
         )
         if isinstance(bindings, Mapping):
             for binding_id, binding in bindings.items():
-                if not isinstance(binding, Mapping):
-                    continue
-                region = binding.get("region")
+                region = (
+                    binding.get("region")
+                    if isinstance(binding, Mapping)
+                    else getattr(binding, "region", None)
+                )
+                if isinstance(readings, Mapping) and binding_id in readings:
+                    region = _reading_effective_region(readings[binding_id]) or region
                 if not isinstance(region, (list, tuple)) or len(region) != 4:
                     continue
                 try:
@@ -1803,14 +1994,12 @@ class HuntWorkflow:
                 )
                 canvas.create_text(
                     left + x1 * scale + 2, top + y1 * scale + 2,
-                    anchor="nw", fill="#00e5ff", text=str(binding_id),
+                    anchor="nw", fill="#00e5ff",
+                    text=self._overlay_reading_label(str(binding_id), readings),
                 )
-        readings = getattr(self, "_inspection_readings", {})
         if isinstance(readings, Mapping):
             for binding_id, reading in readings.items():
-                if not isinstance(reading, Mapping):
-                    continue
-                raw_diagnostics = reading.get("diagnostics")
+                raw_diagnostics = _reading_diagnostics(reading)
                 diagnostics = raw_diagnostics if isinstance(raw_diagnostics, (list, tuple)) else (raw_diagnostics,)
                 for diagnostic in diagnostics:
                     if not isinstance(diagnostic, Mapping) or diagnostic.get("type") != "visual_ambiguity":
@@ -1843,6 +2032,16 @@ class HuntWorkflow:
                             anchor="nw", fill=color, text=label,
                         )
 
+    @staticmethod
+    def _overlay_reading_label(binding_id: str, readings: object) -> str:
+        if not isinstance(readings, Mapping) or binding_id not in readings:
+            return binding_id
+        value = _reading_value(readings[binding_id])
+        count = value.get("count") if isinstance(value, Mapping) else None
+        if type(count) is int:
+            return f"{binding_id}={count}"
+        return f"{binding_id}=?" if binding_id.startswith("resource_") else binding_id
+
     def _set_config_enabled(self, enabled: bool) -> None:
         for widget in self._config_widgets:
             try:
@@ -1850,6 +2049,42 @@ class HuntWorkflow:
                     widget.configure(state="readonly" if enabled else "disabled")
                 else:
                     widget.configure(state="normal" if enabled else "disabled")
+            except tk.TclError:
+                pass
+        self._sync_visual_mode_widgets(enabled)
+
+    def _set_visual_mode(self, adaptive: bool) -> None:
+        """Explain which detector fields are active and enforce that distinction."""
+        self._visual_adaptive = bool(adaptive)
+        mode = getattr(self, "visual_mode", None)
+        if mode is not None:
+            mode.set(
+                "Adaptive resource reader: bundled label and number recognition is active. "
+                "Reader/field metadata, the OCR choice, and max_digits are the effective "
+                "settings (resource setup or Advanced JSON). "
+                "The legacy templates, regions, digit folder, and scores below are read-only "
+                "compatibility data. Convert to ordinary count to edit them."
+                if self._visual_adaptive
+                else "Ordinary detector: the fields below control recognition."
+            )
+        enabled = not (
+            getattr(self, "_active", False)
+            or getattr(self, "_inspecting", False)
+            or getattr(self, "_busy", None) is not None
+        )
+        self._sync_visual_mode_widgets(enabled)
+
+    def _sync_visual_mode_widgets(self, enabled: bool) -> None:
+        adaptive = bool(getattr(self, "_visual_adaptive", False))
+        for widget, ordinary_state in getattr(self, "_visual_legacy_widgets", ()):
+            try:
+                widget.configure(state=ordinary_state if enabled and not adaptive else "disabled")
+            except tk.TclError:
+                pass
+        button = getattr(self, "_visual_convert_button", None)
+        if button is not None:
+            try:
+                button.configure(state="normal" if enabled and adaptive else "disabled")
             except tk.TclError:
                 pass
 
@@ -2214,6 +2449,40 @@ class HuntWorkflow:
         for key, value in values.items():
             self.visual_vars[key].set(str(value))
         self._bind_form("visual", target_id)
+        self._set_visual_mode("adaptive" in item)
+
+    def convert_adaptive_visual(self) -> None:
+        """Explicitly remove semantic reader metadata before legacy field editing."""
+        try:
+            self._commit_forms(("visual",), force=False)
+            state = getattr(self, "_form_state", {}).get("visual")
+            visual_id = state.get("origin") if isinstance(state, Mapping) else None
+            visuals = self.data.get("visual")
+            item = visuals.get(visual_id) if isinstance(visuals, Mapping) else None
+            if not isinstance(visual_id, str) or not isinstance(item, Mapping):
+                raise WorkflowEditorError("Select an adaptive visual detector first")
+            if "adaptive" not in item:
+                raise WorkflowEditorError(f"Visual detector {visual_id!r} is already ordinary")
+            candidate = deepcopy(self.data)
+            candidate_visuals = candidate.get("visual")
+            if not isinstance(candidate_visuals, dict):
+                raise WorkflowEditorError("visual must be an object")
+            converted = candidate_visuals.get(visual_id)
+            if not isinstance(converted, dict):
+                raise WorkflowEditorError(f"Visual detector {visual_id!r} no longer exists")
+            converted.pop("adaptive", None)
+            self.data = candidate
+            self._advance_document_revision()
+            self._refresh_visual_trees()
+            self.visual_tree.selection_set(visual_id)
+            self._bind_form("visual", visual_id)
+            self._set_visual_mode(False)
+            self.message.set(
+                f"Visual detector {visual_id} is now an ordinary count detector. "
+                "Its template, region, digit, and score fields now control recognition."
+            )
+        except Exception as exc:
+            self._show_error(exc)
 
     def _put_visual(self, silent: bool = False) -> bool:
         try:
@@ -2242,21 +2511,44 @@ class HuntWorkflow:
             self.message.set("Saved capture loaded for offline crop selection. No live verification has run.")
 
     def add_resource_profile(self) -> None:
-        """Add the bundled resource detectors from a saved, client-local frame."""
+        """Add the exact-layout legacy resource preset from a saved frame."""
+        self._add_resource_profile(adaptive=False)
+
+    def detect_resource_panel(self) -> None:
+        """Discover an adaptive resource panel from a saved client capture."""
+        self._add_resource_profile(adaptive=True)
+
+    def _add_resource_profile(self, *, adaptive: bool) -> None:
         if self._active or self._inspecting or self._busy is not None:
             return
         source = Path(self.capture_file.get()).expanduser()
         if not source.is_file():
-            self.message.set("Choose a saved client capture before adding the resource profile.")
+            self.message.set("Choose a saved client capture before detecting resources.")
             return
         try:
             self._collect_structured()
+            selection = None
+            if adaptive:
+                region_variable = getattr(self, "resource_panel_region", None)
+                raw_region = region_variable.get().strip() if region_variable is not None else ""
+                if raw_region:
+                    selection = tuple(parse_region(raw_region, "Resource panel region"))
+                ocr_variable = getattr(self, "resource_use_ocr", None)
+                use_ocr = bool(ocr_variable.get()) if ocr_variable is not None else False
         except Exception as exc:
             self._show_error(exc)
             return
         snapshot, base_dir = deepcopy(self.data), self.base_dir
 
         def added(result: Any) -> None:
+            if isinstance(result, ResourcePresetCandidates):
+                self._show_resource_candidates(
+                    result,
+                    lambda index: self._apply_resource_candidate(
+                        snapshot, base_dir, result, index, use_ocr, added
+                    ),
+                )
+                return
             document = getattr(result, "document", None)
             readings = getattr(result, "readings", None)
             if not isinstance(document, Mapping) or not isinstance(readings, Mapping):
@@ -2275,19 +2567,84 @@ class HuntWorkflow:
                 return
             values = []
             for resource_id, reading in sorted(readings.items()):
-                value = getattr(reading, "value", None)
+                value = _reading_value(reading)
                 count = value.get("count") if isinstance(value, Mapping) else None
                 label = str(resource_id).removeprefix("resource_").replace("_", " ").title()
                 values.append(f"{label}={count}" if type(count) is int else f"{label}=unknown")
             suffix = ", ".join(values) if values else "no readings"
+            result_bindings = getattr(result, "bindings", None)
+            self._inspection_result_bindings = (
+                dict(result_bindings)
+                if isinstance(result_bindings, Mapping)
+                else {
+                    key: value for key, value in self.data.get("bindings", {}).items()
+                    if key in readings
+                }
+            )
+            self._inspection_readings = dict(readings)
+            self._inspection_offline = True
+            if hasattr(self, "inspection"):
+                self.inspection.set(
+                    "Offline resource setup preview (not live evidence):\n" + suffix
+                )
+            preview_frame = getattr(result, "frame", None)
+            if isinstance(getattr(preview_frame, "image", None), Image.Image):
+                self._last_inspection_frame = preview_frame
+                self._render_inspection_frame()
+            description = "adaptive resource panel" if adaptive else "exact legacy resource preset"
             self.message.set(
-                f"Added default resource profile from saved image ({suffix}). "
+                f"Added {description} from saved image ({suffix}). "
                 "These readings are offline only; run Inspect evidence before use."
             )
 
+        if adaptive:
+            operation = lambda: self.controller.apply_adaptive_resource_preset(
+                snapshot,
+                source,
+                base_dir,
+                selection=selection,
+                use_ocr=use_ocr,
+            )
+            label = "Detecting adaptive resource panel"
+        else:
+            operation = lambda: self.controller.apply_resource_preset(snapshot, source, base_dir)
+            label = "Adding default resource profile"
         self._begin_control(
-            "Adding default resource profile",
-            lambda: self.controller.apply_resource_preset(snapshot, source, base_dir),
+            label,
+            operation,
+            added,
+        )
+
+    def _show_resource_candidates(
+        self,
+        choices: ResourcePresetCandidates,
+        on_select: Any,
+    ) -> None:
+        """Show verified candidates from the exact saved frame used by discovery."""
+        self.message.set(
+            f"Found {len(choices.candidates)} possible resource panels; choose one highlighted panel."
+        )
+        self._resource_candidate_dialog = _ResourceCandidateDialog(self, choices, on_select)
+
+    def _apply_resource_candidate(
+        self,
+        snapshot: Mapping[str, Any],
+        base_dir: Path,
+        choices: ResourcePresetCandidates,
+        index: int,
+        use_ocr: bool,
+        added: Any,
+    ) -> None:
+        """Complete setup atomically from an explicit offline candidate choice."""
+        self._begin_control(
+            f"Selecting resource panel {index + 1}",
+            lambda: self.controller.apply_adaptive_resource_candidate(
+                deepcopy(dict(snapshot)),
+                choices,
+                index,
+                base_dir,
+                use_ocr=use_ocr,
+            ),
             added,
         )
 

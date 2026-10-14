@@ -21,6 +21,7 @@ from core.perception import CaptureError, Frame, as_frame, validate_region
 from engine.CaveBot import Scanners
 from engine.ScanStages import ScanStages
 from tibia_client.capture import CaptureProcess
+from tibia_client.adaptive_runtime import AdaptiveResourceTracker, CaptureInputMapping
 from tibia_client.diagnostics import AdapterCapabilities
 from tibia_client.models import (
     Action,
@@ -73,6 +74,8 @@ class DesktopAdapter:
         capture_provider: Any | None = None,
         clock: Any | None = None,
         visual_profile: VisualProfile | Mapping[str, object] | None = None,
+        adaptive_tracker: AdaptiveResourceTracker | None = None,
+        coordinate_mapping: CaptureInputMapping | None = None,
     ) -> None:
         if isinstance(mouse_mode, bool) or mouse_mode not in (0, 1):
             raise ValueError("mouse_mode must be 0 (message) or 1 (physical)")
@@ -115,6 +118,17 @@ class DesktopAdapter:
         self._last_capture_at: float | None = None
         self._capture_error: str | None = None
         self._visual_profile = compiled_visual_profile
+        if adaptive_tracker is not None and not isinstance(
+            adaptive_tracker, AdaptiveResourceTracker
+        ):
+            raise TypeError("adaptive_tracker must be an AdaptiveResourceTracker")
+        if coordinate_mapping is not None:
+            if not isinstance(coordinate_mapping, CaptureInputMapping):
+                raise TypeError("coordinate_mapping must be a CaptureInputMapping")
+            if not coordinate_mapping.identity:
+                raise ValueError("desktop adapter currently supports only 1:1 capture/input mapping")
+        self._adaptive_tracker = adaptive_tracker or AdaptiveResourceTracker()
+        self._coordinate_mapping = coordinate_mapping
         self._last_cursor_transition: (
             tuple[tuple[int, int], tuple[int, int]] | None
         ) = None
@@ -167,6 +181,7 @@ class DesktopAdapter:
         if self._closed:
             raise DesktopAdapterError("desktop adapter is closed")
         self._visual_profile = profile if isinstance(profile, VisualProfile) else VisualProfile(profile)
+        self._adaptive_tracker.reset()
 
     def _backend_check(self, name: str) -> bool:
         backend = getattr(self.hotkey, "SendToClient", None)
@@ -379,6 +394,35 @@ class DesktopAdapter:
             return self._visual_profile.read(sensor, frame)
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
 
+    def _input_reading(self, reading: Reading) -> Reading:
+        """Translate action positions at the adapter boundary, after detection."""
+
+        mapping = self._coordinate_mapping
+        if mapping is None or reading.value is None:
+            return reading
+        value = reading.value
+        diagnostics = dict(reading.diagnostics)
+        if isinstance(value, Target) and value.position is not None:
+            diagnostics.setdefault("capture_position", value.position)
+            value = Target(value.count, mapping.capture_to_input(value.position), value.selected)
+        elif isinstance(value, Marker) and value.position is not None:
+            diagnostics.setdefault("capture_position", value.position)
+            value = Marker(mapping.capture_to_input(value.position), value.reached)
+        elif (
+            isinstance(value, tuple)
+            and len(value) == 2
+            and all(type(item) is int and item >= 0 for item in value)
+        ):
+            diagnostics.setdefault("capture_position", value)
+            value = mapping.capture_to_input(value)
+        elif isinstance(value, Mapping) and value.get("position") is not None:
+            position = tuple(value["position"])
+            diagnostics.setdefault("capture_position", position)
+            changed = dict(value)
+            changed["position"] = mapping.capture_to_input(position)
+            value = changed
+        return Reading(value, reading.quality, reading.detail, diagnostics)
+
     def observe(self, sensors: Sequence[Sensor], token: Any) -> ObservationBatch:
         if self._closed:
             raise DesktopAdapterError("desktop adapter is closed")
@@ -400,6 +444,10 @@ class DesktopAdapter:
                 f"{frame.size[0]}x{frame.size[1]}"
             )
             raise CaptureError(self._capture_error + "; recalibrate the client profile")
+        if self._coordinate_mapping is None:
+            self._coordinate_mapping = CaptureInputMapping(frame.size, frame.size)
+        elif self._coordinate_mapping.capture_size != frame.size:
+            raise CaptureError("capture geometry differs from the configured coordinate mapping")
         # An exactly uniform black PrintWindow result is an observable capture
         # failure.  This check says nothing about a static or frozen upstream
         # source; non-black identical frames remain explicitly unverified.
@@ -457,13 +505,24 @@ class DesktopAdapter:
                         )
                     else:
                         visual_work += cost
+        adaptive_requests: dict[Sensor, object] = {}
+        # Read ordinary sensors first so health/support work is never delayed by
+        # adaptive layout bookkeeping. Discovery itself always runs off-thread.
         for sensor in sensors:
             token.checkpoint()
             key = sensor.kind, sensor.region, sensor.name
             reading = invalid.get(key) or cache.get(key)
             if reading is None:
+                adaptive = (
+                    self._visual_profile[sensor.name].adaptive
+                    if sensor.kind is SensorKind.VISUAL
+                    else None
+                )
+                if adaptive is not None:
+                    adaptive_requests[sensor] = adaptive
+                    continue
                 try:
-                    reading = self._read(sensor, frame)
+                    reading = self._input_reading(self._read(sensor, frame))
                 except Exception as exc:
                     if _cancelled(token):
                         raise
@@ -473,6 +532,37 @@ class DesktopAdapter:
                         f"{sensor.kind.value} detector failed: {type(exc).__name__}: {exc}",
                     )
                 cache[key] = reading
+        if adaptive_requests:
+            token.checkpoint()
+            try:
+                adaptive_readings = self._adaptive_tracker.read(frame, adaptive_requests)
+            except Exception as exc:
+                if _cancelled(token):
+                    raise
+                adaptive_readings = {
+                    sensor: Reading(
+                        None,
+                        Quality.UNKNOWN,
+                        f"adaptive visual tracker failed: {type(exc).__name__}: {exc}",
+                    )
+                    for sensor in adaptive_requests
+                }
+            token.checkpoint()
+            for sensor, reading in adaptive_readings.items():
+                key = sensor.kind, sensor.region, sensor.name
+                try:
+                    cache[key] = self._input_reading(reading)
+                except Exception as exc:
+                    cache[key] = Reading(
+                        None,
+                        Quality.UNKNOWN,
+                        f"adaptive visual mapping failed: {type(exc).__name__}: {exc}",
+                    )
+        for sensor in sensors:
+            key = sensor.kind, sensor.region, sensor.name
+            reading = invalid.get(key) or cache.get(key)
+            if reading is None:
+                reading = Reading(None, Quality.UNKNOWN, "adaptive visual reading unavailable")
             readings[sensor] = reading
         token.checkpoint()
         return ObservationBatch(readings=readings, observed_at=observed_at, frame=frame)
@@ -584,6 +674,7 @@ class DesktopAdapter:
 
     def close(self) -> None:
         self._closed = True
+        self._adaptive_tracker.close()
         close = getattr(self.capture_provider, "close", None)
         if callable(close):
             close()

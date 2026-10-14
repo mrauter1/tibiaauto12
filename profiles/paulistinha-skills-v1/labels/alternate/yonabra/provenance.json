@@ -1,0 +1,291 @@
+{
+  "coordinates": "absolute source-image xyxy, half-open",
+  "digit_inventory": {
+    "maximum_allowed_per_digit": 4,
+    "not_added_unverified_in_resource_rows": [
+      3,
+      4,
+      8
+    ],
+    "policy": "Unverified digits retain the pre-existing template bank; no Yonabra glyph was inferred or fabricated.",
+    "resulting_variant_counts_including_base": {
+      "0": 4,
+      "1": 4,
+      "2": 3,
+      "3": 1,
+      "4": 1,
+      "5": 2,
+      "6": 4,
+      "7": 2,
+      "8": 1,
+      "9": 2
+    },
+    "verified_added": [
+      0,
+      1,
+      2,
+      5,
+      6,
+      7,
+      9
+    ]
+  },
+  "digits": {
+    "0-yonabra-soul.png": {
+      "asset_sha256": "5138955d60ac4dc4caae588f4bdb7d1b73d205e45935fb1ea498ce9b0cb4683a",
+      "box": [
+        1251,
+        111,
+        1256,
+        118
+      ],
+      "character_index_without_separator": 2,
+      "digit": 0,
+      "note": "Final zero from the compressed touching Soul 200 row; retained as a separately verified resampling-phase variant.",
+      "source_display": "200",
+      "source_field": "resource_soul"
+    },
+    "0-yonabra.png": {
+      "asset_sha256": "5f2016c2cde16a2406f4f243416d7a361625147dc06ebc3d20a7a8a43b12e314",
+      "box": [
+        1239,
+        100,
+        1245,
+        109
+      ],
+      "character_index_without_separator": 1,
+      "digit": 0,
+      "source_display": "1,025",
+      "source_field": "resource_mana"
+    },
+    "1-yonabra.png": {
+      "asset_sha256": "636641c078958776dc672d13f2f2daeafb0bfbcfeec4caf989917efda1cfb9d5",
+      "box": [
+        1232,
+        100,
+        1236,
+        109
+      ],
+      "character_index_without_separator": 0,
+      "digit": 1,
+      "note": "Crop ends before the separately isolated thousands comma.",
+      "source_display": "1,025",
+      "source_field": "resource_mana"
+    },
+    "2-yonabra-health.png": {
+      "asset_sha256": "a515dd6b772086ee89b2a63c773867169642500f6454c804ec4c850d0bc1197a",
+      "box": [
+        1232,
+        90,
+        1236,
+        97
+      ],
+      "character_index_without_separator": 0,
+      "digit": 2,
+      "note": "Health-row resampling phase; distinct from the Mana-row digit 2 crop.",
+      "source_display": "2969",
+      "source_field": "resource_health"
+    },
+    "2-yonabra.png": {
+      "asset_sha256": "c8232eb38a3d027ff7b91cb7d75763585c9d0af5f5e9eeab51daaeea6b15e301",
+      "box": [
+        1244,
+        100,
+        1251,
+        109
+      ],
+      "character_index_without_separator": 2,
+      "digit": 2,
+      "source_display": "1,025",
+      "source_field": "resource_mana"
+    },
+    "5-yonabra.png": {
+      "asset_sha256": "cd1764bac6292602dd27de6dd2e273bd7f7d8c096b9e4106a50fc6d719044e73",
+      "box": [
+        1250,
+        100,
+        1257,
+        109
+      ],
+      "character_index_without_separator": 3,
+      "digit": 5,
+      "source_display": "1,025",
+      "source_field": "resource_mana"
+    },
+    "6-yonabra-capacity-leading.png": {
+      "asset_sha256": "020f7ff36ab4ffaec38388c54dbde4eaaffc124ea143b17238bb501774176d58",
+      "box": [
+        1239,
+        122,
+        1244,
+        130
+      ],
+      "character_index_without_separator": 1,
+      "digit": 6,
+      "note": "Leading capacity digit 6; retained separately from the final 6 because compression produces a distinct resampling phase.",
+      "source_display": "1,676",
+      "source_field": "resource_capacity"
+    },
+    "6-yonabra-capacity.png": {
+      "asset_sha256": "1087dc09d2e5a79cf2ec64f897a5810d74362886855e34babf0832b304887fde",
+      "box": [
+        1251,
+        122,
+        1256,
+        130
+      ],
+      "character_index_without_separator": 3,
+      "digit": 6,
+      "note": "Final capacity digit 6; retained as a row-specific resampling-phase variant.",
+      "source_display": "1,676",
+      "source_field": "resource_capacity"
+    },
+    "6-yonabra.png": {
+      "asset_sha256": "cedb819df3a44dca8802baeab3e4293f31791fa7305ea6081a13e9f77ac6be22",
+      "box": [
+        1244,
+        89,
+        1251,
+        98
+      ],
+      "character_index_without_separator": 2,
+      "digit": 6,
+      "source_display": "2969",
+      "source_field": "resource_health"
+    },
+    "7-yonabra.png": {
+      "asset_sha256": "d3cd26db790d5afcdc7fa1f92f35331a552beb1b1e842137733ae55640e3802e",
+      "box": [
+        1245,
+        122,
+        1251,
+        131
+      ],
+      "character_index_without_separator": 2,
+      "digit": 7,
+      "source_display": "1,676",
+      "source_field": "resource_capacity"
+    },
+    "9-yonabra.png": {
+      "asset_sha256": "11af6c76baf41d287d1fe9b43f5c4beb9eba98f58c3a46e78a55c0f3755bbb06",
+      "box": [
+        1239,
+        89,
+        1245,
+        98
+      ],
+      "character_index_without_separator": 1,
+      "digit": 9,
+      "note": "Identity is from the manually verified full-row value; compressed shape alone resembles other digits.",
+      "source_display": "2969",
+      "source_field": "resource_health"
+    }
+  },
+  "extraction": {
+    "assumption": "Templates describe only this compressed source rendering. Native scale means one output pixel per decoded source pixel, not a claimed client UI scale.",
+    "foreground_rendered_height_px": {
+      "digits": [
+        5,
+        6
+      ],
+      "labels": [
+        5,
+        6
+      ]
+    },
+    "native_scale": 1.0,
+    "pixel_transform": "Decoded source RGB cropped directly and losslessly re-encoded as PNG; no resize, sharpening, thresholding, or reconstruction.",
+    "verification": "Manual visual inspection of enlarged nearest-neighbor crops, with character identity taken only from manifest-verified complete resource-row values."
+  },
+  "labels": {
+    "capacity.png": {
+      "asset_sha256": "76b9617da949a94e54e70e365e2025bfd9384a806eefe175ee94f43f6f467508",
+      "box": [
+        1149,
+        121,
+        1190,
+        132
+      ],
+      "field": "resource_capacity",
+      "visible_text": "Capacity"
+    },
+    "health.png": {
+      "asset_sha256": "567f7a93ad4b0d63ac3199a5041a8bcf987e8cd51176fb96f6714f69d232c277",
+      "box": [
+        1149,
+        88,
+        1195,
+        98
+      ],
+      "field": "resource_health",
+      "visible_text": "Hit Points"
+    },
+    "mana.png": {
+      "asset_sha256": "1aec9546df323b196c3a3da8a145109a19d655cd14cb43b202774742dd49271a",
+      "box": [
+        1149,
+        99,
+        1175,
+        109
+      ],
+      "field": "resource_mana",
+      "visible_text": "Mana"
+    },
+    "soul.png": {
+      "asset_sha256": "f7d17b57a8348ba164de24bfc7ec1363ced3bdb901142b00cf1a7f65fd11a27c",
+      "box": [
+        1149,
+        109,
+        1201,
+        120
+      ],
+      "field": "resource_soul",
+      "visible_text": "Soul Points"
+    }
+  },
+  "notes": [
+    "The health anchor maps visible source text 'Hit Points' to resource_health.",
+    "The soul anchor maps visible source text 'Soul Points' to resource_soul.",
+    "The source is development/train data and makes no same-version claim for the target Paulistinha client.",
+    "The complete source screenshot remains preserved in the screenshot corpus."
+  ],
+  "schema": "tibiaauto.template-bank-provenance",
+  "separator": {
+    "comma-yonabra.png": {
+      "asset_sha256": "8f5a5035febd93992aa9a10d07f27ae131e62b8662d7f4243f5a0ca5a3d80a70",
+      "box": [
+        1236,
+        103,
+        1239,
+        109
+      ],
+      "character_after_digit_index": 0,
+      "source_display": "1,025",
+      "source_field": "resource_mana"
+    }
+  },
+  "source": {
+    "character": "Heinschalle",
+    "client_family": "official-style Qt-era Tibia layout",
+    "exact_client_version": null,
+    "image_url": "https://cdn.dfg.com.br/itemimages/974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-FQ2C.webp",
+    "kind": "web",
+    "page_url": "https://www.dfg.com.br/tibia/contas/yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-974104750",
+    "retrieved_at": "2026-10-13"
+  },
+  "source_corpus_id": "dfg-yonabra-ek195",
+  "source_file": "tests/fixtures/screenshots/originals/dfg-974104750-yonabra-ek195-FQ2C.webp",
+  "source_format": "WEBP",
+  "source_sha256": "cb48bade572118b9885f529644b04f676d61575e4b50a8523a2925d29a7dcbbf",
+  "source_size": [
+    1400,
+    788
+  ],
+  "verified_resource_values": {
+    "resource_capacity": 1676,
+    "resource_health": 2969,
+    "resource_mana": 1025,
+    "resource_soul": 200
+  },
+  "version": 1
+}

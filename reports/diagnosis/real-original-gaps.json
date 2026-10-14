@@ -1,0 +1,2163 @@
+{
+  "scope": "Observed field outcome changes on the same 19 unchanged real source images; generated images excluded. Combined reader repair, not an isolated causal ablation of each internal check.",
+  "before_report": "reports/iterations/iteration-03-real-originals.json",
+  "before_report_sha256": "0584df529049478e37d1a794cb1c32ccfcae35d4be2f63bbfeb9beb3d4254271",
+  "after_report": "reports/resource-benchmark.json",
+  "after_report_sha256": "8876d2fcfe609227c48c98b7c25d65442e2a4d6eb04098d2962c983d2b0a9338",
+  "unchanged_pixels_and_numeric_truth": true,
+  "manifest_difference": "Calmera and Beta moved from heldout to train after archived first failures were inspected; evaluation_history records this. Pixels and numeric truth unchanged.",
+  "scorer_difference": "Markdown safety-gate placement was repaired; numeric scoring rules unchanged.",
+  "diagnosis": {
+    "Calmera": [
+      "Primary labels lost matching evidence at an antialiasing phase; bounded RGB proposal refinement recovered them at existing final thresholds.",
+      "Health had a weak comma; identical grouped text passes the ordinary checks under a small darker threshold perturbation.",
+      "Mana was ambiguous at the median label scale; both neighboring scale-bank positions must agree and pass all ordinary checks."
+    ],
+    "Beta": "Generic label recovery now finds three readable resources; Soul value-column geometry remains unverified and returns unknown."
+  },
+  "changes": [
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_capacity",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 5988,
+        "expected_region": [
+          1163,
+          142,
+          1196,
+          152
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 5988,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1102,
+          139,
+          1199,
+          155
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8171428571428572,
+              "text": "5,988",
+              "value": 5988
+            },
+            {
+              "reader": "templates",
+              "score": 0.8011607142857142,
+              "text": "3,988",
+              "value": 3988
+            },
+            {
+              "reader": "templates",
+              "score": 0.7174999999999999,
+              "text": "5,088",
+              "value": 5088
+            },
+            {
+              "reader": "templates",
+              "score": 0.7127678571428571,
+              "text": "5,488",
+              "value": 5488
+            },
+            {
+              "reader": "templates",
+              "score": 0.6396428571428572,
+              "text": "1,988",
+              "value": 1988
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1102,
+            139,
+            1199,
+            155
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8171428571428572,
+          "text": "5,988"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 5988,
+        "expected_region": [
+          1163,
+          142,
+          1196,
+          152
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8171428571428572,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 3755,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7692857142857144,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7647321428571429,
+              "text": "5,755",
+              "value": 5755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7291964285714285,
+              "text": "1,755",
+              "value": 1755
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8,
+          "text": "3,755",
+          "threshold_corroboration": {
+            "delta": -5,
+            "score": 0.8603652597402598,
+            "text": "3,755"
+          }
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_mana",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 928,
+        "expected_region": [
+          1175,
+          111,
+          1196,
+          119
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 928,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1082,
+          108,
+          1199,
+          122
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8312499999999999,
+              "text": "928",
+              "value": 928
+            },
+            {
+              "reader": "templates",
+              "score": 0.8312499999999999,
+              "text": "028",
+              "value": null
+            },
+            {
+              "reader": "templates",
+              "score": 0.7753571428571429,
+              "text": "938",
+              "value": 938
+            },
+            {
+              "reader": "templates",
+              "score": 0.7510795454545454,
+              "text": "978",
+              "value": 978
+            },
+            {
+              "reader": "templates",
+              "score": 0.6896428571428572,
+              "text": "428",
+              "value": 428
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1082,
+            108,
+            1199,
+            122
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "scale_corroboration": {
+            "scales": [
+              0.75,
+              0.8
+            ],
+            "text": "928"
+          },
+          "score": 0.8312499999999999,
+          "text": "928"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 928,
+        "expected_region": [
+          1175,
+          111,
+          1196,
+          119
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8312499999999999,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_soul",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 100,
+        "expected_region": [
+          1176,
+          127,
+          1196,
+          135
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 100,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1120,
+          124,
+          1199,
+          138
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8709821428571428,
+              "text": "100",
+              "value": 100
+            },
+            {
+              "reader": "templates",
+              "score": 0.80875,
+              "text": "106",
+              "value": 106
+            },
+            {
+              "reader": "templates",
+              "score": 0.7950892857142857,
+              "text": "160",
+              "value": 160
+            },
+            {
+              "reader": "templates",
+              "score": 0.7432142857142856,
+              "text": "190",
+              "value": 190
+            },
+            {
+              "reader": "templates",
+              "score": 0.7234821428571429,
+              "text": "109",
+              "value": 109
+            },
+            {
+              "reader": "templates",
+              "score": 0.6720535714285715,
+              "text": "200",
+              "value": 200
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1120,
+            124,
+            1199,
+            138
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8709821428571428,
+          "text": "100"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 100,
+        "expected_region": [
+          1176,
+          127,
+          1196,
+          135
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8709821428571428,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_capacity",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 1785,
+        "expected_region": [
+          1351,
+          443,
+          1380,
+          451
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 1785,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1306,
+          440,
+          1383,
+          454
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.7625,
+              "text": "1,785",
+              "value": 1785
+            },
+            {
+              "reader": "templates",
+              "score": 0.7625,
+              "text": "1,285",
+              "value": 1285
+            },
+            {
+              "reader": "templates",
+              "score": 0.7515178571428571,
+              "text": "1,783",
+              "value": 1783
+            },
+            {
+              "reader": "templates",
+              "score": 0.6791964285714286,
+              "text": "3,785",
+              "value": 3785
+            },
+            {
+              "reader": "templates",
+              "score": 0.6778571428571428,
+              "text": "1,780",
+              "value": 1780
+            },
+            {
+              "reader": "templates",
+              "score": 0.6514285714285714,
+              "text": "1,185",
+              "value": 1185
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1306,
+            440,
+            1383,
+            454
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.7625,
+          "text": "1,785"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 1785,
+        "expected_region": [
+          1351,
+          443,
+          1380,
+          451
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.7625,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 1025,
+        "expected_region": [
+          1351,
+          406,
+          1380,
+          414
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 1025,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1311,
+          403,
+          1383,
+          417
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8154464285714286,
+              "text": "1,025",
+              "value": 1025
+            },
+            {
+              "reader": "templates",
+              "score": 0.7333035714285714,
+              "text": "1,035",
+              "value": 1035
+            },
+            {
+              "reader": "templates",
+              "score": 0.7272321428571429,
+              "text": "1,023",
+              "value": 1023
+            },
+            {
+              "reader": "templates",
+              "score": 0.7201785714285713,
+              "text": "1,075",
+              "value": 1075
+            },
+            {
+              "reader": "templates",
+              "score": 0.7085714285714286,
+              "text": "1,925",
+              "value": 1925
+            },
+            {
+              "reader": "templates",
+              "score": 0.6992857142857143,
+              "text": "1,325",
+              "value": 1325
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1311,
+            403,
+            1383,
+            417
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.8154464285714286,
+          "text": "1,025"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 1025,
+        "expected_region": [
+          1351,
+          406,
+          1380,
+          414
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8154464285714286,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_digits_ocr",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_mana",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 330,
+        "expected_region": [
+          1361,
+          418,
+          1380,
+          425
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 330,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1287,
+          415,
+          1383,
+          428
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8300000000000001,
+              "text": "330",
+              "value": 330
+            },
+            {
+              "reader": "templates",
+              "score": 0.76,
+              "text": "333",
+              "value": 333
+            },
+            {
+              "reader": "templates",
+              "score": 0.7425892857142857,
+              "text": "339",
+              "value": 339
+            },
+            {
+              "reader": "templates",
+              "score": 0.7335714285714285,
+              "text": "310",
+              "value": 310
+            },
+            {
+              "reader": "templates",
+              "score": 0.7092857142857143,
+              "text": "130",
+              "value": 130
+            },
+            {
+              "reader": "templates",
+              "score": 0.6970535714285714,
+              "text": "350",
+              "value": 350
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1287,
+            415,
+            1383,
+            428
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.8300000000000001,
+          "text": "330"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 330,
+        "expected_region": [
+          1361,
+          418,
+          1380,
+          425
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8300000000000001,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_labels_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "number contains a weakly matched thousands separator",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7571428571428571,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7480357142857142,
+              "text": "2,755",
+              "value": 2755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7416964285714285,
+              "text": "5,755",
+              "value": 5755
+            }
+          ],
+          "anchor_method": "ocr",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "15a90b396dc4772c78eb0759d39936cb2428e2e5390b51afa46091aad746adcc",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.8257575757575758,
+          "score": 0.8,
+          "text": "3,755"
+        },
+        "eligible": true,
+        "exact": false,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "unknown",
+        "raw_reader_score": 0.8,
+        "rejection_stage": "numeric_read",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 3755,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7692857142857144,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7647321428571429,
+              "text": "5,755",
+              "value": 5755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7291964285714285,
+              "text": "1,755",
+              "value": 1755
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8,
+          "text": "3,755",
+          "threshold_corroboration": {
+            "delta": -5,
+            "score": 0.8603652597402598,
+            "text": "3,755"
+          }
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_capacity",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 5988,
+        "expected_region": [
+          1163,
+          142,
+          1196,
+          152
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 5988,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1102,
+          139,
+          1199,
+          155
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8171428571428572,
+              "text": "5,988",
+              "value": 5988
+            },
+            {
+              "reader": "templates",
+              "score": 0.8011607142857142,
+              "text": "3,988",
+              "value": 3988
+            },
+            {
+              "reader": "templates",
+              "score": 0.7174999999999999,
+              "text": "5,088",
+              "value": 5088
+            },
+            {
+              "reader": "templates",
+              "score": 0.7127678571428571,
+              "text": "5,488",
+              "value": 5488
+            },
+            {
+              "reader": "templates",
+              "score": 0.6396428571428572,
+              "text": "1,988",
+              "value": 1988
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1102,
+            139,
+            1199,
+            155
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8171428571428572,
+          "text": "5,988"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 5988,
+        "expected_region": [
+          1163,
+          142,
+          1196,
+          152
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8171428571428572,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 3755,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7692857142857144,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7647321428571429,
+              "text": "5,755",
+              "value": 5755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7291964285714285,
+              "text": "1,755",
+              "value": 1755
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8,
+          "text": "3,755",
+          "threshold_corroboration": {
+            "delta": -5,
+            "score": 0.8603652597402598,
+            "text": "3,755"
+          }
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_mana",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 928,
+        "expected_region": [
+          1175,
+          111,
+          1196,
+          119
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 928,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1082,
+          108,
+          1199,
+          122
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8312499999999999,
+              "text": "928",
+              "value": 928
+            },
+            {
+              "reader": "templates",
+              "score": 0.8312499999999999,
+              "text": "028",
+              "value": null
+            },
+            {
+              "reader": "templates",
+              "score": 0.7753571428571429,
+              "text": "938",
+              "value": 938
+            },
+            {
+              "reader": "templates",
+              "score": 0.7510795454545454,
+              "text": "978",
+              "value": 978
+            },
+            {
+              "reader": "templates",
+              "score": 0.6896428571428572,
+              "text": "428",
+              "value": 428
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1082,
+            108,
+            1199,
+            122
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "scale_corroboration": {
+            "scales": [
+              0.75,
+              0.8
+            ],
+            "text": "928"
+          },
+          "score": 0.8312499999999999,
+          "text": "928"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 928,
+        "expected_region": [
+          1175,
+          111,
+          1196,
+          119
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8312499999999999,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_soul",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 100,
+        "expected_region": [
+          1176,
+          127,
+          1196,
+          135
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 100,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1120,
+          124,
+          1199,
+          138
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8709821428571428,
+              "text": "100",
+              "value": 100
+            },
+            {
+              "reader": "templates",
+              "score": 0.80875,
+              "text": "106",
+              "value": 106
+            },
+            {
+              "reader": "templates",
+              "score": 0.7950892857142857,
+              "text": "160",
+              "value": 160
+            },
+            {
+              "reader": "templates",
+              "score": 0.7432142857142856,
+              "text": "190",
+              "value": 190
+            },
+            {
+              "reader": "templates",
+              "score": 0.7234821428571429,
+              "text": "109",
+              "value": 109
+            },
+            {
+              "reader": "templates",
+              "score": 0.6720535714285715,
+              "text": "200",
+              "value": 200
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1120,
+            124,
+            1199,
+            138
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8709821428571428,
+          "text": "100"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 100,
+        "expected_region": [
+          1176,
+          127,
+          1196,
+          135
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8709821428571428,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_capacity",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 1785,
+        "expected_region": [
+          1351,
+          443,
+          1380,
+          451
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 1785,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1306,
+          440,
+          1383,
+          454
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.7625,
+              "text": "1,785",
+              "value": 1785
+            },
+            {
+              "reader": "templates",
+              "score": 0.7625,
+              "text": "1,285",
+              "value": 1285
+            },
+            {
+              "reader": "templates",
+              "score": 0.7515178571428571,
+              "text": "1,783",
+              "value": 1783
+            },
+            {
+              "reader": "templates",
+              "score": 0.6791964285714286,
+              "text": "3,785",
+              "value": 3785
+            },
+            {
+              "reader": "templates",
+              "score": 0.6778571428571428,
+              "text": "1,780",
+              "value": 1780
+            },
+            {
+              "reader": "templates",
+              "score": 0.6514285714285714,
+              "text": "1,185",
+              "value": 1185
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1306,
+            440,
+            1383,
+            454
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.7625,
+          "text": "1,785"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 1785,
+        "expected_region": [
+          1351,
+          443,
+          1380,
+          451
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.7625,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 1025,
+        "expected_region": [
+          1351,
+          406,
+          1380,
+          414
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 1025,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1311,
+          403,
+          1383,
+          417
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8154464285714286,
+              "text": "1,025",
+              "value": 1025
+            },
+            {
+              "reader": "templates",
+              "score": 0.7333035714285714,
+              "text": "1,035",
+              "value": 1035
+            },
+            {
+              "reader": "templates",
+              "score": 0.7272321428571429,
+              "text": "1,023",
+              "value": 1023
+            },
+            {
+              "reader": "templates",
+              "score": 0.7201785714285713,
+              "text": "1,075",
+              "value": 1075
+            },
+            {
+              "reader": "templates",
+              "score": 0.7085714285714286,
+              "text": "1,925",
+              "value": 1925
+            },
+            {
+              "reader": "templates",
+              "score": 0.6992857142857143,
+              "text": "1,325",
+              "value": 1325
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1311,
+            403,
+            1383,
+            417
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.8154464285714286,
+          "text": "1,025"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 1025,
+        "expected_region": [
+          1351,
+          406,
+          1380,
+          414
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8154464285714286,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates",
+      "case_id": "dfg-laudera-knight64-PD1G",
+      "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+      "field": "resource_mana",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "no verified resource panel and value column found",
+        "detected_region": null,
+        "diagnostics": {},
+        "eligible": true,
+        "exact": false,
+        "expected": 330,
+        "expected_region": [
+          1361,
+          418,
+          1380,
+          425
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": null,
+        "location_coverage": null,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": null,
+        "other_field_overlap_max": null,
+        "quality": "unknown",
+        "raw_reader_score": null,
+        "rejection_stage": "panel_discovery",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 330,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1287,
+          415,
+          1383,
+          428
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8300000000000001,
+              "text": "330",
+              "value": 330
+            },
+            {
+              "reader": "templates",
+              "score": 0.76,
+              "text": "333",
+              "value": 333
+            },
+            {
+              "reader": "templates",
+              "score": 0.7425892857142857,
+              "text": "339",
+              "value": 339
+            },
+            {
+              "reader": "templates",
+              "score": 0.7335714285714285,
+              "text": "310",
+              "value": 310
+            },
+            {
+              "reader": "templates",
+              "score": 0.7092857142857143,
+              "text": "130",
+              "value": 130
+            },
+            {
+              "reader": "templates",
+              "score": 0.6970535714285714,
+              "text": "350",
+              "value": 350
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1287,
+            415,
+            1383,
+            428
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "4f38b1d58dd4996fd87cffd553f17d99e71ded78b8bcc3cbfc601abbbcfcdcc8",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.7,
+          "score": 0.8300000000000001,
+          "text": "330"
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 330,
+        "expected_region": [
+          1361,
+          418,
+          1380,
+          425
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8300000000000001,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    },
+    {
+      "technique": "adaptive_templates_ocr",
+      "case_id": "dfg-calmera-ek246-D9BJ",
+      "source_sha256": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+      "field": "resource_health",
+      "before": {
+        "accepted": false,
+        "accepted_location_mismatch": false,
+        "actual": null,
+        "calibrated_correctness_probability": null,
+        "detail": "number contains a weakly matched thousands separator",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7571428571428571,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7480357142857142,
+              "text": "2,755",
+              "value": 2755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7416964285714285,
+              "text": "5,755",
+              "value": 5755
+            }
+          ],
+          "anchor_method": "ocr",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "15a90b396dc4772c78eb0759d39936cb2428e2e5390b51afa46091aad746adcc",
+          "numeric_eligible": true,
+          "ocr": "OCR fallback requires a strong but ambiguous template decode",
+          "reader": "templates",
+          "scale": 0.8257575757575758,
+          "score": 0.8,
+          "text": "3,755"
+        },
+        "eligible": true,
+        "exact": false,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "unknown",
+        "raw_reader_score": 0.8,
+        "rejection_stage": "numeric_read",
+        "safe_expected_unknown": false,
+        "unknown": true,
+        "unsafe_expected_unknown_acceptance": false
+      },
+      "after": {
+        "accepted": true,
+        "accepted_location_mismatch": false,
+        "actual": 3755,
+        "calibrated_correctness_probability": null,
+        "detail": "",
+        "detected_region": [
+          1111,
+          93,
+          1199,
+          108
+        ],
+        "diagnostics": {
+          "alternatives": [
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,755",
+              "value": 3755
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,735",
+              "value": 3735
+            },
+            {
+              "reader": "templates",
+              "score": 0.8,
+              "text": "3,753",
+              "value": 3753
+            },
+            {
+              "reader": "templates",
+              "score": 0.7692857142857144,
+              "text": "3,255",
+              "value": 3255
+            },
+            {
+              "reader": "templates",
+              "score": 0.7647321428571429,
+              "text": "5,755",
+              "value": 5755
+            },
+            {
+              "reader": "templates",
+              "score": 0.7291964285714285,
+              "text": "1,755",
+              "value": 1755
+            }
+          ],
+          "anchor_method": "template",
+          "effective_region": [
+            1111,
+            93,
+            1199,
+            108
+          ],
+          "font_family": "primary",
+          "layout_fingerprint": "8d011a07419f740133dc3097e8e760906f18c0abd5bd79b8967f8e7210085b14",
+          "numeric_eligible": true,
+          "reader": "templates",
+          "scale": 0.775,
+          "score": 0.8,
+          "text": "3,755",
+          "threshold_corroboration": {
+            "delta": -5,
+            "score": 0.8603652597402598,
+            "text": "3,755"
+          }
+        },
+        "eligible": true,
+        "exact": true,
+        "expected": 3755,
+        "expected_region": [
+          1162,
+          96,
+          1196,
+          105
+        ],
+        "expected_unknown": false,
+        "incorrect_accepted": false,
+        "location_corresponds": true,
+        "location_coverage": 1.0,
+        "numeric_mismatch_accepted": false,
+        "other_field_centers_contained": 0,
+        "other_field_overlap_max": 0.0,
+        "quality": "known",
+        "raw_reader_score": 0.8,
+        "rejection_stage": null,
+        "safe_expected_unknown": false,
+        "unknown": false,
+        "unsafe_expected_unknown_acceptance": false
+      }
+    }
+  ]
+}

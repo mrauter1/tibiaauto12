@@ -1,0 +1,149 @@
+{
+  "scope": "Failure-directed exploratory probe on 8 strong ambiguous numeric fields; not a full benchmark or heldout estimate. All template beam and confidence gates retained.",
+  "rows": [
+    {
+      "case_id": "user-paulistinha-20261013::panel-scale-0.65",
+      "field": "resource_health",
+      "expected": 710,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "portal-tibia-2016-01-0i483jb::panel-scale-0.85",
+      "field": "resource_capacity",
+      "expected": 78,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "portal-tibia-2016-01-0i483jb::panel-scale-0.9",
+      "field": "resource_mana",
+      "expected": 90,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "portal-tibia-2016-08-L1QY5z1::panel-scale-0.9",
+      "field": "resource_capacity",
+      "expected": 141,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "portal-tibia-2016-09-BnumJDC::panel-scale-1.25",
+      "field": "resource_mana",
+      "expected": 71,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "dfg-retro-pvp-rp535::panel-scale-0.85",
+      "field": "resource_mana",
+      "expected": 7995,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "known",
+          "value": 7995,
+          "detail": ""
+        }
+      }
+    },
+    {
+      "case_id": "dfg-pvp-ek133::panel-scale-1.2",
+      "field": "resource_capacity",
+      "expected": 2207,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    },
+    {
+      "case_id": "dfg-ustebra-ek177::panel-scale-0.8",
+      "field": "resource_health",
+      "expected": 2720,
+      "before": "unknown",
+      "variants": {
+        "gray": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        },
+        "binary": {
+          "quality": "unknown",
+          "value": null,
+          "detail": "number contains an ambiguous digit"
+        }
+      }
+    }
+  ]
+}

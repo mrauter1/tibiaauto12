@@ -1,0 +1,1107 @@
+{
+  "evidence": {
+    "exact_client_versions": [],
+    "full_positive_dimensions": [
+      "1016x706",
+      "1400x788",
+      "1919x1079",
+      "1920x1009",
+      "1920x1080",
+      "970x637"
+    ],
+    "full_positive_screenshots": 6,
+    "limit": "Supplemental crops broaden font/layout evidence but do not establish additional full-client builds or exact versions.",
+    "negative_full_screenshots": 1,
+    "real_files": 14,
+    "supplemental_positive_crops": 7
+  },
+  "generated_cases": [],
+  "generated_summary": {
+    "eligible_cases": 0,
+    "excluded_cases": 0,
+    "features": {},
+    "passed": true,
+    "violations": []
+  },
+  "manifest": "/workspace/scratch/edc57446104f/tibiaauto12/tests/fixtures/screenshots/manifest.json",
+  "ocr": false,
+  "perturbations": [
+    {
+      "data_origin": "synthetic",
+      "detail": "actual={'resource_health': 710, 'resource_mana': 1085, 'resource_soul': 4, 'resource_capacity': 192}",
+      "discovery_ms": 290.95995699753985,
+      "id": "translated",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "actual={'resource_health': 710, 'resource_mana': 1085, 'resource_soul': 4, 'resource_capacity': 192}",
+      "discovery_ms": 211.68354600376915,
+      "id": "scale-0.75",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "actual={'resource_health': 710, 'resource_mana': 1085, 'resource_soul': 4, 'resource_capacity': 192}",
+      "discovery_ms": 144.07015799952205,
+      "id": "scale-1.5",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "actual={'resource_health': 710, 'resource_mana': 1085, 'resource_soul': 4, 'resource_capacity': 192}",
+      "discovery_ms": 105.06235800130526,
+      "id": "width-reflow",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "layout=False; candidates=2; resource panel is ambiguous",
+      "discovery_ms": 138.4132849998423,
+      "id": "duplicate-panel",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "layout=False; candidates=0; no verified resource panel and value column found",
+      "discovery_ms": 134.95653399877483,
+      "id": "adjacent-numeric-column",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "mana=unknown/None",
+      "discovery_ms": 52.158721002342645,
+      "id": "isolated-decoy-digit",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "mana=unknown/None",
+      "discovery_ms": 112.91938600334106,
+      "id": "dissenting-value-column",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "cached read guard",
+      "discovery_ms": 0.0,
+      "id": "wrong-size-capture",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "cached column-geometry guard",
+      "discovery_ms": 0.0,
+      "id": "same-size-value-column-move",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "cached read guard",
+      "discovery_ms": 0.0,
+      "id": "occluded-label",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "soul=unknown/None",
+      "discovery_ms": 0.0,
+      "id": "occluded-digits",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "bounds=(5, 5, 192, 75); capacity=unknown",
+      "discovery_ms": 63.819914001214784,
+      "id": "bottom-edge-blank-row",
+      "passed": true
+    },
+    {
+      "data_origin": "synthetic",
+      "detail": "layout=False; candidates=0; no verified resource panel and value column found",
+      "discovery_ms": 72.2804039978655,
+      "id": "clipped-value-column",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "confirmed",
+      "client_class": "target_official_style",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 11644.784397001786,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 192,
+          "discovered": true,
+          "exact": true,
+          "expected": 192,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 710,
+          "discovered": true,
+          "exact": true,
+          "expected": 710,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 1085,
+          "discovered": true,
+          "exact": true,
+          "expected": 1085,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 4,
+          "discovered": true,
+          "exact": true,
+          "expected": 4,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "user-paulistinha-20261013",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 5.496926998603158
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 507.25914900249336,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 78,
+          "discovered": true,
+          "exact": true,
+          "expected": 78,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 185,
+          "discovered": true,
+          "exact": true,
+          "expected": 185,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 90,
+          "discovered": true,
+          "exact": true,
+          "expected": 90,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-01-0i483jb",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 7.292482994671445
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 672.9062409940525,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 394,
+          "discovered": true,
+          "exact": true,
+          "expected": 394,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 185,
+          "discovered": true,
+          "exact": true,
+          "expected": 185,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 90,
+          "discovered": true,
+          "exact": true,
+          "expected": 90,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-02-VtukRkf",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 10.105665001901798
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 669.8866180013283,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 157,
+          "discovered": true,
+          "exact": true,
+          "expected": 157,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 185,
+          "discovered": true,
+          "exact": true,
+          "expected": 185,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 90,
+          "discovered": true,
+          "exact": true,
+          "expected": 90,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-03-dUqF9aj",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 7.030659005977213
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 579.8159969999688,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 451,
+          "discovered": true,
+          "exact": true,
+          "expected": 451,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 180,
+          "discovered": true,
+          "exact": true,
+          "expected": 180,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 85,
+          "discovered": true,
+          "exact": true,
+          "expected": 85,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-04-P9brcLm",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "heldout",
+      "unknown": 0,
+      "warm_read_ms": 6.652367999777198
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 539.7766559981392,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 141,
+          "discovered": true,
+          "exact": true,
+          "expected": 141,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 185,
+          "discovered": true,
+          "exact": true,
+          "expected": 185,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 90,
+          "discovered": true,
+          "exact": true,
+          "expected": 90,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-08-L1QY5z1",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 8.443639002507553
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 490.6204250000883,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 106,
+          "discovered": true,
+          "exact": true,
+          "expected": 106,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 260,
+          "discovered": true,
+          "exact": true,
+          "expected": 260,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 71,
+          "discovered": true,
+          "exact": true,
+          "expected": 71,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-09-BnumJDC",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "heldout",
+      "unknown": 0,
+      "warm_read_ms": 6.638557999394834
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "legacy_transfer",
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 492.93593499896815,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 1335,
+          "discovered": true,
+          "exact": true,
+          "expected": 1335,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 6080,
+          "discovered": true,
+          "exact": true,
+          "expected": 6080,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 2055,
+          "discovered": true,
+          "exact": true,
+          "expected": 2055,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 200,
+          "discovered": true,
+          "exact": true,
+          "expected": 200,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "portal-tibia-2016-10-Ttu3X5q",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "heldout",
+      "unknown": 0,
+      "warm_read_ms": 7.215427998744417
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 0,
+      "classification": "negative",
+      "client_class": "official_style_no_skills_panel",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "no verified resource panel and value column found",
+      "discovery_ms": 9773.745004000375,
+      "error": null,
+      "expected_discovery": false,
+      "field_results": {
+        "resource_capacity": {
+          "actual": null,
+          "discovered": false,
+          "exact": null,
+          "expected": null,
+          "location_corresponds": null,
+          "numeric_matches": null,
+          "quality": null,
+          "verification": "not_visible"
+        },
+        "resource_health": {
+          "actual": null,
+          "discovered": false,
+          "exact": null,
+          "expected": null,
+          "location_corresponds": null,
+          "numeric_matches": null,
+          "quality": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "actual": null,
+          "discovered": false,
+          "exact": null,
+          "expected": null,
+          "location_corresponds": null,
+          "numeric_matches": null,
+          "quality": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "actual": null,
+          "discovered": false,
+          "exact": null,
+          "expected": null,
+          "location_corresponds": null,
+          "numeric_matches": null,
+          "quality": null,
+          "verification": "not_visible"
+        }
+      },
+      "fields_discovered": 0,
+      "fields_expected": 0,
+      "id": "tibiadecorations-2024-full-window",
+      "incorrect_known": 0,
+      "layout_found": false,
+      "locations_correspond": 0,
+      "numeric_exact": 0,
+      "split": "heldout",
+      "unknown": 0,
+      "warm_read_ms": null
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 3447.819786000764,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 2476,
+          "discovered": true,
+          "exact": true,
+          "expected": 2476,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 5480,
+          "discovered": true,
+          "exact": true,
+          "expected": 5480,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 1855,
+          "discovered": true,
+          "exact": true,
+          "expected": 1855,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 200,
+          "discovered": true,
+          "exact": true,
+          "expected": 200,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "dfg-kalibra-ek362",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 11.361847995431162
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 11447.978819000127,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 4250,
+          "discovered": true,
+          "exact": true,
+          "expected": 4250,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 5455,
+          "discovered": true,
+          "exact": true,
+          "expected": 5455,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 7995,
+          "discovered": true,
+          "exact": true,
+          "expected": 7995,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "dfg-retro-pvp-rp535",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 12.009133999526966
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 2776.572642993415,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 2207,
+          "discovered": true,
+          "exact": true,
+          "expected": 2207,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 2060,
+          "discovered": true,
+          "exact": true,
+          "expected": 2060,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 560,
+          "discovered": true,
+          "exact": true,
+          "expected": 560,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "dfg-pvp-ek133",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 11.228127004869748
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 9625.293655997666,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 1451,
+          "discovered": true,
+          "exact": true,
+          "expected": 1451,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 2720,
+          "discovered": true,
+          "exact": true,
+          "expected": 2720,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 541,
+          "discovered": true,
+          "exact": true,
+          "expected": 541,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 100,
+          "discovered": true,
+          "exact": true,
+          "expected": 100,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "dfg-ustebra-ek177",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "heldout",
+      "unknown": 0,
+      "warm_read_ms": 10.940804000711069
+    },
+    {
+      "association_failures": 0,
+      "candidate_count": 1,
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "detail": "",
+      "discovery_ms": 4587.517884996487,
+      "error": null,
+      "expected_discovery": true,
+      "field_results": {
+        "resource_capacity": {
+          "actual": 1676,
+          "discovered": true,
+          "exact": true,
+          "expected": 1676,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_health": {
+          "actual": 2969,
+          "discovered": true,
+          "exact": true,
+          "expected": 2969,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "actual": 1025,
+          "discovered": true,
+          "exact": true,
+          "expected": 1025,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "actual": 200,
+          "discovered": true,
+          "exact": true,
+          "expected": 200,
+          "location_corresponds": true,
+          "numeric_matches": true,
+          "quality": "known",
+          "verification": "manual_verified"
+        }
+      },
+      "fields_discovered": 4,
+      "fields_expected": 4,
+      "id": "dfg-yonabra-ek195",
+      "incorrect_known": 0,
+      "layout_found": true,
+      "locations_correspond": 4,
+      "numeric_exact": 4,
+      "split": "train",
+      "unknown": 0,
+      "warm_read_ms": 32.69866399932653
+    }
+  ],
+  "summary": {
+    "groups": {
+      "real/heldout": {
+        "association_failures": 0,
+        "discovery_ms_median": 579.8159969999688,
+        "field_discovery_rate": 1.0,
+        "fields_expected": 16,
+        "incorrect_known": 0,
+        "layouts_found": 4,
+        "location_correspondence_rate": 1.0,
+        "negative_false_positives": 0,
+        "negative_rejections": 1,
+        "negative_screenshots": 1,
+        "numeric_exactness_rate": 1.0,
+        "screenshots": 5,
+        "unknown": 0,
+        "warm_read_ms_median": 6.933897999260807
+      },
+      "real/train": {
+        "association_failures": 0,
+        "discovery_ms_median": 2776.572642993415,
+        "field_discovery_rate": 1.0,
+        "fields_expected": 36,
+        "incorrect_known": 0,
+        "layouts_found": 9,
+        "location_correspondence_rate": 1.0,
+        "negative_false_positives": 0,
+        "negative_rejections": 0,
+        "negative_screenshots": 0,
+        "numeric_exactness_rate": 1.0,
+        "screenshots": 9,
+        "unknown": 0,
+        "warm_read_ms_median": 10.105665001901798
+      },
+      "synthetic/perturbations": {
+        "cases": 14,
+        "passed": 14
+      }
+    },
+    "passed": true,
+    "per_feature": {
+      "resource_capacity": {
+        "association_failures": 0,
+        "discovered": 13,
+        "expected": 13,
+        "incorrect_known": 0,
+        "locations_correspond": 13,
+        "numeric_exact": 13,
+        "unknown": 0
+      },
+      "resource_health": {
+        "association_failures": 0,
+        "discovered": 13,
+        "expected": 13,
+        "incorrect_known": 0,
+        "locations_correspond": 13,
+        "numeric_exact": 13,
+        "unknown": 0
+      },
+      "resource_mana": {
+        "association_failures": 0,
+        "discovered": 13,
+        "expected": 13,
+        "incorrect_known": 0,
+        "locations_correspond": 13,
+        "numeric_exact": 13,
+        "unknown": 0
+      },
+      "resource_soul": {
+        "association_failures": 0,
+        "discovered": 13,
+        "expected": 13,
+        "incorrect_known": 0,
+        "locations_correspond": 13,
+        "numeric_exact": 13,
+        "unknown": 0
+      }
+    },
+    "runtime_guard_seconds": 15.0,
+    "violations": []
+  }
+}

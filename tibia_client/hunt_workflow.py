@@ -26,7 +26,10 @@ from tibia_client.hunt_plan import HuntPlan, hunt_plan_from_data
 from tibia_client.models import Observation, Quality, Reading, Sensor, SensorKind
 from tibia_client.resource_profiles import (
     MAX_DISCOVERY_PIXELS,
+    ResourcePresetCandidates,
     ResourcePresetResult,
+    apply_adaptive_resource_candidate as apply_bundled_adaptive_resource_candidate,
+    apply_adaptive_resource_preset as apply_bundled_adaptive_resource_preset,
     apply_resource_preset as apply_bundled_resource_preset,
 )
 from tibia_client.visual import VisualProfile
@@ -269,7 +272,7 @@ class HuntWorkflowController:
         data: object,
         frame_path: str | Path,
         base_dir: str | Path,
-    ) -> ResourcePresetResult:
+    ) -> ResourcePresetResult | ResourcePresetCandidates:
         """Apply bundled detectors to a draft using one offline client-local frame.
 
         This authoring operation neither installs the visual profile nor starts a
@@ -328,6 +331,136 @@ class HuntWorkflowController:
         except Exception as exc:
             raise HuntWorkflowError(f"cannot apply default resource profile: {exc}") from exc
 
+    def apply_adaptive_resource_preset(
+        self,
+        data: object,
+        frame_path: str | Path,
+        base_dir: str | Path,
+        *,
+        selection: tuple[int, int, int, int] | None = None,
+        use_ocr: bool = False,
+    ) -> ResourcePresetResult:
+        """Discover and add scale-independent resource readers from an offline frame.
+
+        The optional selection is a client-local panel search area. This setup
+        operation does not install a profile or promote its readings to live
+        Compatibility evidence; Inspect and Start retain all normal gates.
+        """
+        if not isinstance(data, Mapping):
+            raise HuntWorkflowError("workflow document must be an object")
+        try:
+            calibration = ConfManager.get(self.calibration_profile)
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot load current calibration: {exc}") from exc
+        if not isinstance(calibration, Mapping):
+            raise HuntWorkflowError("current calibration must be an object")
+        size = calibration.get("calibration_size")
+        if (
+            not isinstance(size, (list, tuple))
+            or len(size) != 2
+            or any(type(item) is not int or item <= 0 for item in size)
+        ):
+            raise HuntWorkflowError(
+                "current calibration has no valid calibration_size; recalibrate the client"
+            )
+        if selection is not None:
+            try:
+                selection = _region(selection, "resource panel selection")
+            except HuntWorkflowError:
+                raise
+            if selection[2] > size[0] or selection[3] > size[1]:
+                raise HuntWorkflowError(
+                    "resource panel selection is outside the calibrated client area"
+                )
+        if type(use_ocr) is not bool:
+            raise HuntWorkflowError("use_ocr must be true or false")
+
+        path = Path(frame_path).expanduser()
+        try:
+            stat = path.stat()
+            if not path.is_file() or stat.st_size > MAX_RESOURCE_FRAME_BYTES:
+                raise HuntWorkflowError(
+                    f"saved resource frame must be no larger than "
+                    f"{MAX_RESOURCE_FRAME_BYTES // (1024 * 1024)} MiB"
+                )
+            with Image.open(path) as image:
+                if image.size != (size[0], size[1]):
+                    raise HuntWorkflowError(
+                        f"saved image size {image.size} differs from calibrated client size "
+                        f"{(size[0], size[1])}; save a client frame in Compatibility Test "
+                        "without the desktop title bar or taskbar"
+                    )
+                if image.width * image.height > MAX_DISCOVERY_PIXELS:
+                    raise HuntWorkflowError(
+                        "saved client image exceeds the resource discovery size limit"
+                    )
+                frame = Frame(image.convert("RGB"), source=f"offline:{path.name}")
+        except HuntWorkflowError:
+            raise
+        except (OSError, ValueError, UnidentifiedImageError) as exc:
+            raise HuntWorkflowError(f"cannot read saved resource frame: {exc}") from exc
+        try:
+            return apply_bundled_adaptive_resource_preset(
+                data,
+                frame,
+                calibration_size=(size[0], size[1]),
+                base_dir=base_dir,
+                selection=selection,
+                use_ocr=use_ocr,
+            )
+        except HuntWorkflowError:
+            raise
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot detect adaptive resource panel: {exc}") from exc
+
+    def apply_adaptive_resource_candidate(
+        self,
+        data: object,
+        choices: ResourcePresetCandidates,
+        candidate_index: int,
+        base_dir: str | Path,
+        *,
+        use_ocr: bool = False,
+    ) -> ResourcePresetResult:
+        """Resolve one bounded offline ambiguity without reopening the source file."""
+        if not isinstance(data, Mapping):
+            raise HuntWorkflowError("workflow document must be an object")
+        if not isinstance(choices, ResourcePresetCandidates):
+            raise HuntWorkflowError("resource panel choices are invalid or stale")
+        if type(candidate_index) is not int:
+            raise HuntWorkflowError("resource panel candidate index must be an integer")
+        if type(use_ocr) is not bool:
+            raise HuntWorkflowError("use_ocr must be true or false")
+        try:
+            calibration = ConfManager.get(self.calibration_profile)
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot load current calibration: {exc}") from exc
+        size = calibration.get("calibration_size") if isinstance(calibration, Mapping) else None
+        if (
+            not isinstance(size, (list, tuple))
+            or len(size) != 2
+            or any(type(item) is not int or item <= 0 for item in size)
+        ):
+            raise HuntWorkflowError(
+                "current calibration has no valid calibration_size; recalibrate the client"
+            )
+        if choices.frame.size != (size[0], size[1]):
+            raise HuntWorkflowError(
+                "resource panel choices no longer match the current calibrated client size"
+            )
+        try:
+            return apply_bundled_adaptive_resource_candidate(
+                data,
+                choices,
+                candidate_index,
+                base_dir=base_dir,
+                use_ocr=use_ocr,
+            )
+        except HuntWorkflowError:
+            raise
+        except Exception as exc:
+            raise HuntWorkflowError(f"cannot select adaptive resource panel: {exc}") from exc
+
     def _compile_bindings(
         self,
         wrapper: Mapping[str, Any],
@@ -361,7 +494,7 @@ class HuntWorkflowController:
             spec = visual[detector]
             width, height = region[2] - region[0], region[3] - region[1]
             subregions = (spec.context_region, spec.search_region)
-            if any(
+            if getattr(spec, "adaptive", None) is None and any(
                 value is not None and (value[2] > width or value[3] > height)
                 for value in subregions
             ):

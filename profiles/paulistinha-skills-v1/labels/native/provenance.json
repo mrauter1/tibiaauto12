@@ -1,0 +1,40 @@
+{
+  "source_corpus_id": "portal-tibia-2016-01-0i483jb",
+  "source": {
+    "kind": "web",
+    "page_url": "https://forum.portaltibia.com.br/topic/32425-chars-skills/",
+    "image_url": "https://i.imgur.com/0i483jb.png",
+    "retrieved_at": "2026-10-13",
+    "posted_at": "2016-01-10/11",
+    "character": null
+  },
+  "sha256": "2b4a2fa0c9861bdc45f0c0df076bfcff4923d15c11c456842d000df9c99e2a30",
+  "note": "Manually inspected native text label crops from a training image. Legacy reference font; no same-version claim. Values and heldout screenshots were not used to build these anchors.",
+  "nominal_scale": 0.8,
+  "boxes_xyxy": {
+    "health": [
+      232,
+      73,
+      291,
+      85
+    ],
+    "mana": [
+      232,
+      87,
+      265,
+      99
+    ],
+    "soul": [
+      232,
+      101,
+      298,
+      113
+    ],
+    "capacity": [
+      232,
+      115,
+      286,
+      129
+    ]
+  }
+}

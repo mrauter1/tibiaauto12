@@ -2,7 +2,7 @@
 
 TibiaAuto12 is a Windows desktop automation project built around captured client images and client-local input. A shared client SDK separates feature decisions from Tk, capture, native input, scheduling, and persistence, so the decision layer can be exercised offline.
 
-**Validation boundary:** the automated suite uses synthetic images, fake adapters, virtual clocks, and saved configuration. Passing it does not establish compatibility with a current Tibia client, prove detection accuracy during real play, or prove that a client accepts physical or window-message input. Templates, bar geometry, DPI, capture layout, and input behavior still require controlled validation on the intended installation.
+**Validation boundary:** the automated suite uses preserved screenshots, generated image perturbations, fake adapters, virtual clocks, and saved configuration. Passing it does not establish compatibility with a current Tibia client, prove detection accuracy during real play, or prove that a client accepts physical or window-message input. Templates, bar geometry, DPI, capture layout, and input behavior still require controlled validation on the intended installation.
 
 ## Install and start
 
@@ -37,10 +37,24 @@ Capture, readiness, invalid geometry, stale evidence, and adapter errors fail cl
 | Route editor | Validated save/load, legacy route import, stable waypoint IDs, and a separate fingerprinted resume checkpoint |
 | Hunt workflow | Ordered outbound/return segments, observed supply thresholds, guarded deposit/sell/refill actions, bounded refill loops, and restart reconciliation |
 | Visual inventory | Locally configured container/item templates and digit counts, explicit unknown/ambiguous results, and confirmed loot transfers |
+| Adaptive resources | Semantic Skills-panel discovery for health, mana, soul and integer capacity; scaled recognition, guarded current-frame reads and background reacquisition |
 
 CaveBot is now a nonblocking SDK feature. Navigation, combat, follow, and loot advance through short ticks and submit individual requests to the shared scheduler. This lets higher-priority support and healing requests run between CaveBot actions. It does not interrupt a native call that is already executing, and priority alone is not proof of a real-client safety guarantee.
 
 The **Hunt workflow** window composes existing routes with visually guarded actions for one configured client layout. Its supply, container and item detectors require locally captured templates; no bundled detector is claimed to work with an untested client. See the [workflow setup guide](docs/hunt-workflow.md). Failed or ambiguous inventory actions require fresh evidence or an explicit operator reconciliation before progress continues.
+
+For resource observations, **Detect resource panel from saved capture** locates the bundled
+Skills labels, highlights the detected fields and shows offline values before you save. An
+ambiguous result offers a panel chooser. At runtime, layout changes invalidate dependent
+readings and queued workflow actions while a background worker reacquires the panel. Capture
+and input alignment remain independently gated; this does not authorize scaled or cropped
+captures for input. See [adaptive reading](docs/adaptive-reader.md) and the
+[comparison benchmark](docs/resource-benchmark.md) for the tested evidence and limits.
+Use the [session recorder and replay benchmark](docs/resource-sequences.md) for
+full-frame timelines and the [collection protocol](docs/resource-benchmark-collection.md)
+for native capture evidence. Acceptance uses unchanged real screenshots with
+documented visual equivalence. The [latency benchmark](tools/benchmark_resource_latency.py)
+measures full-frame discovery and every cached read separately.
 
 The standalone CaveBot retains its optional bounded target-count-drop loot heuristic over calibrated surrounding tiles; that legacy option is not corpse recognition. The new workflow disables that heuristic and offers a separate recognized-container transfer policy. Generic Rope/Shovel waypoint execution, fishing and reconnect/login remain unavailable. Travel interactions can instead be configured between finite route segments with their own visual postconditions. Retired placeholder modules remain disabled in the launcher.
 

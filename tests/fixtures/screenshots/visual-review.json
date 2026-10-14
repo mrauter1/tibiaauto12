@@ -1,0 +1,119 @@
+{
+  "review_policy": "Use real preserved pixels. Compare resource labels and order, numeric alignment, panel chrome, surrounding dock/action controls, font rendering and visible capture extent. Real layout/OS/rendering variation is recorded; a number or date alone is not a build identifier. Equivalence is limited to the observed resource-reader contract.",
+  "sources": {
+    "user-paulistinha-20261013": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "target_family",
+      "evidence": "User reference: Paulistinha Ot title; Skills dock with Hit Points, Mana, Soul Points, Capacity in four adjacent rows; bold light labels, right-aligned values, textured dark background, modern dock controls, compass, store and action bars. This is the target itself; exact version is not displayed."
+    },
+    "portal-tibia-2016-01-0i483jb": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-02-VtukRkf": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-03-dUqF9aj": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-04-P9brcLm": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-08-L1QY5z1": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-09-BnumJDC": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "portal-tibia-2016-10-Ttu3X5q": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "unknown",
+      "evidence": "Source is a small 2016 Skills-panel crop. The full client and version-defining controls cannot be inspected, and the rendered font differs from the target. Retained as a legacy reference diagnostic; no target-version equivalence is established."
+    },
+    "tibiadecorations-2024-full-window": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Whole-window negative control has matching modern textured docks, health/mana bars, compass, store and action bars. Skills panel is closed, so resource-row equivalence cannot be observed here. Used for real full-frame negative safety only, not positive numeric evidence."
+    },
+    "dfg-kalibra-ek362": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Visible Skills resource rows use the same labels/order/right-aligned values and dock styling. Expanded skill names below resources do not change the four target rows. Client edges are truncated or uncertain; this is supplemental source-crop evidence, not a full supported-resolution capture. No resource-contract version incompatibility was found in the visible panel; whole-client equivalence is not established."
+    },
+    "dfg-retro-pvp-rp535": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Inspected whole preserved image against target: same resource labels and four-row order, right-aligned comma-grouped values, textured Skills dock and window controls, modern compass/store/action bars. Left docking, additional Level/XP rows, backpack columns and smaller glyphs are visible layout/rendering differences; no version-defining incompatibility was found in the resource-reader contract. Treated interchangeable for those four resources only. Source already contains seller-applied marks; no edits added."
+    },
+    "dfg-pvp-ek133": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Visible Skills resource labels/order and dock styling match the target; Quest Log overlaps the game view. The right HUD and window extent are visibly truncated, so this is a source crop, not a 970x637 supported-resolution full client. No resource-contract version incompatibility was found in the visible panel; full-client equivalence is not established."
+    },
+    "dfg-ustebra-ek177": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Inspected whole preserved image: same resource labels, row order, right-aligned values, Skills chrome, compass/store and action bars as target. Panel is lower in the right dock; Level/XP rows are visible above resources. These are real layout differences. No version-defining incompatibility was found in the resource-reader contract, so treated interchangeable for these fields. File dimensions are not proof of a supported in-game resolution."
+    },
+    "dfg-yonabra-ek195": {
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract; visual equivalence does not assert an exact executable build or pixel-identical font rendering.",
+      "status": "visually_equivalent",
+      "evidence": "Inspected complete macOS window against target: same Hit Points/Mana/Soul Points/Capacity rows, right value column, Skills dock controls, modern compass/store and action bars. Smaller antialiased glyphs, macOS title bar and additional analyzers differ visibly; no resource-contract version incompatibility was found. Treated interchangeable for resource recognition, with rendering variation explicitly tested. Native display scale and any publisher resizing are unknown."
+    },
+    "dfg-gentebra-rp193-PPNB": {
+      "status": "visually_equivalent",
+      "evidence": "Full client capture with live gameplay. Skills is docked on the right. Dark dock chrome, toolbar glyph family, Hit Points/Mana/Soul Points/Capacity order, numeric alignment, bars, and adjacent equipment/store stack match the target reader contract. Dock position differs from some sources but is a supported layout difference, not evidence of a client-version change.",
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    },
+    "dfg-lutabra-ed312-IBIV": {
+      "status": "visually_equivalent",
+      "evidence": "Full client capture with live gameplay. Skills is docked on the left; the target uses a right dock. Header controls, textured chrome, label order, glyph styling, right-aligned numeric column, and surrounding resource rows are visually equivalent for the reader contract.",
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    },
+    "dfg-loyalty-ek277-OL5J": {
+      "status": "visually_equivalent",
+      "evidence": "Full Windows desktop/client capture with the modern Skills dock on the right and a Character dialog simultaneously showing the same four resource values. The dock itself matches the target contract, but the duplicate labels/values create a natural ambiguity control; it should not be an automatic-layout positive.",
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    },
+    "dfg-calmera-ek246-D9BJ": {
+      "status": "visually_equivalent",
+      "evidence": "Full client capture with the Market dialog open and the complete Skills dock visible on the right. Skills chrome, header buttons, resource-label order, number column and equipment/store stack are visually equivalent to the target reader contract despite different open content and window proportions.",
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    },
+    "dfg-laudera-knight64-PD1G": {
+      "status": "visibly_different",
+      "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture.",
+      "reviewed_at": "2026-10-14",
+      "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    }
+  }
+}

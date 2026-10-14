@@ -36,15 +36,50 @@ to another client layout.
    directory. Optional targets, navigation settings, loot policy, and detector tuning can be
    reviewed in **Advanced JSON**; the structured tabs remain the normal configuration flow.
 
-The **Add default resource profile** button on **Visual bindings** can locate the bundled
-health, mana, soul, and capacity detectors in a saved client capture. It adds those bindings
-to the open draft without overwriting existing binding or detector IDs and does not save the
-workflow. The saved image must contain only the client-local capture and must have the exact
-dimensions recorded by the current calibration. Wrong-size desktop captures are rejected;
-matching dimensions alone cannot prove the image source, so use a client-only capture and
-review any missing, ambiguous, or unexpected readings. The values shown after import are
-readings from that offline image. They are not current-client evidence and do not satisfy
-calibration, Compatibility, Inspect, or Start gates.
+On **Visual bindings**, **Detect resource panel from saved capture** finds the Skills resource
+panel by its health, mana, soul, and capacity labels across supported UI scales, identifies the
+shared value column, and reads each discovered field. It adds adaptive count detectors to the
+open draft without overwriting existing binding or detector IDs and does not save the workflow.
+At runtime, these detectors use a non-blocking tracker. A new or invalidated layout reports an
+`unknown` reading while a background worker discovers and checks the panel; the scheduler does
+not wait for discovery. The tracker then reads the named field from current frames while the
+layout remains valid. Their JSON contains an `adaptive` declaration such as
+`{"reader":"paulistinha-skills-v1","field":"resource_health"}`. That declaration selects the
+bundled semantic label and number reader. Its `field` and optional `use_ocr` values, together
+with the detector's `max_digits`, affect adaptive reads. The adjacent legacy context template,
+digit templates, count region, and match scores remain in the document for ordinary-detector
+compatibility; they do not tune adaptive recognition.
+
+When an adaptive detector is selected, the structured editor labels that mode and makes those
+legacy fields read-only. **Convert to ordinary count** explicitly removes the `adaptive`
+declaration and makes the ordinary template, region, digit, and score fields active. After that
+conversion, you can also change its kind to an ordinary template detector. Advanced JSON can
+edit the adaptive declaration and `max_digits` directly, subject to normal validation.
+
+Normally discovery scans the whole saved client capture. If more than one plausible panel or
+value column is present, a bounded offline chooser highlights every verified candidate in the
+same immutable saved frame. Click the intended panel once to finish detection; its fields and
+readings then appear in the setup overlay. The draft remains unsaved until you press **Save**.
+The candidate choice does not recapture the client or reopen the image, and it cannot replace
+existing binding or detector IDs.
+
+The **Advanced resource detection fallback** accepts a client-local panel region as
+`left, top, right, bottom` when automatic candidates still cannot isolate the intended area.
+Manual coordinates are not part of the normal setup path. **OCR fallback** is optional and off
+by default. When selected, the workflow saves `"use_ocr": true` in each adaptive declaration.
+Panel discovery and numeric OCR fallback run in the background; ordinary scheduler reads remain
+non-blocking. Numeric OCR results are reused only for the same verified layout and exact value
+region pixels. An installed OCR provider is required for that fallback, while the bundled label
+and digit readers work without it. **Add exact legacy preset** remains available for the original
+fixed-scale layout.
+
+The saved image must contain the full client-local capture and have the exact dimensions
+recorded by the current calibration. Wrong-size desktop captures are rejected; matching
+dimensions alone cannot prove the image source, so use a client-only capture and review the
+overlay and any missing, ambiguous, or unexpected readings. The field boxes and values shown
+after import come from that offline image. A value wider than that detector's configured
+`max_digits` is shown as `unknown`, including in this preview. Offline values are not
+current-client evidence and do not satisfy calibration, Compatibility, Inspect, or Start gates.
 
 Save, Validate, Inspect and Start include intentional edits in the open forms; pressing
 Add/update first is optional. If a form cannot be parsed, the editor preserves the draft and

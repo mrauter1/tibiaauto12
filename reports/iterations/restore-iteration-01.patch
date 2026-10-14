@@ -1,0 +1,50 @@
+--- a/tibia_client/adaptive_text.py
++++ b/tibia_client/adaptive_text.py
+@@ -36,3 +36,2 @@
+ MAX_DIGITS = 9
+-_LEGACY_AMBIGUITY_MARGIN = 0.04
+ _VALID_PSM = frozenset({3, 4, 6, 7, 8, 11, 12, 13})
+@@ -200,3 +199,3 @@
+         template_score: float = 0.70,
+-        ambiguity_margin: float = 0.05,
++        ambiguity_margin: float = 0.04,
+     ) -> None:
+@@ -289,38 +288,2 @@
+                     reason = self._rejection_reason(decoded, max_digits, allow_grouping)
+-            if reason == "number contains an ambiguous digit":
+-                digit_margins = [
+-                    items[0].score - items[1].score
+-                    for items in decoded.ranks
+-                    if items[0].token != "," and len(items) > 1
+-                ]
+-                # The stricter default closes resampling-induced 0/9 and 2/7
+-                # false accepts.  For only the newly guarded (.04, .05] band,
+-                # retain a value when a small foreground-threshold perturbation
+-                # preserves the text and turns every glyph into an unambiguous
+-                # match.  Unstable wrong hypotheses stay unknown.
+-                if digit_margins and min(digit_margins) > _LEGACY_AMBIGUITY_MARGIN:
+-                    brighter = np.clip(pixels.astype(np.int16) + 5, 0, 255).astype(
+-                        np.uint8
+-                    )
+-                    try:
+-                        corroborating = self._decode(
+-                            brighter, float(scale), max_digits, allow_grouping
+-                        )
+-                        corroborating_reason = self._rejection_reason(
+-                            corroborating, max_digits, allow_grouping
+-                        )
+-                    except ValueError:
+-                        corroborating = None
+-                        corroborating_reason = "unstable"
+-                    if (
+-                        corroborating is not None
+-                        and corroborating.text == decoded.text
+-                        and not corroborating_reason
+-                    ):
+-                        reason = ""
+-                        diagnostics["threshold_corroboration"] = {
+-                            "delta": 5,
+-                            "text": corroborating.text,
+-                            "score": corroborating.score,
+-                        }
+             if not reason and float(scale) < 0.70:

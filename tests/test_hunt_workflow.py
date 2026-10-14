@@ -5,24 +5,30 @@ from types import MappingProxyType, SimpleNamespace
 import pytest
 from PIL import Image
 
+from core.perception import Frame
 from engine.CaveBot.routes import Route, Waypoint
 from modules.HuntWorkflow import default_workflow_document
 from tibia_client.diagnostics import AdapterCapabilities
 from tibia_client.models import FeatureStatus, Observation, Quality, SensorKind
+from tibia_client.resource_profiles import ResourcePanelCandidate, ResourcePresetCandidates
 import tibia_client.hunt_workflow as workflow
 
 
 class FakeVisualSpec:
-    def __init__(self, kind):
+    def __init__(self, kind, adaptive=None):
         self.kind = kind
         self.context_region = (0, 0, 2, 2)
         self.search_region = (2, 0, 8, 4)
+        self.adaptive = adaptive
 
 
 class FakeVisualProfile(dict):
     @classmethod
     def from_data(cls, raw, *, base_path=None):
-        result = cls((key, FakeVisualSpec(value["kind"])) for key, value in raw.items())
+        result = cls(
+            (key, FakeVisualSpec(value["kind"], value.get("adaptive")))
+            for key, value in raw.items()
+        )
         result.fingerprint = json.dumps(raw, sort_keys=True)
         result.base_path = Path(base_path)
         return result
@@ -269,6 +275,127 @@ def test_resource_preset_needs_only_calibration_size_for_offline_authoring(
 
     assert result is expected
     assert session.calls == []
+
+
+def test_adaptive_resource_preset_passes_optional_selection_without_live_side_effects(
+    controller, monkeypatch, tmp_path
+):
+    service, session, _profiles = controller
+    source = tmp_path / "saved-frame.png"
+    Image.new("RGB", (200, 100), "black").save(source)
+    expected = object()
+    seen = {}
+
+    def apply(data, frame, *, calibration_size, base_dir, selection, use_ocr):
+        seen.update(
+            data=data,
+            frame=frame,
+            calibration_size=calibration_size,
+            base_dir=Path(base_dir),
+            selection=selection,
+            use_ocr=use_ocr,
+        )
+        return expected
+
+    monkeypatch.setattr(workflow, "apply_bundled_adaptive_resource_preset", apply)
+    draft = default_workflow_document()
+
+    result = service.apply_adaptive_resource_preset(
+        draft,
+        source,
+        tmp_path / "workflow",
+        selection=(100, 10, 190, 90),
+        use_ocr=True,
+    )
+
+    assert result is expected
+    assert seen["data"] is draft
+    assert seen["frame"].source == "offline:saved-frame.png"
+    assert seen["calibration_size"] == (200, 100)
+    assert seen["base_dir"] == tmp_path / "workflow"
+    assert seen["selection"] == (100, 10, 190, 90)
+    assert seen["use_ocr"] is True
+    assert session.calls == []
+
+
+def test_adaptive_candidate_completion_uses_returned_immutable_frame_without_live_side_effects(
+    controller, monkeypatch, tmp_path
+):
+    service, session, _profiles = controller
+    frame = Frame(Image.new("RGB", (200, 100), "black"), source="offline:fixed.png")
+    layout = SimpleNamespace(bounds=(100, 10, 190, 90))
+    candidate = ResourcePanelCandidate(
+        layout.bounds, {"resource_health": (150, 20, 185, 30)}, 1.0, layout
+    )
+    choices = ResourcePresetCandidates("ambiguous", (candidate,), frame)
+    expected = object()
+    seen = {}
+
+    def apply(data, selected_choices, candidate_index, *, base_dir, use_ocr):
+        seen.update(
+            data=data,
+            choices=selected_choices,
+            candidate_index=candidate_index,
+            base_dir=Path(base_dir),
+            use_ocr=use_ocr,
+        )
+        return expected
+
+    monkeypatch.setattr(workflow, "apply_bundled_adaptive_resource_candidate", apply)
+    draft = default_workflow_document()
+
+    result = service.apply_adaptive_resource_candidate(
+        draft, choices, 0, tmp_path / "workflow", use_ocr=True
+    )
+
+    assert result is expected
+    assert seen == {
+        "data": draft,
+        "choices": choices,
+        "candidate_index": 0,
+        "base_dir": tmp_path / "workflow",
+        "use_ocr": True,
+    }
+    assert choices.frame is frame
+    assert session.calls == []
+
+
+def test_adaptive_candidate_completion_rechecks_current_calibration_size(controller, tmp_path):
+    service, session, _profiles = controller
+    frame = Frame(Image.new("RGB", (10, 10), "black"), source="offline:stale.png")
+    layout = SimpleNamespace(bounds=(0, 0, 10, 10))
+    choices = ResourcePresetCandidates(
+        "ambiguous",
+        (ResourcePanelCandidate(layout.bounds, {}, 1.0, layout),),
+        frame,
+    )
+
+    with pytest.raises(workflow.HuntWorkflowError, match="no longer match"):
+        service.apply_adaptive_resource_candidate(
+            default_workflow_document(), choices, 0, tmp_path
+        )
+
+    assert session.calls == []
+
+
+def test_adaptive_binding_allows_panel_bounds_smaller_than_static_fallback(controller, tmp_path):
+    service, _session, _profiles = controller
+    draft = default_workflow_document()
+    draft["bindings"] = {
+        "resource_mana": {"region": [0, 0, 3, 3], "name": "resource_mana"},
+    }
+    draft["visual"] = {
+        "resource_mana": {
+            "kind": "count",
+            "adaptive": {
+                "reader": "paulistinha-skills-v1", "field": "resource_mana",
+            },
+        },
+    }
+
+    _visual, bindings = service._compile_bindings(draft, tmp_path)
+
+    assert bindings["resource_mana"].region == (0, 0, 3, 3)
 
 
 @pytest.mark.parametrize(

@@ -79,6 +79,7 @@ def context(
     unknown=(),
     stale=(),
     targets=None,
+    layout_revision=None,
 ):
     observations = {}
     for sensor in feature.sensors():
@@ -86,7 +87,13 @@ def context(
         if sensor.kind is SensorKind.VISUAL:
             reading = visual.get(sensor.name, {"present": False, "position": None, "count": None})
             quality = Quality.UNKNOWN if sensor.name in unknown else Quality.KNOWN
-            observations[sensor] = Observation(sensor, reading, observed_at, frame, 1, quality)
+            diagnostics = (
+                {} if layout_revision is None else {"layout_revision": layout_revision}
+            )
+            observations[sensor] = Observation(
+                sensor, reading, observed_at, frame, 1, quality,
+                diagnostics=diagnostics,
+            )
         elif sensor.kind is SensorKind.MARKER:
             observations[sensor] = Observation(sensor, Marker((10, 10), reached), now, frame, 1)
         elif sensor.kind is SensorKind.TARGET:
@@ -347,6 +354,153 @@ def test_input_failure_reconciles_before_retry_and_unknown_timeout_goes_manual()
     feature.tick(context(feature, 4, 4.2, visual, unknown=("detector_prepared",)))
     assert feature.status.manual_required
     assert feature.status.manual_reason == "confirmation_unknown_after_timeout"
+
+
+def test_layout_change_after_dispatch_never_authorizes_an_automatic_retry():
+    feature = make_feature()
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    first = feature.tick(
+        context(feature, 1, 0.0, visual, layout_revision="panel-a")
+    ).requests[0]
+    feature.on_result(result(first, 0.0))
+
+    step = feature.tick(
+        context(feature, 2, 0.2, visual, layout_revision="panel-b")
+    )
+
+    assert step.requests == ()
+    assert feature.status.manual_required
+    assert feature.status.manual_reason == "layout_changed_after_dispatch"
+
+    visual["detector_prepared"]["count"] = 1
+    assert feature.request_recheck()
+    feature.tick(context(feature, 3, 0.4, visual, layout_revision="panel-b"))
+    assert feature.status.manual_required
+    assert feature.status.reason == "manual_reconciliation_still_required"
+
+
+def test_layout_change_cancels_a_queued_request_bound_to_the_old_revision():
+    feature = make_feature()
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    request = feature.tick(
+        context(feature, 1, 0.0, visual, layout_revision="panel-a")
+    ).requests[0]
+
+    cancelled = feature.tick(
+        context(feature, 2, 0.2, visual, layout_revision="panel-b")
+    )
+
+    assert cancelled.requests == ()
+    assert cancelled.cancel_keys == (request.key,)
+    assert feature._pending is None
+    assert feature.status.reason == "queued_action_layout_changed"
+
+
+def test_layout_change_after_unknown_dispatch_cannot_confirm_effect():
+    feature = make_feature()
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    feature.tick(context(feature, 1, 0.0, visual, layout_revision="panel-a"))
+    feature._pending.dispatch_unknown = True
+    visual["detector_prepared"]["count"] = 1
+
+    feature.tick(context(feature, 2, 0.2, visual, layout_revision="panel-b"))
+
+    assert feature.status.manual_required
+    assert feature.status.manual_reason == "layout_changed_after_uncertain_dispatch"
+
+
+def test_checkpointed_layout_revision_blocks_cross_layout_confirmation(tmp_path):
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    feature = make_feature(tmp_path, resume=False)
+    request = feature.tick(
+        context(feature, 1, 0.0, visual, layout_revision="panel-a")
+    ).requests[0]
+    feature.on_result(result(request, 0.0))
+    visual["detector_prepared"]["count"] = 1
+
+    resumed = make_feature(tmp_path, resume=True)
+    resumed.tick(context(resumed, 2, 0.2, visual, layout_revision="panel-b"))
+
+    assert resumed.status.manual_required
+    assert resumed.status.manual_reason == "interrupted_action_layout_unverified"
+
+
+@pytest.mark.parametrize("revision_entry", ["missing", "empty"])
+def test_checkpoint_without_matching_layout_revision_requires_manual_on_adaptive_frame(
+    tmp_path, revision_entry,
+):
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    feature = make_feature(tmp_path, resume=False)
+    request = feature.tick(
+        context(feature, 1, 0.0, visual, layout_revision="panel-a")
+    ).requests[0]
+    feature.on_result(result(request, 0.0))
+    checkpoint = Path(tmp_path, "hunt.state.json")
+    saved = json.loads(checkpoint.read_text())
+    if revision_entry == "missing":
+        saved["pending"].pop("layout_revisions")
+    else:
+        saved["pending"]["layout_revisions"] = {}
+    checkpoint.write_text(json.dumps(saved))
+    visual["detector_prepared"]["count"] = 1
+
+    resumed = make_feature(tmp_path, resume=True)
+    resumed.tick(context(resumed, 2, 0.2, visual, layout_revision="panel-a"))
+
+    assert resumed.status.manual_required
+    assert resumed.status.manual_reason == "interrupted_action_layout_unverified"
+
+
+def test_checkpoint_missing_revision_cannot_confirm_after_initial_unknown_frame(
+    tmp_path,
+):
+    visual = {
+        "detector_prepared": {"present": True, "position": (1, 1), "count": 0},
+        "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
+    }
+    feature = make_feature(tmp_path, resume=False)
+    request = feature.tick(
+        context(feature, 1, 0.0, visual, layout_revision="panel-a")
+    ).requests[0]
+    feature.on_result(result(request, 0.0))
+    checkpoint = Path(tmp_path, "hunt.state.json")
+    saved = json.loads(checkpoint.read_text())
+    saved["pending"].pop("layout_revisions")
+    checkpoint.write_text(json.dumps(saved))
+    visual["detector_prepared"]["count"] = 1
+
+    resumed = make_feature(tmp_path, resume=True)
+    resumed.tick(
+        context(
+            resumed,
+            2,
+            0.2,
+            visual,
+            unknown=("detector_prepared",),
+        )
+    )
+    assert resumed.status.manual_reason == "interrupted_action_layout_unverified"
+
+    assert resumed.request_recheck()
+    resumed.tick(context(resumed, 3, 0.4, visual, layout_revision="panel-a"))
+    assert resumed.status.manual_required
+    assert resumed.status.reason == "manual_reconciliation_still_required"
+    assert resumed._action_index == 0
 
 
 def test_pause_discards_no_evidence_and_resume_reconciles_postcondition():

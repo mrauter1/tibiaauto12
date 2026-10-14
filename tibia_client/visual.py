@@ -24,6 +24,7 @@ import cv2
 import numpy as np
 from PIL import Image, UnidentifiedImageError
 
+from core.paths import project_path
 from core.perception import Frame, validate_region
 from tibia_client.models import Quality, Reading, Sensor, SensorKind
 
@@ -43,6 +44,13 @@ _MAX_MATCH_IOU_NUMERATOR = 3
 _MAX_MATCH_IOU_DENOMINATOR = 10
 
 _SPEC_ID = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
+_ADAPTIVE_READERS = frozenset({"paulistinha-skills-v1"})
+_ADAPTIVE_FIELDS = frozenset({
+    "resource_health", "resource_mana", "resource_soul", "resource_capacity",
+})
+# Bump when the bundled reader's recognition contract changes. Its actual
+# assets are also fingerprinted below, including the alternate label bank.
+_ADAPTIVE_READER_REVISION = 1
 
 
 class VisualProfileError(ValueError):
@@ -81,6 +89,16 @@ class _Template:
 
 
 @dataclass(frozen=True, slots=True)
+class AdaptiveVisual:
+    """Declarative link from a normal count spec to a bundled panel reader."""
+
+    reader: str
+    field: str
+    use_ocr: bool = False
+    max_digits: int = MAX_DIGITS
+
+
+@dataclass(frozen=True, slots=True)
 class VisualSpec:
     """An immutable, validated detector compiled from JSON-friendly config."""
 
@@ -100,6 +118,7 @@ class VisualSpec:
     fingerprint: str
     digit_variants: tuple[tuple[_Template, ...], ...] = ((),) * 10
     thousands_separator: _Template | None = None
+    adaptive: AdaptiveVisual | None = None
 
 
 def _number(value: object, label: str, *, minimum: float, maximum: float) -> float:
@@ -199,7 +218,7 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
     common = {
         "kind", "context", "search_region", "score", "ambiguity_margin",
         "max_matches", "template", "digits", "foreground", "tolerance", "max_digits",
-        "count_region", "thousands_separator", "digit_variants",
+        "count_region", "thousands_separator", "digit_variants", "adaptive",
     }
     _only(config, common, "visual spec")
     context = _mapping(config.get("context"), "visual context")
@@ -245,6 +264,7 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
     foreground = (255, 255, 255)
     tolerance = 0
     max_digits = 1
+    adaptive: AdaptiveVisual | None = None
     if kind == "template":
         if "count_region" in config:
             raise VisualProfileError("template visual spec cannot use count_region")
@@ -263,7 +283,7 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
             key in config
             for key in (
                 "digits", "digit_variants", "foreground", "tolerance", "max_digits",
-                "thousands_separator"
+                "thousands_separator", "adaptive"
             )
         ):
             raise VisualProfileError("template visual spec has count-only fields")
@@ -324,6 +344,29 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         max_digits = _integer(
             config.get("max_digits", 6), "visual max_digits", minimum=1, maximum=MAX_DIGITS
         )
+        if "adaptive" in config:
+            adaptive_config = _mapping(config["adaptive"], "visual adaptive reader")
+            _only(
+                adaptive_config,
+                {"reader", "field", "use_ocr"},
+                "visual adaptive reader",
+            )
+            reader = adaptive_config.get("reader")
+            field_name = adaptive_config.get("field")
+            use_ocr = adaptive_config.get("use_ocr", False)
+            if not isinstance(reader, str) or reader not in _ADAPTIVE_READERS:
+                raise VisualProfileError(
+                    "visual adaptive reader must be 'paulistinha-skills-v1'"
+                )
+            if not isinstance(field_name, str) or field_name not in _ADAPTIVE_FIELDS:
+                raise VisualProfileError(
+                    "visual adaptive field must name a bundled Skills resource"
+                )
+            if type(use_ocr) is not bool:
+                raise VisualProfileError("visual adaptive use_ocr must be boolean")
+            adaptive = AdaptiveVisual(
+                str(reader), str(field_name), use_ocr, max_digits
+            )
         for digit, primary in enumerate(digits):
             for variant_index, digit_template in enumerate((primary, *digit_variants[digit])):
                 label = (
@@ -389,6 +432,30 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         if thousands_separator is not None:
             settings["thousands_separator"] = True
             templates = (*templates, thousands_separator)
+        if adaptive is not None:
+            root = Path(project_path(f"profiles/{adaptive.reader}"))
+            # Every rendered label bank can contribute at runtime. Include
+            # alternate banks as well as the original and native assets.
+            assets = sorted((root / "labels").rglob("*.png"))
+            for digit in range(10):
+                assets.append(root / "digits" / f"{digit}.png")
+                assets.extend(sorted((root / "digits").glob(f"{digit}-*.png")))
+            assets.append(root / "comma.png")
+            assets.extend(sorted(root.glob("comma-*.png")))
+            templates = tuple(load(str(asset)) for asset in assets)
+            # Legacy fields remain in the document to permit explicit
+            # conversion, but they do not configure the semantic reader.
+            # Fingerprint only effective settings and the assets it uses.
+            settings = {
+                "kind": "adaptive-count",
+                "max_digits": max_digits,
+                "adaptive": {
+                    "reader": adaptive.reader,
+                    "field": adaptive.field,
+                    "use_ocr": adaptive.use_ocr,
+                    "revision": _ADAPTIVE_READER_REVISION,
+                },
+            }
 
     return VisualSpec(
         kind=kind,
@@ -407,6 +474,7 @@ def _compile_spec(config_value: object, load: Any) -> VisualSpec:
         tolerance=tolerance,
         max_digits=max_digits,
         fingerprint=_canonical_fingerprint(settings, templates),
+        adaptive=adaptive,
     )
 
 
@@ -477,6 +545,15 @@ class VisualProfile(Mapping[str, VisualSpec]):
                     "visual spec ids must use 1-64 ASCII letters, digits, '.', '_' or '-'"
                 )
             compiled[spec_id] = _compile_spec(config, load)
+        policies: dict[str, bool] = {}
+        for spec in compiled.values():
+            if spec.adaptive is None:
+                continue
+            previous = policies.setdefault(spec.adaptive.reader, spec.adaptive.use_ocr)
+            if previous is not spec.adaptive.use_ocr:
+                raise VisualProfileError(
+                    "visual specs using one adaptive reader must use the same OCR policy"
+                )
         object.__setattr__(self, "_specs", MappingProxyType(compiled))
         manifest = [(spec_id, compiled[spec_id].fingerprint) for spec_id in sorted(compiled)]
         object.__setattr__(
@@ -513,6 +590,58 @@ class VisualProfile(Mapping[str, VisualSpec]):
             spec = self._specs[sensor.name]
         except KeyError:
             raise ValueError(f"visual profile has no spec {sensor.name!r}") from None
+        if spec.adaptive is not None:
+            # This direct API is used by bounded offline inspection. Live
+            # adapters batch and track these specs through adaptive_runtime so
+            # discovery never blocks health or input scheduling.
+            from tibia_client.adaptive import ResourceReader
+
+            reader = ResourceReader()
+            # A saved region is an operator-reviewed panel hint, not the
+            # current numeric ROI. Honor it first so choosing one duplicate
+            # during setup has the same meaning in offline and live reads.
+            hint = validate_region(sensor.region, frame.size)
+            discovery = reader.discover(
+                frame, selection=hint, use_ocr=spec.adaptive.use_ocr
+            )
+            missing_hint = discovery.layout is None and not discovery.candidates
+            missing_field = (
+                discovery.layout is not None
+                and spec.adaptive.field not in discovery.layout.regions
+            )
+            if missing_hint or missing_field:
+                # A moved panel or newly visible row may be reacquired only by
+                # unique discovery. Never broaden an ambiguous selection.
+                discovery = reader.discover(frame, use_ocr=spec.adaptive.use_ocr)
+            if discovery.layout is None:
+                return Reading(
+                    None,
+                    Quality.UNKNOWN,
+                    discovery.detail or "adaptive resource panel was not found",
+                    {
+                        "type": "adaptive_layout",
+                        "reader": spec.adaptive.reader,
+                        "candidate_count": len(discovery.candidates),
+                    },
+                )
+            reading = reader.read(
+                frame, discovery.layout, use_ocr=spec.adaptive.use_ocr
+            ).get(
+                spec.adaptive.field
+            )
+            if reading is None:
+                return Reading(
+                    None,
+                    Quality.UNKNOWN,
+                    f"adaptive reader omitted field {spec.adaptive.field!r}",
+                )
+            from tibia_client.adaptive_runtime import bounded_adaptive_count
+
+            reading = bounded_adaptive_count(reading, spec.adaptive.max_digits)
+            diagnostics = dict(reading.diagnostics)
+            diagnostics.setdefault("adaptive_reader", spec.adaptive.reader)
+            diagnostics.setdefault("layout_revision", discovery.layout.fingerprint)
+            return Reading(reading.value, reading.quality, reading.detail, diagnostics)
         return read_visual(spec, frame, sensor.region)
 
     def __getitem__(self, key: str) -> VisualSpec:
@@ -910,6 +1039,7 @@ def read_visual(
 
 
 __all__ = [
+    "AdaptiveVisual",
     "MAX_DIGIT_VARIANTS",
     "MAX_DIGITS",
     "MAX_MATCHES",
