@@ -306,6 +306,186 @@
       "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
       "status": "visually_equivalent",
       "evidence": "Complete compressed JPEG client with small top-left Skills above Loot Analyser and hunt panels next door. Resource labels/order, right alignment, comma grouping and textured panel match the target despite soft glyph edges. Values are 2,810 / 518 / 200 / 195; source marks on the character/chat are retained."
+    },
+    "reddit-rodri418-o5rjfw8": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Lower outer-right Skills below several trackers. All four gray numbers are readable."
+    },
+    "reddit-openfee445-05f7xpk": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper inner-right Skills beneath Player Guide and Quest Tracker. Four readable gray numbers."
+    },
+    "reddit-keasol-2yqk8uk": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper-left Skills with five-digit Hit Points. The scene and post concern an Echo Warden, a summer-update feature."
+    },
+    "reddit-prolanninja-8n7qyhc": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Low inner-right Skills surrounded by backpacks and bestiary trackers. Four readable numbers."
+    },
+    "reddit-musquitu96-wzgn2qg": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Shortened inner-right Skills ends through the bottom of Hit Points. The remaining glyphs unambiguously show 5,277; the other three rows are hidden."
+    },
+    "reddit-ryelz02-0p3zcv3": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper-left Skills and five-digit Mana. Make Believe quest text is visible, supporting summer-update-era content. Four readable numbers."
+    },
+    "reddit-musquitu96-uuhie47": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Shortened inner-right Skills ends through the bottom of Hit Points. The remaining glyphs unambiguously show 5,365; the other three rows are hidden."
+    },
+    "reddit-horyang-r2nnr1a": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper inner-right Skills, four readable numbers including two-digit Capacity 43."
+    },
+    "reddit-kunggimli-zaxz27g": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Low outer-right Skills shortened to Level and a clipped XP row. All four resource rows are below the visible panel."
+    },
+    "reddit-frosty-economics-557-89mlozz": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Lower-left Skills beneath Party Hunt. Death state shows readable Hit Points 0 and Mana 0; these are valid numeric zero labels."
+    },
+    "reddit-local-ad3036-t7o9dkq": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Complete client with crowded left and right docks; Skills is closed. HUD status values are not substituted for absent Skills rows."
+    },
+    "reddit-local-ad3036-w1iymdg": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Very low inner-right Skills with taller row spacing; Capacity is green. Four readable numbers."
+    },
+    "reddit-cowboyisaac-9muurr2": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Outer-right Skills beneath Battle List; Capacity is green. Four readable numbers."
+    },
+    "reddit-cowboyisaac-0wwagz8": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Outer-right Skills beneath Battle List; four readable gray numbers."
+    },
+    "reddit-musquitu96-zw6jbqg": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Shortened inner-right Skills ends through the bottom of Hit Points. Remaining glyphs unambiguously show 5,369; the other three rows are hidden."
+    },
+    "reddit-musquitu96-9sol5rg": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Shortened inner-right Skills ends through the bottom of Hit Points. Remaining glyphs unambiguously show 5,017; the other three rows are hidden."
+    },
+    "reddit-local-ad3036-to5lkdg": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Mid-height outer-right Skills. Five-digit Hit Points and four readable resources."
+    },
+    "reddit-eurbina14-9vscc20": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Outer-right Skills in a different party member capture; five-digit Mana and green Capacity. Shared party/author evidence keeps this with the Local_Ad3036 captures."
+    },
+    "reddit-joaocasarin-6tv51oc": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "unknown",
+      "evidence": "Login state has no resource panel, so resource glyph equivalence cannot be inspected. Full desktop with a complete Tibia login window inside Windows 11 in Parallels, plus a natural error dialog. No Skills or resource rows exist in this login state."
+    },
+    "reddit-smithyx17-dqeox2y": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Inner-right Skills below VIP. Three-digit Hit Points and Capacity, all four values readable."
+    },
+    "reddit-reverofsipcabej-d7ze1nn": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper-left Skills shortened just below XP Boost; all resource rows hidden. Post and scene concern Echo Wardens."
+    },
+    "reddit-baear-nbqgn5x": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper inner-right Skills shortened just below XP Boost; all resource rows hidden."
+    },
+    "reddit-silent-oil-2035-ogl92io": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Complete client with left Drop Tracker/Analytics/Hunt/XP panels and right equipment/backpacks; Skills is absent."
+    },
+    "reddit-fearless-drawing5310-z6oqvmc": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Mid-height outer-right Skills, four readable gray numbers. Dense quest/tracker/backpack context."
+    },
+    "reddit-fearless-drawing5310-wyfqffl": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Mid-height outer-right Skills, four readable gray numbers, same author and layout as the later level-134 capture."
+    },
+    "reddit-cowboyisaac-dhlws3d": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Outer-right Skills with JPEG-compressed green Capacity. The visible text is still uniquely readable as 1,176."
+    },
+    "reddit-mint-odie-7ngyee8": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Small inner-right Skills scrolled to Food and Stamina, with only a fragment of Speed above; the four resource rows are scrolled out of view."
+    },
+    "reddit-horyang-x5vg5mp": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper inner-right Skills; all four numbers readable. Broad tracker-heavy layout."
+    },
+    "reddit-aernithrawaxe-leyvjxw": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper-left Skills ends after only the top fragments of Hit Points/value. Those pixels do not reliably determine the number; all four resources are N/A. Echo Warden Killed notification supports the July summer update."
+    },
+    "reddit-flashsfw-du2dnj0": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Visible resource-reader labels, glyphs, alignment, panel chrome and adjacent controls only; not exact build identity or whole-client equivalence.",
+      "status": "visually_equivalent",
+      "evidence": "Compared with user-paulistinha-20261013: matching textured dock chrome, compact bold light label/numeric family, right-aligned values, modern compass/equipment/Store/action controls. Visible resource rows retain Hit Points, Mana, Soul Points, Capacity order where exposed. Smaller glyphs/dock widths and different positions are recorded layout/rendering variation. Upper inner-right Skills with all four gray numbers readable. Level-up Echo Raid scene from July 26 supports the summer-update period."
     }
   }
 }

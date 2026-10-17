@@ -1,0 +1,46 @@
+name: Latest screenshots frozen benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'tests/fixtures/screenshots/**'
+      - 'tools/benchmark_latest_screenshots.py'
+      - 'tools/screenshot_split.py'
+      - '.github/workflows/latest-screenshots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  all-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Validate frozen annotations and source-group partition
+        run: python -m pytest tests/test_screenshot_collection.py tests/test_screenshot_split.py
+      - name: Compare all 81 originals using frozen readers
+        run: >-
+          python tools/benchmark_latest_screenshots.py
+          --shards 6 --shard ${{ matrix.shard }}
+          --out .work/latest-screenshots/shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: latest-screenshots-shard-${{ matrix.shard }}
+          path: .work/latest-screenshots/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90

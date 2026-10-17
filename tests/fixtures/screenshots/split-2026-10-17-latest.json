@@ -1,0 +1,472 @@
+{
+  "schema": "tibiaauto.screenshot-split",
+  "version": 1,
+  "batch": "2026-10-17-latest",
+  "seed": "latest-20261017-v1",
+  "algorithm": "SHA-256(seed + newline + group), ascending; first reachable whole-group subset of round(0.2 * full count). No values or reader results used.",
+  "scope": "All full screenshots, including safety controls and different-interface references. Supplemental crops excluded from the 80/20 denominator.",
+  "historical_split_policy": "Manifest train/heldout labels are historical. This file is authoritative for current development/test membership.",
+  "test_policy": "New source groups only; no reader changes or parameter selection after seeing this test evaluation. Refresh the test set when its failures guide tuning.",
+  "target_test_fraction": 0.2,
+  "full_screenshots": 71,
+  "test_images": 14,
+  "previously_inspected_ids": [
+    "allegro-antica-4c39a50f",
+    "dfg-belobra-2AHL",
+    "dfg-belobra-S50Q",
+    "dfg-calmera-ek246-D9BJ",
+    "dfg-demolidores-4KCJ",
+    "dfg-gentebra-3XWB",
+    "dfg-gentebra-AZ3L",
+    "dfg-gentebra-BJEI",
+    "dfg-gentebra-rp193-PPNB",
+    "dfg-gladera-SSVX",
+    "dfg-kalibra-ek362",
+    "dfg-laudera-knight64-PD1G",
+    "dfg-loyalty-ek277-OL5J",
+    "dfg-lutabra-ed312-IBIV",
+    "dfg-pvp-ek133",
+    "dfg-quintera-VS41",
+    "dfg-retro-pvp-rp535",
+    "dfg-retropvp-BYZ0",
+    "dfg-ustebra-ek177",
+    "dfg-yonabra-8LN9",
+    "dfg-yonabra-ek195",
+    "drenox-client",
+    "portal-tibia-2016-01-0i483jb",
+    "portal-tibia-2016-02-VtukRkf",
+    "portal-tibia-2016-03-dUqF9aj",
+    "portal-tibia-2016-04-P9brcLm",
+    "portal-tibia-2016-08-L1QY5z1",
+    "portal-tibia-2016-09-BnumJDC",
+    "portal-tibia-2016-10-Ttu3X5q",
+    "reddit-adventurous-xcqycuy",
+    "reddit-blake-ib60r93",
+    "reddit-blake-m91oix5",
+    "reddit-chrissykes-4ppe2dp",
+    "reddit-daralion-0tx21ye",
+    "reddit-deleted-09s6sbl",
+    "reddit-dworc-o0ap20c",
+    "reddit-illustrious-mo9lbk5",
+    "reddit-kollector-awoeqer",
+    "reddit-koro-3brbvbq",
+    "reddit-koro-9rwszeb",
+    "reddit-kthrygg-nfiiftq",
+    "reddit-nwasmb-8q86ims",
+    "reddit-strike-e0qinag",
+    "reddit-valouran-pl7tust",
+    "reddit-weirdnonamer-h8odlbh",
+    "reddit-yamalz-dfbygh7",
+    "tibiabr-sidebars-filled",
+    "tibiadecorations-2024-full-window",
+    "tibiaqa-flash-v1QxvNN",
+    "tibiautils-d35caff",
+    "user-paulistinha-20261013"
+  ],
+  "candidate_group_order": [
+    "reddit-author-KungGimli",
+    "reddit-author-cowboyisaac",
+    "reddit-author-ReverofSipCabej",
+    "reddit-author-FlashSFW",
+    "reddit-author-Fearless-Drawing5310",
+    "reddit-author-OpenFee445",
+    "reddit-author-ProlanNinja",
+    "reddit-author-Ryelz02",
+    "reddit-author-Smithyx17",
+    "reddit-author-Mint_Odie",
+    "reddit-author-Keasol",
+    "reddit-party-Local_Ad3036-Eurbina14",
+    "reddit-author-Baear",
+    "reddit-author-horyang",
+    "reddit-author-musquitu96",
+    "reddit-author-Rodri418",
+    "reddit-author-Silent_Oil_2035",
+    "reddit-author-Frosty-Economics-557",
+    "reddit-author-AernithRawaxe",
+    "reddit-author-joaocasarin"
+  ],
+  "selected_test_groups": [
+    "reddit-author-KungGimli",
+    "reddit-author-cowboyisaac",
+    "reddit-author-ReverofSipCabej",
+    "reddit-author-FlashSFW",
+    "reddit-author-Fearless-Drawing5310",
+    "reddit-author-OpenFee445",
+    "reddit-author-ProlanNinja",
+    "reddit-author-Ryelz02",
+    "reddit-author-Smithyx17",
+    "reddit-author-Mint_Odie",
+    "reddit-author-Keasol"
+  ],
+  "partitions": {
+    "development": [
+      "allegro-antica-4c39a50f",
+      "dfg-belobra-2AHL",
+      "dfg-belobra-S50Q",
+      "dfg-calmera-ek246-D9BJ",
+      "dfg-demolidores-4KCJ",
+      "dfg-gentebra-3XWB",
+      "dfg-gentebra-AZ3L",
+      "dfg-gentebra-BJEI",
+      "dfg-gentebra-rp193-PPNB",
+      "dfg-gladera-SSVX",
+      "dfg-laudera-knight64-PD1G",
+      "dfg-loyalty-ek277-OL5J",
+      "dfg-lutabra-ed312-IBIV",
+      "dfg-quintera-VS41",
+      "dfg-retro-pvp-rp535",
+      "dfg-retropvp-BYZ0",
+      "dfg-ustebra-ek177",
+      "dfg-yonabra-8LN9",
+      "dfg-yonabra-ek195",
+      "drenox-client",
+      "reddit-adventurous-xcqycuy",
+      "reddit-aernithrawaxe-leyvjxw",
+      "reddit-baear-nbqgn5x",
+      "reddit-blake-m91oix5",
+      "reddit-chrissykes-4ppe2dp",
+      "reddit-daralion-0tx21ye",
+      "reddit-deleted-09s6sbl",
+      "reddit-dworc-o0ap20c",
+      "reddit-eurbina14-9vscc20",
+      "reddit-frosty-economics-557-89mlozz",
+      "reddit-horyang-r2nnr1a",
+      "reddit-horyang-x5vg5mp",
+      "reddit-illustrious-mo9lbk5",
+      "reddit-joaocasarin-6tv51oc",
+      "reddit-kollector-awoeqer",
+      "reddit-koro-3brbvbq",
+      "reddit-koro-9rwszeb",
+      "reddit-kthrygg-nfiiftq",
+      "reddit-local-ad3036-t7o9dkq",
+      "reddit-local-ad3036-to5lkdg",
+      "reddit-local-ad3036-w1iymdg",
+      "reddit-musquitu96-9sol5rg",
+      "reddit-musquitu96-uuhie47",
+      "reddit-musquitu96-wzgn2qg",
+      "reddit-musquitu96-zw6jbqg",
+      "reddit-nwasmb-8q86ims",
+      "reddit-rodri418-o5rjfw8",
+      "reddit-silent-oil-2035-ogl92io",
+      "reddit-strike-e0qinag",
+      "reddit-valouran-pl7tust",
+      "reddit-weirdnonamer-h8odlbh",
+      "reddit-yamalz-dfbygh7",
+      "tibiabr-sidebars-filled",
+      "tibiadecorations-2024-full-window",
+      "tibiaqa-flash-v1QxvNN",
+      "tibiautils-d35caff",
+      "user-paulistinha-20261013"
+    ],
+    "test": [
+      "reddit-cowboyisaac-0wwagz8",
+      "reddit-cowboyisaac-9muurr2",
+      "reddit-cowboyisaac-dhlws3d",
+      "reddit-fearless-drawing5310-wyfqffl",
+      "reddit-fearless-drawing5310-z6oqvmc",
+      "reddit-flashsfw-du2dnj0",
+      "reddit-keasol-2yqk8uk",
+      "reddit-kunggimli-zaxz27g",
+      "reddit-mint-odie-7ngyee8",
+      "reddit-openfee445-05f7xpk",
+      "reddit-prolanninja-8n7qyhc",
+      "reddit-reverofsipcabej-d7ze1nn",
+      "reddit-ryelz02-0p3zcv3",
+      "reddit-smithyx17-dqeox2y"
+    ],
+    "reference": [
+      "dfg-kalibra-ek362",
+      "dfg-pvp-ek133",
+      "portal-tibia-2016-01-0i483jb",
+      "portal-tibia-2016-02-VtukRkf",
+      "portal-tibia-2016-03-dUqF9aj",
+      "portal-tibia-2016-04-P9brcLm",
+      "portal-tibia-2016-08-L1QY5z1",
+      "portal-tibia-2016-09-BnumJDC",
+      "portal-tibia-2016-10-Ttu3X5q",
+      "reddit-blake-ib60r93"
+    ]
+  },
+  "source_groups": {
+    "allegro-kenora-antica": [
+      "allegro-antica-4c39a50f"
+    ],
+    "dfg-listing-904190487": [
+      "dfg-gentebra-BJEI"
+    ],
+    "dfg-listing-905898076": [
+      "dfg-demolidores-4KCJ"
+    ],
+    "dfg-listing-906563910": [
+      "dfg-gentebra-3XWB",
+      "dfg-gentebra-AZ3L",
+      "dfg-gentebra-rp193-PPNB"
+    ],
+    "dfg-listing-953559644": [
+      "dfg-gladera-SSVX"
+    ],
+    "dfg-listing-966830394": [
+      "dfg-belobra-2AHL",
+      "dfg-belobra-S50Q"
+    ],
+    "dfg-listing-974104750": [
+      "dfg-yonabra-8LN9",
+      "dfg-yonabra-ek195"
+    ],
+    "dfg-listing-975471397": [
+      "dfg-quintera-VS41"
+    ],
+    "dfg-listing-978242455": [
+      "dfg-retro-pvp-rp535",
+      "dfg-retropvp-BYZ0"
+    ],
+    "drenoxbot-paulistinha-page": [
+      "drenox-client"
+    ],
+    "reddit-author-Adventurous-Size-935": [
+      "reddit-adventurous-xcqycuy"
+    ],
+    "reddit-author-AernithRawaxe": [
+      "reddit-aernithrawaxe-leyvjxw"
+    ],
+    "reddit-author-Baear": [
+      "reddit-baear-nbqgn5x"
+    ],
+    "reddit-author-Blakee1": [
+      "reddit-blake-ib60r93",
+      "reddit-blake-m91oix5"
+    ],
+    "reddit-author-Daralion": [
+      "reddit-daralion-0tx21ye"
+    ],
+    "reddit-author-Fearless-Drawing5310": [
+      "reddit-fearless-drawing5310-wyfqffl",
+      "reddit-fearless-drawing5310-z6oqvmc"
+    ],
+    "reddit-author-FlashSFW": [
+      "reddit-flashsfw-du2dnj0"
+    ],
+    "reddit-author-Frosty-Economics-557": [
+      "reddit-frosty-economics-557-89mlozz"
+    ],
+    "reddit-author-Illustrious_Ad4910": [
+      "reddit-illustrious-mo9lbk5"
+    ],
+    "reddit-author-Keasol": [
+      "reddit-keasol-2yqk8uk"
+    ],
+    "reddit-author-KoroTheKoro": [
+      "reddit-koro-3brbvbq",
+      "reddit-koro-9rwszeb"
+    ],
+    "reddit-author-Kthrygg": [
+      "reddit-kthrygg-nfiiftq"
+    ],
+    "reddit-author-KungGimli": [
+      "reddit-kunggimli-zaxz27g"
+    ],
+    "reddit-author-Mint_Odie": [
+      "reddit-mint-odie-7ngyee8"
+    ],
+    "reddit-author-Nwasmb": [
+      "reddit-nwasmb-8q86ims"
+    ],
+    "reddit-author-OpenFee445": [
+      "reddit-openfee445-05f7xpk"
+    ],
+    "reddit-author-ProlanNinja": [
+      "reddit-prolanninja-8n7qyhc"
+    ],
+    "reddit-author-ReverofSipCabej": [
+      "reddit-reverofsipcabej-d7ze1nn"
+    ],
+    "reddit-author-Rodri418": [
+      "reddit-rodri418-o5rjfw8"
+    ],
+    "reddit-author-Ryelz02": [
+      "reddit-ryelz02-0p3zcv3"
+    ],
+    "reddit-author-Silent_Oil_2035": [
+      "reddit-silent-oil-2035-ogl92io"
+    ],
+    "reddit-author-Smithyx17": [
+      "reddit-smithyx17-dqeox2y"
+    ],
+    "reddit-author-StrikeStraight9961": [
+      "reddit-strike-e0qinag"
+    ],
+    "reddit-author-TheKollector_": [
+      "reddit-kollector-awoeqer"
+    ],
+    "reddit-author-Valouran": [
+      "reddit-valouran-pl7tust"
+    ],
+    "reddit-author-Yamalz": [
+      "reddit-yamalz-dfbygh7"
+    ],
+    "reddit-author-chrissykes78": [
+      "reddit-chrissykes-4ppe2dp"
+    ],
+    "reddit-author-cowboyisaac": [
+      "reddit-cowboyisaac-0wwagz8",
+      "reddit-cowboyisaac-9muurr2",
+      "reddit-cowboyisaac-dhlws3d"
+    ],
+    "reddit-author-deleted-jsop4k8": [
+      "reddit-deleted-09s6sbl"
+    ],
+    "reddit-author-dworc": [
+      "reddit-dworc-o0ap20c"
+    ],
+    "reddit-author-horyang": [
+      "reddit-horyang-r2nnr1a",
+      "reddit-horyang-x5vg5mp"
+    ],
+    "reddit-author-joaocasarin": [
+      "reddit-joaocasarin-6tv51oc"
+    ],
+    "reddit-author-musquitu96": [
+      "reddit-musquitu96-9sol5rg",
+      "reddit-musquitu96-uuhie47",
+      "reddit-musquitu96-wzgn2qg",
+      "reddit-musquitu96-zw6jbqg"
+    ],
+    "reddit-author-weirdnonamer": [
+      "reddit-weirdnonamer-h8odlbh"
+    ],
+    "reddit-party-Local_Ad3036-Eurbina14": [
+      "reddit-eurbina14-9vscc20",
+      "reddit-local-ad3036-t7o9dkq",
+      "reddit-local-ad3036-to5lkdg",
+      "reddit-local-ad3036-w1iymdg"
+    ],
+    "source:https://forum.portaltibia.com.br/topic/32425-chars-skills/": [
+      "portal-tibia-2016-01-0i483jb",
+      "portal-tibia-2016-02-VtukRkf",
+      "portal-tibia-2016-03-dUqF9aj",
+      "portal-tibia-2016-04-P9brcLm",
+      "portal-tibia-2016-08-L1QY5z1",
+      "portal-tibia-2016-09-BnumJDC",
+      "portal-tibia-2016-10-Ttu3X5q"
+    ],
+    "source:https://tibiadecorations.com/quality-screenshots/": [
+      "tibiadecorations-2024-full-window"
+    ],
+    "source:https://www.dfg.com.br/en/tibia/vendo-ek-133-mundo-pvp-disponivel-para-transferencia-998237216": [
+      "dfg-pvp-ek133"
+    ],
+    "source:https://www.dfg.com.br/pt/tibia/contas/ek-362-kalibra-2-dummy-de-treino-917867645": [
+      "dfg-kalibra-ek362"
+    ],
+    "source:https://www.dfg.com.br/tibia/contas/account-35-loyalt-ek-277-skill-120-115-940604669": [
+      "dfg-loyalty-ek277-OL5J"
+    ],
+    "source:https://www.dfg.com.br/tibia/contas/com-ek-em-ustebra-177-skill-113-106-axe-917013286": [
+      "dfg-ustebra-ek177"
+    ],
+    "source:https://www.dfg.com.br/tibia/contas/ed-lvl-312-ml-102-rp-116-skills-113-lutabra-917674539": [
+      "dfg-lutabra-ed312-IBIV"
+    ],
+    "source:https://www.dfg.com.br/tibia/contas/global-nivel-64-mundo-laudera-knight-957011807": [
+      "dfg-laudera-knight64-PD1G"
+    ],
+    "source:https://www.dfg.com.br/tibia/contas/knight-global-level-246-skill-106-mundo-calmera-951064454": [
+      "dfg-calmera-ek246-D9BJ"
+    ],
+    "source:user-paulistinha-20261013": [
+      "user-paulistinha-20261013"
+    ],
+    "tibiabr-patch-4427": [
+      "tibiabr-sidebars-filled"
+    ],
+    "tibiaqa-client-history": [
+      "tibiaqa-flash-v1QxvNN"
+    ],
+    "tibiautils-d35caff": [
+      "tibiautils-d35caff"
+    ]
+  },
+  "annotations": {
+    "user-paulistinha-20261013": "3df568f5a7f2b638dcc5e98a1c7799745c53910bf75122ec48e01d80b169571f",
+    "portal-tibia-2016-01-0i483jb": "719423170f534eb0cb1f6c4ac73a7703c24e66935f79406c5f5965b08c5323ab",
+    "portal-tibia-2016-02-VtukRkf": "985623331fbb8532be911b59675a2e482aa013e64a5f5e326bffe3d316efbd90",
+    "portal-tibia-2016-03-dUqF9aj": "55ea09d5c1837d533cff64ddeaa13f61e06168d20e3612225ea2a5696423f5f8",
+    "portal-tibia-2016-04-P9brcLm": "cb4e2858078e954ce41685421073725a963bedc8932e31b2b289cf174612958a",
+    "portal-tibia-2016-08-L1QY5z1": "4bbc5e5acca35ccc01b0cd11e157972e45ca76c5de626787b8678d2af0b784ac",
+    "portal-tibia-2016-09-BnumJDC": "69636877f2c0ab9dfc181a1fa58246f5063b73747d96331e88396be7975e72d7",
+    "portal-tibia-2016-10-Ttu3X5q": "3014c180c27682521a0d6a93f7ee3a5cdec1baac7aa53c9803ad556b8fca82be",
+    "tibiadecorations-2024-full-window": "980555cd55b54182fdce7e25589749dd1457b070eae25527bd8f6643e2eef9ee",
+    "dfg-kalibra-ek362": "1bbba62e2242ede8b4f1ae60840d2c3f513682d6931d0e49fa1e855887ee598b",
+    "dfg-retro-pvp-rp535": "a27b2bdce7a4c7cda8cb68541d3483eeefd809c22c20cda592c87aba46826809",
+    "dfg-pvp-ek133": "60b647362122cd171b83dd8314d83cff79fcceddc24f1412a7f5b790e99879c3",
+    "dfg-ustebra-ek177": "a2621543846878a44c41983763f299c27d494db4087c6baba4a1f78df53876f1",
+    "dfg-yonabra-ek195": "59ad6b7247a5a30ae016a97a44b26e30c3f1c13a838f9973fbf4a6e84f0e6f34",
+    "dfg-gentebra-rp193-PPNB": "7c50c733feea34f9dd53f70182e895b8c6626bfdfeb2f6b306c63b0218e45a84",
+    "dfg-lutabra-ed312-IBIV": "95da9effb5f39377b1e3c692d5b5de8ba20446e0f3ae7b40d315e7f7099a0519",
+    "dfg-loyalty-ek277-OL5J": "3ea152cfe274605f40dd81193a9d3ae234bc1ea5e287b2961789628c156a9371",
+    "dfg-calmera-ek246-D9BJ": "c7b30f6f81c87b076453fb710ee024e28e2719a93d93f515e76f90ee6a46b6c7",
+    "dfg-laudera-knight64-PD1G": "fa2b9aeec06b6b3dc896984fc6dde728ae03287b4055362c9112ba0021d4ed5b",
+    "dfg-demolidores-4KCJ": "39a219bc7917dc8950d0bf5d67f8db58707d210515e81d021f78ce186f1bb6b9",
+    "dfg-belobra-2AHL": "40ed4441aa240f3411c8dcf40db8ba4928d9e8d2c948dd57098506fe07dd0534",
+    "dfg-belobra-S50Q": "bc7a246102e095f49d98b6f1d135cc029bc1d382586ec2c202ee7a0ee318855a",
+    "drenox-client": "ab1e2271c818ea44e197f1110a0b182680631fb22e7279fd0775383288ae2558",
+    "dfg-gentebra-3XWB": "18ece3cb573b4602de36fa725e7116fa40516a930ea3f0ce283acd6d2a2a6860",
+    "dfg-gentebra-AZ3L": "911c0568aefab48d4ea59adca7ae6d032e5b8bb87da63d9139d3293cbdecbb08",
+    "dfg-gentebra-BJEI": "58054344d665df6fe1ee38adb598a48ca6449a43e9dfb39c5b1b22f7e67cf10b",
+    "dfg-yonabra-8LN9": "84f5bd8c5fdffacc549c92d07c43a3efddde443684443f0f9c7e265e68aaf33d",
+    "dfg-quintera-VS41": "62e7bfaeac29f65fa9326622645a807ea9d4ee3b6f3471425bdac7f15c260fb7",
+    "dfg-retropvp-BYZ0": "fdb0f511b119b9388e1d99dc279c9f2281b45589589aed056c8595a36c0835be",
+    "tibiautils-d35caff": "7a0cfbe0d2d335f1f9d152ee894f878e5cbcf78d8f3147fafb6edf7a60b92138",
+    "tibiabr-sidebars-filled": "c0eebcd997c27b54b57dc39cda5f940a4c31b6648500c79dcb718bf97695f516",
+    "dfg-gladera-SSVX": "527de0a90bd548825815ce0df61239fc38c4959c2c5cf64ea0b2e7f92b069015",
+    "tibiaqa-flash-v1QxvNN": "215aca842cb074a134fbee83338d16d8ed8676a0899c6d3ed405e22f0c715493",
+    "allegro-antica-4c39a50f": "af45a6cd539a3ded8814fbdcb882e4fde0e09fc4eb07d65e00627871173355ad",
+    "reddit-koro-3brbvbq": "b655e4aef73e6f278d16316b12d32d081c9a5b1757b04626a9a62c13bd85a062",
+    "reddit-koro-9rwszeb": "7e71dd15999107e9b8838d26bcf888c61827ff18a0c8f24087bf8df0f10d08f1",
+    "reddit-kollector-awoeqer": "b422a1ef216ce363e9b8c4fd4183ae8f3fb26e512aa992a378502abd82a2dd2f",
+    "reddit-strike-e0qinag": "5920c3089ffbade178c0e680edc4e4f10f73aa08d9ced19535b4ef18e2c9b739",
+    "reddit-nwasmb-8q86ims": "4b46011268f6f999d47a380f8e0dfe5d8a70bdc5cf75f91d6b2bcf1fc7b02a57",
+    "reddit-adventurous-xcqycuy": "b7091f4e55bc9de3d89670d1455497bcc328c0a9e69e26358500bafde57b8a53",
+    "reddit-deleted-09s6sbl": "a310b6505cf5d2190d524060f05f91587ee1fc38d6fb4d54fff9452080f7c5a0",
+    "reddit-valouran-pl7tust": "18a7e168e5d5e2fcf91c275581290f9dbf5361611b2cba279a149eaf238c93c6",
+    "reddit-illustrious-mo9lbk5": "d65facc2204e1f3fefae22ebe944aaeeb292539c27076ad1281755a5ec5536a9",
+    "reddit-blake-m91oix5": "d79397db149e0cda84d86544fe3bfff62820e9ec186a225c8ed6f8afa064f06f",
+    "reddit-kthrygg-nfiiftq": "07f2f0c8667b68a78a21e487f9ebb22cf89409916ca588d2b5495b97281119eb",
+    "reddit-yamalz-dfbygh7": "e9fc9b9d39ea4958f278a84b3b22175d7258bddbea15f67704e73807b61aeb4d",
+    "reddit-blake-ib60r93": "f0cb5c190dc403610a310636a126752de855779f590cb2296f3b0f0e293b9171",
+    "reddit-daralion-0tx21ye": "52d1b7d8ffae8c87936edf3c9c044fc546008b4eb8d0742ae6948bf0abf5d928",
+    "reddit-dworc-o0ap20c": "d7165c3778db9999702ab0cdf23fd957aa5983b13a514b6c66b34184fa24b0a6",
+    "reddit-weirdnonamer-h8odlbh": "8d229c83e8b04eabaf14cbbb5303bdb602ff69b37b2e26a034a3226ded9e2ebb",
+    "reddit-chrissykes-4ppe2dp": "e0f7cd55fa308a40183632002e4d2d7e26ff34c5426c46879d7ac1e798a52787",
+    "reddit-rodri418-o5rjfw8": "064a97da6da4511e4f94d4c32d6c077491ae7216d647bbf147c6c5da02bb4c38",
+    "reddit-openfee445-05f7xpk": "4853837f9875c643cac56e04ded8e66fc2950ef44f36836fb915234dad78e7e6",
+    "reddit-keasol-2yqk8uk": "360efc09a48fb9f1edcd6de08f72ff0dd9249632ab77927794cc9036b7b9c2db",
+    "reddit-prolanninja-8n7qyhc": "713f0040112692046c060d77252bf304e11d4766a53070d16741c00222175147",
+    "reddit-musquitu96-wzgn2qg": "876691866defb60d65343615e18260dca4973ba3fb31833d4d6ec0b80d8db992",
+    "reddit-ryelz02-0p3zcv3": "4b3b057f29277b8143faf26507d7de9e40e5917a3b0728b72d2728156b314055",
+    "reddit-musquitu96-uuhie47": "006d1997d164278dfa5989caabb561d17f8d3acde3fbdec0fd3813574a203d6c",
+    "reddit-horyang-r2nnr1a": "540f13d67e2f37679b6820df96e5aef8eba12f2f90264247ffe3267a02009d43",
+    "reddit-kunggimli-zaxz27g": "c2a366b362c77fa6b442fe55f9f03ad26dde99010c2d26c01171801331bfa668",
+    "reddit-frosty-economics-557-89mlozz": "5d76043315bdadd3787de2a582015cb72a586914a0f580a6f0e7d684cacb3143",
+    "reddit-local-ad3036-t7o9dkq": "912770167e3995351db452c0bbf833da665b57d31519fd9c21cabb48232ef76f",
+    "reddit-local-ad3036-w1iymdg": "62f2561dc7b7dbcc0e313f1ea08f53a92df7dfc48ad72fc661a326691cd86a76",
+    "reddit-cowboyisaac-9muurr2": "cc6eaf3d942d21ac88eca473225094500c50efcbb6078b63342d5b00107c49de",
+    "reddit-cowboyisaac-0wwagz8": "4b3cf36f67378539d0f71c485229c6eebddbeed6f714d50aef8abc21a9a58ed1",
+    "reddit-musquitu96-zw6jbqg": "32d2cdc67c2dfe06f55c8ac806a861c19f5b552f869ccb6c124b9b1a1cecafcf",
+    "reddit-musquitu96-9sol5rg": "77e0366c83b52f39a2abe8ae85e8a6a235fb18182ebbe528362bc9d3eb1aeb80",
+    "reddit-local-ad3036-to5lkdg": "709d7ee66febfae4e1635737b7709f0f13af310218ec979a6bcef4cabeb9c93b",
+    "reddit-eurbina14-9vscc20": "3347d251da284e8668ae96af136fda8e3a7f41bb8d50997a2a4c4a5b3b67045a",
+    "reddit-joaocasarin-6tv51oc": "d927641b2a614cd9c52a330a7b00c2c7e80d08c7a350bee9b72e296abd297736",
+    "reddit-smithyx17-dqeox2y": "a6b8b5c9786284c02f928e73682d21bc2373697afdf7cd97a144b10623b658bb",
+    "reddit-reverofsipcabej-d7ze1nn": "437ba161039e89caaf21852a62a4b6a3b674cb44d430f07be441f6155dcdc82f",
+    "reddit-baear-nbqgn5x": "a68d6323dcb4117a6b3fc499750160a40d470af5e913f82c983405caa8fe1102",
+    "reddit-silent-oil-2035-ogl92io": "f51b5495d672b7f4cbeb0b441e99d68d8262608893798ebf895bd3488e95da8a",
+    "reddit-fearless-drawing5310-z6oqvmc": "13e550323df9991c1c2303cea71f1345834fc626b4482ceae9f9c83c44a808d5",
+    "reddit-fearless-drawing5310-wyfqffl": "c10d9964d55af843f3e54d3589950023a46a1d73a0a459cdb4fa0d90905a3ad6",
+    "reddit-cowboyisaac-dhlws3d": "6344dbe1a580aadf410364db1a7e909db815c11932017b82990c1c3caea35fb1",
+    "reddit-mint-odie-7ngyee8": "a65313b94175de952fdc61a5b733763092a9c70cca318c22abdab9ba32c6d544",
+    "reddit-horyang-x5vg5mp": "82c245ec1a61d8caf7c2ed54750b6b319b32503679d0ef914f6acc23e86a88e9",
+    "reddit-aernithrawaxe-leyvjxw": "10e3eb9e0ea03468e022b1bce9ebaf2b81edbc58d0ac485bd793e1f865a97b50",
+    "reddit-flashsfw-du2dnj0": "4b9c2c5e3847334ca538c079b39c22308e30c448a46965ab7c3180239091714b"
+  }
+}

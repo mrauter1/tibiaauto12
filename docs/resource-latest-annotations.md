@@ -1,0 +1,38 @@
+# Manually reviewed recent screenshot values
+
+Values are from the Skills rows in each unchanged original. N/A means the current pixels do not reliably supply a value; see the manifest for the field-specific reason and boxes. Four partially clipped but unambiguous Hit Points values are marked with an asterisk. Labels were fixed before reader inference.
+
+| Original / source | Published | Size | Current split | HP | Mana | Soul | Capacity |
+|---|---|---|---|---:|---:|---:|---:|
+| [reddit-rodri418-o5rjfw8](../tests/fixtures/screenshots/originals/reddit-rodri418-o5rjfw8.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wu9w7e/) | 2026-09-30 | 1536x811 | development | 4,207 | 6,120 | 200 | 1,819 |
+| [reddit-openfee445-05f7xpk](../tests/fixtures/screenshots/originals/reddit-openfee445-05f7xpk.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vzijvm/) | 2026-08-27 | 1920x1057 | test | 4,391 | 4,310 | 200 | 3,849 |
+| [reddit-keasol-2yqk8uk](../tests/fixtures/screenshots/originals/reddit-keasol-2yqk8uk.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1x5ltg0/) | 2026-10-14 | 1920x1009 | test | 15,590 | 4,112 | 200 | 8,259 |
+| [reddit-prolanninja-8n7qyhc](../tests/fixtures/screenshots/originals/reddit-prolanninja-8n7qyhc.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wrp8gl/) | 2026-09-27 | 1920x1080 | test | 3,754 | 3,213 | 200 | 1,804 |
+| [reddit-musquitu96-wzgn2qg](../tests/fixtures/screenshots/originals/reddit-musquitu96-wzgn2qg.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wna4al/) | 2026-09-22 | 1536x864 | development | 5,277* | N/A | N/A | N/A |
+| [reddit-ryelz02-0p3zcv3](../tests/fixtures/screenshots/originals/reddit-ryelz02-0p3zcv3.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wmy355/) | 2026-09-22 | 2560x1369 | test | 5,896 | 31,506 | 200 | 3,404 |
+| [reddit-musquitu96-uuhie47](../tests/fixtures/screenshots/originals/reddit-musquitu96-uuhie47.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wjpbhg/) | 2026-09-18 | 1536x864 | development | 5,365* | N/A | N/A | N/A |
+| [reddit-horyang-r2nnr1a](../tests/fixtures/screenshots/originals/reddit-horyang-r2nnr1a.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vy6qwr/) | 2026-08-25 | 2560x1417 | development | 1,398 | 3,052 | 200 | 43 |
+| [reddit-kunggimli-zaxz27g](../tests/fixtures/screenshots/originals/reddit-kunggimli-zaxz27g.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vuslny/) | 2026-08-21 | 1920x1017 | test | N/A | N/A | N/A | N/A |
+| [reddit-frosty-economics-557-89mlozz](../tests/fixtures/screenshots/originals/reddit-frosty-economics-557-89mlozz.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vqoalh/) | 2026-08-17 | 2560x1377 | development | 0 | 0 | 200 | 836 |
+| [reddit-local-ad3036-t7o9dkq](../tests/fixtures/screenshots/originals/reddit-local-ad3036-t7o9dkq.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vosh64/) | 2026-08-15 | 1920x1056 | development | N/A | N/A | N/A | N/A |
+| [reddit-local-ad3036-w1iymdg](../tests/fixtures/screenshots/originals/reddit-local-ad3036-w1iymdg.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vl0ykv/) | 2026-08-10 | 1920x1027 | development | 9,643 | 12,705 | 200 | 7,671 |
+| [reddit-cowboyisaac-9muurr2](../tests/fixtures/screenshots/originals/reddit-cowboyisaac-9muurr2.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vha7lb/) | 2026-08-06 | 2560x1369 | test | 3,470 | 758 | 200 | 2,391 |
+| [reddit-cowboyisaac-0wwagz8](../tests/fixtures/screenshots/originals/reddit-cowboyisaac-0wwagz8.jpg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vbx4qa/) | 2026-07-31 | 2560x1369 | test | 3,215 | 1,100 | 200 | 1,571 |
+| [reddit-musquitu96-zw6jbqg](../tests/fixtures/screenshots/originals/reddit-musquitu96-zw6jbqg.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wna4al/) | 2026-09-22 | 1536x864 | development | 5,369* | N/A | N/A | N/A |
+| [reddit-musquitu96-9sol5rg](../tests/fixtures/screenshots/originals/reddit-musquitu96-9sol5rg.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wna4al/) | 2026-09-22 | 1536x864 | development | 5,017* | N/A | N/A | N/A |
+| [reddit-local-ad3036-to5lkdg](../tests/fixtures/screenshots/originals/reddit-local-ad3036-to5lkdg.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vl0ykv/) | 2026-08-10 | 1920x1017 | development | 21,989 | 4,378 | 200 | 9,178 |
+| [reddit-eurbina14-9vscc20](../tests/fixtures/screenshots/originals/reddit-eurbina14-9vscc20.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vl0ykv/comment/p2zbz2k/) | 2026-08-11 | 2048x1152 | development | 6,441 | 35,624 | 200 | 2,349 |
+| [reddit-joaocasarin-6tv51oc](../tests/fixtures/screenshots/originals/reddit-joaocasarin-6tv51oc.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1x0shv8/) | 2026-10-08 | 3456x2166 | development | N/A | N/A | N/A | N/A |
+| [reddit-smithyx17-dqeox2y](../tests/fixtures/screenshots/originals/reddit-smithyx17-dqeox2y.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wpo0b5/) | 2026-09-25 | 1920x1009 | test | 645 | 3,144 | 200 | 153 |
+| [reddit-reverofsipcabej-d7ze1nn](../tests/fixtures/screenshots/originals/reddit-reverofsipcabej-d7ze1nn.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1wiv1jz/) | 2026-09-17 | 1920x1017 | test | N/A | N/A | N/A | N/A |
+| [reddit-baear-nbqgn5x](../tests/fixtures/screenshots/originals/reddit-baear-nbqgn5x.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vxpshr/) | 2026-08-25 | 1536x889 | development | N/A | N/A | N/A | N/A |
+| [reddit-silent-oil-2035-ogl92io](../tests/fixtures/screenshots/originals/reddit-silent-oil-2035-ogl92io.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vwoysg/) | 2026-08-24 | 1536x793 | development | N/A | N/A | N/A | N/A |
+| [reddit-fearless-drawing5310-z6oqvmc](../tests/fixtures/screenshots/originals/reddit-fearless-drawing5310-z6oqvmc.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vvfehu/) | 2026-08-22 | 2560x1440 | test | 2,116 | 770 | 200 | 573 |
+| [reddit-fearless-drawing5310-wyfqffl](../tests/fixtures/screenshots/originals/reddit-fearless-drawing5310-wyfqffl.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vqzwws/) | 2026-08-17 | 2560x1440 | test | 1,954 | 710 | 200 | 274 |
+| [reddit-cowboyisaac-dhlws3d](../tests/fixtures/screenshots/originals/reddit-cowboyisaac-dhlws3d.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1voem7p/) | 2026-08-14 | 2560x1369 | test | 4,127 | 1,350 | 200 | 1,176 |
+| [reddit-mint-odie-7ngyee8](../tests/fixtures/screenshots/originals/reddit-mint-odie-7ngyee8.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vk24j9/) | 2026-08-09 | 1920x1057 | test | N/A | N/A | N/A | N/A |
+| [reddit-horyang-x5vg5mp](../tests/fixtures/screenshots/originals/reddit-horyang-x5vg5mp.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1vjdeg9/) | 2026-08-09 | 2560x1417 | development | 1,480 | 4,752 | 200 | 908 |
+| [reddit-aernithrawaxe-leyvjxw](../tests/fixtures/screenshots/originals/reddit-aernithrawaxe-leyvjxw.jpeg) / [source](https://www.reddit.com/r/TibiaMMO/comments/1uvnjwz/comment/oxciyn6/) | 2026-07-13 | 1536x864 | development | N/A | N/A | N/A | N/A |
+| [reddit-flashsfw-du2dnj0](../tests/fixtures/screenshots/originals/reddit-flashsfw-du2dnj0.png) / [source](https://www.reddit.com/r/TibiaMMO/comments/1v7erur/) | 2026-07-26 | 1920x1009 | test | 8,225 | 2,655 | 200 | 616 |
+
+The [collection review](resource-corpus-latest-2026-10-17.md) explains recency evidence, grouping and limits. Exact executable builds are unverified for all 30 images.

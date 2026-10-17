@@ -1,0 +1,328 @@
+{
+  "schema": "tibiaauto.collection-freeze",
+  "version": 1,
+  "batch": "2026-10-17-latest",
+  "frozen_at_utc": "2026-10-17T22:59:27.189293+00:00",
+  "reader_base_commit": "834ff7cf46fd53e9e75e6e541cfba849f855086e",
+  "reader_last_implementation_commit": "8fc417c302812cfed5a36a36e37fb3714a56db88",
+  "inference_state": "Selection, annotations, readability, equivalence and source-group partition frozen before invoking any reader on a new retained image.",
+  "implementation": {
+    "code_files": {
+      "tibia_client/adaptive.py": "b4651c7790f9442f0bcaa11d57ce23b5fa92695ea8a95baf77ec47dc90199714",
+      "tibia_client/adaptive_text.py": "9378f736e20e2808f10cd6265a16e921c9249109698e7a3715be2f0f4a61815b",
+      "tibia_client/adaptive_runtime.py": "5c85edaa5e2c694c339fb42142a7f52189224e384f71cae4bd4cf409360aa80e",
+      "tibia_client/resource_profiles.py": "401ea4b199edcd0e4e8b4dce927d2786403b370b17f58eebf452a524c6d0dbb4",
+      "tibia_client/visual.py": "8b46717a462c3bd0f3009d53cf3d5fc346022a4ba99d2563b1b1e32496688e54",
+      "tools/benchmark_resources.py": "5c7d7f74fe9ae438b139e74e97a0b66a9b773195d3956ebd62b7952b413e98c1",
+      "tools/compare_resource_readers.py": "c278389b22fb0115aa77f409028d43e84da44b7b3519e1f8e8acfa79cc23662d"
+    },
+    "profile_bundle_sha256": "e30c6255f36e76b3ecbf5229666c30816c9d0ebf25f372174212ea7f045d974f",
+    "profile_file_count": 43
+  },
+  "experimental_reader_files_sha256": {
+    "tools/resource_reader_experiments.py": "f1e2a5c812e9cf96de6ee8803c7d66192c5752cf23d8a21d5e34dfffe44291f1",
+    "tools/resource_numeric_vector.py": "701df08c55f20daabb7bfd088b56a759d70f2b97fdd47230ca68ae7b6f517bf9",
+    "tools/benchmark_resource_techniques.py": "621424d7d994a690171fa21d9adf98eef5fc1539b8343c233933008557763dc4"
+  },
+  "annotation_files_sha256": {
+    "manifest.json": "1ba3d2d6339eacc7fd5dbf587aae4f40597c74717dc471cc3a1d91a7347081f8",
+    "additional-sources.json": "23eac44d6484402ec4e4dfe13c591ffa33a2f484d4f2d079449430533cd6569a",
+    "visual-review.json": "36916fc09f09944a19dad1f511870d662c69b11e17f98253138c3a67d4e15553",
+    "split-2026-10-17-latest.json": "92ca2c59a7ba3c140fcc5e556716b7fbe2f2c3b6b1df65ed74559b926f5113ce"
+  },
+  "selection_counts": {
+    "retained": 30,
+    "new_full": 30,
+    "new_crops": 0,
+    "fully_readable_panels": 18,
+    "partly_readable_panels": 4,
+    "all_na_images": 8,
+    "readable_fields": 76,
+    "na_fields": 44,
+    "lineage_groups": 20,
+    "new_bytes": 57982383
+  },
+  "partition_counts": {
+    "development": 57,
+    "test": 14,
+    "reference": 10
+  },
+  "split_file": "split-2026-10-17-latest.json",
+  "readability_counts": {
+    "readable": 72,
+    "clipped_but_readable": 4,
+    "hidden_by_panel_height": 27,
+    "panel_absent": 12,
+    "scrolled_out_of_view": 4,
+    "clipped_unreadable": 1
+  },
+  "deduplication": {
+    "exact_bytes_checked_against_existing": 51,
+    "decoded_rgb_checked_across_all": 81,
+    "retained_exact_duplicates": 0,
+    "method": "SHA-256 of original downloaded bytes and dimension-tagged decoded RGB. 63-bit low-frequency DCT perceptual hash <=10 proposes pairs for visual review; none found involving the additions. Shared authors/party captures are grouped independently of perceptual hash.",
+    "near_pairs": [],
+    "new_decoded_rgb_sha256": {
+      "reddit-rodri418-o5rjfw8": "2b37d47866e7df7b2150ef834abc5cc8b2aece54c0d86faca0bc2a99adcf1497",
+      "reddit-openfee445-05f7xpk": "4d8fe90af968d964a757798036a137586a6d4e68d8180e51040c9d76e6a22724",
+      "reddit-keasol-2yqk8uk": "c6d853433007cc6ae21a20033973b35353b8f8545e2656e6b78b3b5872680c42",
+      "reddit-prolanninja-8n7qyhc": "300bc70db404b967a4ac79da7d877ac3282c8f1174aaad2721e658889694e97c",
+      "reddit-musquitu96-wzgn2qg": "b14b081551fd5cb6a60c1f835c570584022bbbab7089cb39b52b0eb9cd596ffe",
+      "reddit-ryelz02-0p3zcv3": "171acc1515643a566b0ca36d60950f6c05887e0fd3431b995fa8470084c5ec84",
+      "reddit-musquitu96-uuhie47": "1028b3ba637df538ee0427cd7a916be4bccc611546a8b825df38b9d5f16b7dda",
+      "reddit-horyang-r2nnr1a": "5de980c1a55185ff4090124230e960d70b79f7fef77e73a6511e9ad89d6ab476",
+      "reddit-kunggimli-zaxz27g": "acf58b2f55d2cdef3c721ffda57820abba5f23330c53b5fdf174759a7f02f66d",
+      "reddit-frosty-economics-557-89mlozz": "39eb2d437d670fc0503254268de54365d9b041f92a063bfee5d1726a25b6bb59",
+      "reddit-local-ad3036-t7o9dkq": "09ce4516bc7b2253a3d839c8511371180ceeae79d3bcb119f419f4dba259219d",
+      "reddit-local-ad3036-w1iymdg": "8ce2b3ec5a943975dc874902685e65b16e07515ddaf24a1f9b85dfd3587ee9c1",
+      "reddit-cowboyisaac-9muurr2": "b99c60a242b3200ffbe7153166077e4b25159e6f5001ebac478620e9b5ae5f2d",
+      "reddit-cowboyisaac-0wwagz8": "6fa7583908a9d5288e2da5892dc2bdfde832cf3ee1ce6c71a69141956f566580",
+      "reddit-musquitu96-zw6jbqg": "a9afb17b644e8adeb5ccbff7a60c859f650ffff0fe7172c08ca3f930d71ae42e",
+      "reddit-musquitu96-9sol5rg": "e38672402c901fab57ba9b9ee275721dcc674cf16976eeb7891ccd992f8f4fdf",
+      "reddit-local-ad3036-to5lkdg": "2d5b16814fdd3608b852036de712057bbccf7c4df29aa94f93cc9df9ecc31162",
+      "reddit-eurbina14-9vscc20": "d0e94efe42390e0c0e7de8a11efc4f4e111278b1d5ea808d695c44531b082cb8",
+      "reddit-joaocasarin-6tv51oc": "5b9c15978031ecdf74bbf6f1b4f46f88c0b10d31944b7505ee1e46ce78077f8d",
+      "reddit-smithyx17-dqeox2y": "110ecfa9da10386e1622fc940b63166a65988f8c8ee4663f37ca00ce8b9b974a",
+      "reddit-reverofsipcabej-d7ze1nn": "37a1fc5a8297a24c05118920d92eb38b5cd7884f5682ee3f990139417daad587",
+      "reddit-baear-nbqgn5x": "d62fbc0aadb45cd6176f9473c66b080b7159ee9672c0bfebf3192145b646de69",
+      "reddit-silent-oil-2035-ogl92io": "32707ea5280dea6293ea26e50a00becefc93902c5159ad13087f8ca966f02b07",
+      "reddit-fearless-drawing5310-z6oqvmc": "b1e30873c74bd8eebde00aaeb6f11ae6e7eb39a6c4606ef261f2fd31bf84eaa3",
+      "reddit-fearless-drawing5310-wyfqffl": "0b3657eb9102f6a9cd9c55940241e15915cfb9f559077183ee4705b9b86890a3",
+      "reddit-cowboyisaac-dhlws3d": "c83476d24c35db2e9c66f13a3a4470fa9982e0297a98aeed293f2495a6d7a0d1",
+      "reddit-mint-odie-7ngyee8": "28f31be282454a9110d8f623784bc0d4f99a74d3ab9bd5a07ac2f04c8d2a7130",
+      "reddit-horyang-x5vg5mp": "1b256a5d963a49f6041a61de699378b9fe2f7bccba464352f1495ebab14e0658",
+      "reddit-aernithrawaxe-leyvjxw": "0b4de02526b8af4d25ccb39006ff43a9b7d8f441a984bfceba76a5d6ae56d548",
+      "reddit-flashsfw-du2dnj0": "5db9ee749507a364f22c685ff7d91c8dd41a67355191986cba15b421a1de7ee8"
+    }
+  },
+  "entries": [
+    {
+      "id": "reddit-rodri418-o5rjfw8",
+      "annotation_sha256": "064a97da6da4511e4f94d4c32d6c077491ae7216d647bbf147c6c5da02bb4c38"
+    },
+    {
+      "id": "reddit-openfee445-05f7xpk",
+      "annotation_sha256": "4853837f9875c643cac56e04ded8e66fc2950ef44f36836fb915234dad78e7e6"
+    },
+    {
+      "id": "reddit-keasol-2yqk8uk",
+      "annotation_sha256": "360efc09a48fb9f1edcd6de08f72ff0dd9249632ab77927794cc9036b7b9c2db"
+    },
+    {
+      "id": "reddit-prolanninja-8n7qyhc",
+      "annotation_sha256": "713f0040112692046c060d77252bf304e11d4766a53070d16741c00222175147"
+    },
+    {
+      "id": "reddit-musquitu96-wzgn2qg",
+      "annotation_sha256": "876691866defb60d65343615e18260dca4973ba3fb31833d4d6ec0b80d8db992"
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "annotation_sha256": "4b3b057f29277b8143faf26507d7de9e40e5917a3b0728b72d2728156b314055"
+    },
+    {
+      "id": "reddit-musquitu96-uuhie47",
+      "annotation_sha256": "006d1997d164278dfa5989caabb561d17f8d3acde3fbdec0fd3813574a203d6c"
+    },
+    {
+      "id": "reddit-horyang-r2nnr1a",
+      "annotation_sha256": "540f13d67e2f37679b6820df96e5aef8eba12f2f90264247ffe3267a02009d43"
+    },
+    {
+      "id": "reddit-kunggimli-zaxz27g",
+      "annotation_sha256": "c2a366b362c77fa6b442fe55f9f03ad26dde99010c2d26c01171801331bfa668"
+    },
+    {
+      "id": "reddit-frosty-economics-557-89mlozz",
+      "annotation_sha256": "5d76043315bdadd3787de2a582015cb72a586914a0f580a6f0e7d684cacb3143"
+    },
+    {
+      "id": "reddit-local-ad3036-t7o9dkq",
+      "annotation_sha256": "912770167e3995351db452c0bbf833da665b57d31519fd9c21cabb48232ef76f"
+    },
+    {
+      "id": "reddit-local-ad3036-w1iymdg",
+      "annotation_sha256": "62f2561dc7b7dbcc0e313f1ea08f53a92df7dfc48ad72fc661a326691cd86a76"
+    },
+    {
+      "id": "reddit-cowboyisaac-9muurr2",
+      "annotation_sha256": "cc6eaf3d942d21ac88eca473225094500c50efcbb6078b63342d5b00107c49de"
+    },
+    {
+      "id": "reddit-cowboyisaac-0wwagz8",
+      "annotation_sha256": "4b3cf36f67378539d0f71c485229c6eebddbeed6f714d50aef8abc21a9a58ed1"
+    },
+    {
+      "id": "reddit-musquitu96-zw6jbqg",
+      "annotation_sha256": "32d2cdc67c2dfe06f55c8ac806a861c19f5b552f869ccb6c124b9b1a1cecafcf"
+    },
+    {
+      "id": "reddit-musquitu96-9sol5rg",
+      "annotation_sha256": "77e0366c83b52f39a2abe8ae85e8a6a235fb18182ebbe528362bc9d3eb1aeb80"
+    },
+    {
+      "id": "reddit-local-ad3036-to5lkdg",
+      "annotation_sha256": "709d7ee66febfae4e1635737b7709f0f13af310218ec979a6bcef4cabeb9c93b"
+    },
+    {
+      "id": "reddit-eurbina14-9vscc20",
+      "annotation_sha256": "3347d251da284e8668ae96af136fda8e3a7f41bb8d50997a2a4c4a5b3b67045a"
+    },
+    {
+      "id": "reddit-joaocasarin-6tv51oc",
+      "annotation_sha256": "d927641b2a614cd9c52a330a7b00c2c7e80d08c7a350bee9b72e296abd297736"
+    },
+    {
+      "id": "reddit-smithyx17-dqeox2y",
+      "annotation_sha256": "a6b8b5c9786284c02f928e73682d21bc2373697afdf7cd97a144b10623b658bb"
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "annotation_sha256": "437ba161039e89caaf21852a62a4b6a3b674cb44d430f07be441f6155dcdc82f"
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "annotation_sha256": "a68d6323dcb4117a6b3fc499750160a40d470af5e913f82c983405caa8fe1102"
+    },
+    {
+      "id": "reddit-silent-oil-2035-ogl92io",
+      "annotation_sha256": "f51b5495d672b7f4cbeb0b441e99d68d8262608893798ebf895bd3488e95da8a"
+    },
+    {
+      "id": "reddit-fearless-drawing5310-z6oqvmc",
+      "annotation_sha256": "13e550323df9991c1c2303cea71f1345834fc626b4482ceae9f9c83c44a808d5"
+    },
+    {
+      "id": "reddit-fearless-drawing5310-wyfqffl",
+      "annotation_sha256": "c10d9964d55af843f3e54d3589950023a46a1d73a0a459cdb4fa0d90905a3ad6"
+    },
+    {
+      "id": "reddit-cowboyisaac-dhlws3d",
+      "annotation_sha256": "6344dbe1a580aadf410364db1a7e909db815c11932017b82990c1c3caea35fb1"
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "annotation_sha256": "a65313b94175de952fdc61a5b733763092a9c70cca318c22abdab9ba32c6d544"
+    },
+    {
+      "id": "reddit-horyang-x5vg5mp",
+      "annotation_sha256": "82c245ec1a61d8caf7c2ed54750b6b319b32503679d0ef914f6acc23e86a88e9"
+    },
+    {
+      "id": "reddit-aernithrawaxe-leyvjxw",
+      "annotation_sha256": "10e3eb9e0ea03468e022b1bce9ebaf2b81edbc58d0ac485bd793e1f865a97b50"
+    },
+    {
+      "id": "reddit-flashsfw-du2dnj0",
+      "annotation_sha256": "4b9c2c5e3847334ca538c079b39c22308e30c448a46965ab7c3180239091714b"
+    }
+  ],
+  "source_groups": {
+    "reddit-author-AernithRawaxe": [
+      "reddit-aernithrawaxe-leyvjxw"
+    ],
+    "reddit-author-Baear": [
+      "reddit-baear-nbqgn5x"
+    ],
+    "reddit-author-Fearless-Drawing5310": [
+      "reddit-fearless-drawing5310-wyfqffl",
+      "reddit-fearless-drawing5310-z6oqvmc"
+    ],
+    "reddit-author-FlashSFW": [
+      "reddit-flashsfw-du2dnj0"
+    ],
+    "reddit-author-Frosty-Economics-557": [
+      "reddit-frosty-economics-557-89mlozz"
+    ],
+    "reddit-author-Keasol": [
+      "reddit-keasol-2yqk8uk"
+    ],
+    "reddit-author-KungGimli": [
+      "reddit-kunggimli-zaxz27g"
+    ],
+    "reddit-author-Mint_Odie": [
+      "reddit-mint-odie-7ngyee8"
+    ],
+    "reddit-author-OpenFee445": [
+      "reddit-openfee445-05f7xpk"
+    ],
+    "reddit-author-ProlanNinja": [
+      "reddit-prolanninja-8n7qyhc"
+    ],
+    "reddit-author-ReverofSipCabej": [
+      "reddit-reverofsipcabej-d7ze1nn"
+    ],
+    "reddit-author-Rodri418": [
+      "reddit-rodri418-o5rjfw8"
+    ],
+    "reddit-author-Ryelz02": [
+      "reddit-ryelz02-0p3zcv3"
+    ],
+    "reddit-author-Silent_Oil_2035": [
+      "reddit-silent-oil-2035-ogl92io"
+    ],
+    "reddit-author-Smithyx17": [
+      "reddit-smithyx17-dqeox2y"
+    ],
+    "reddit-author-cowboyisaac": [
+      "reddit-cowboyisaac-0wwagz8",
+      "reddit-cowboyisaac-9muurr2",
+      "reddit-cowboyisaac-dhlws3d"
+    ],
+    "reddit-author-horyang": [
+      "reddit-horyang-r2nnr1a",
+      "reddit-horyang-x5vg5mp"
+    ],
+    "reddit-author-joaocasarin": [
+      "reddit-joaocasarin-6tv51oc"
+    ],
+    "reddit-author-musquitu96": [
+      "reddit-musquitu96-9sol5rg",
+      "reddit-musquitu96-uuhie47",
+      "reddit-musquitu96-wzgn2qg",
+      "reddit-musquitu96-zw6jbqg"
+    ],
+    "reddit-party-Local_Ad3036-Eurbina14": [
+      "reddit-eurbina14-9vscc20",
+      "reddit-local-ad3036-t7o9dkq",
+      "reddit-local-ad3036-to5lkdg",
+      "reddit-local-ad3036-w1iymdg"
+    ]
+  },
+  "screening": {
+    "download_records": 197,
+    "retained": 30,
+    "criteria": "Complete real client or complete desktop containing a client, contemporaneous July 13 to October 14, 2026 publication, manual UI/extent review, independently annotated pixels. Sources were not screened by reader performance.",
+    "exclusions": "Most candidates are gameplay-only crops, panel/dialog crops, monitor photos, web/tool screenshots or illustrations. The apparent full Living_Dentist_8925 capture was excluded because its bottom chat area is cut off. An older comparison/stream frame with uncertain capture recency was not used.",
+    "source_access": "Public rendered Reddit post/comment pages inspected in Edge; originals downloaded from i.redd.it. All retained files are still-image attachments, not video or browser-player screenshots."
+  },
+  "recency": {
+    "release_reference": "https://www.tibia.com/news/?id=8845&subtopic=newsarchive",
+    "release_date": "2026-07-13",
+    "first_publication": "2026-07-13",
+    "last_publication": "2026-10-14",
+    "exact_builds_verified": 0,
+    "evidence": "Contemporaneous source posts and visible modern client UI; explicit Echo Raid and Make Believe content in several captures supports the summer-update period. No exact build number is inferred from dates."
+  },
+  "predeclared_evaluation": {
+    "variants": [
+      "baseline",
+      "accelerated_fast",
+      "accelerated_robust"
+    ],
+    "inputs": "All 81 preserved originals. Primary/resource readability, full different-interface references and safety controls reported separately. Ten supplemental crops are outside the 80/20 denominator.",
+    "reader_receives_annotations": false,
+    "warm_reads_per_detected_image": 50,
+    "opencv_threads": 1,
+    "cached_p95_budget_ms": 50,
+    "no_tuning_on_test": true
+  },
+  "limits": [
+    "All 30 additions come from one community/platform, across 20 conservative source groups; this is not a representative production sample.",
+    "Public attachment dimensions do not establish native resolution, DPI or original capture date. Every exact client version stays null.",
+    "All 51 older images have been inspected during prior work; none enters the new untouched test partition.",
+    "Four partially clipped Hit Points values are unambiguously readable from their surviving glyphs; three other rows in each are N/A. A separate severely clipped Hit Points fragment is N/A.",
+    "Static screenshot repetitions do not establish live freshness, capture latency, layout recovery or production error rates.",
+    "No screenshot is excluded or relabeled because a reader fails. Future failure-driven tuning must use development images; test-derived tuning requires fresh test evidence."
+  ]
+}
