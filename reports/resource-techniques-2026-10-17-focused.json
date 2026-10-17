@@ -1,0 +1,363 @@
+{
+  "scope": "Focused development trials before full-corpus evaluation",
+  "timing_note": "Local trials overlapped other experiment processes; timings are preliminary. Use the hosted paired full-corpus run for the primary comparison.",
+  "trials": [
+    {
+      "trial": "numeric-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-v1.json",
+      "sha256": "5c3cb6480666f54af8d1c7033b065f2eee29b6a3c75b10686fbe61e82dd8571c",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 48,
+      "variants": {
+        "baseline": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 13.858000005711801,
+          "p95_field_ms": 58.40086499156311
+        },
+        "cache": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 5.847449996508658,
+          "p95_field_ms": 29.241714999079694
+        },
+        "prune": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 14.745750006113667,
+          "p95_field_ms": 77.78690500708757
+        },
+        "fast": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 6.2060999989626,
+          "p95_field_ms": 33.75522000642373
+        },
+        "green": {
+          "correct": 32,
+          "unknown": 16,
+          "incorrect": 0,
+          "p50_field_ms": 6.447849998949096,
+          "p95_field_ms": 27.3822500006645
+        },
+        "consensus": {
+          "correct": 35,
+          "unknown": 13,
+          "incorrect": 0,
+          "p50_field_ms": 6.050750002032146,
+          "p95_field_ms": 120.12707500689422
+        },
+        "topology": {
+          "correct": 32,
+          "unknown": 16,
+          "incorrect": 0,
+          "p50_field_ms": 9.331299996119924,
+          "p95_field_ms": 50.648029988224145
+        }
+      }
+    },
+    {
+      "trial": "numeric-vector-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-vector-v1.json",
+      "sha256": "0aa133abddc7eaae5f3a07c89e770a9ab07df806f2da06aed0dccb44c0e3b6e5",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 48,
+      "variants": {
+        "cache": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 1.3685999947483651,
+          "p95_field_ms": 10.289505001856014
+        },
+        "vector": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 1.5030000067781657,
+          "p95_field_ms": 11.645999996835593
+        },
+        "robust_vector": {
+          "correct": 36,
+          "unknown": 12,
+          "incorrect": 0,
+          "p50_field_ms": 1.5792000049259514,
+          "p95_field_ms": 40.682220004237
+        }
+      }
+    },
+    {
+      "trial": "numeric-v2",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-v2.json",
+      "sha256": "c1392e6164b880d4d897dd60e9ca4b22126b9905559cb1a572edb742daf43ca3",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 52,
+      "variants": {
+        "cache": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 3.840550001768861,
+          "p95_field_ms": 16.51692499945056
+        },
+        "vector": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 3.729649994056672,
+          "p95_field_ms": 15.161220002482878
+        },
+        "glyph_cache": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 2.3418999917339534,
+          "p95_field_ms": 9.456220004358304
+        },
+        "consensus_glyph": {
+          "correct": 39,
+          "unknown": 13,
+          "incorrect": 0,
+          "p50_field_ms": 2.7216000016778708,
+          "p95_field_ms": 37.00255500734777
+        },
+        "robust_numeric": {
+          "correct": 40,
+          "unknown": 12,
+          "incorrect": 0,
+          "p50_field_ms": 2.694299997529015,
+          "p95_field_ms": 39.395820000936496
+        }
+      }
+    },
+    {
+      "trial": "labels-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\labels-v1.json",
+      "sha256": "14baaf0a21cc410a312bcb6c2a4505983627b311f6372d8f26a349419ef919c6",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-gentebra-BJEI",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "dfg-quintera-VS41",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-deleted-09s6sbl",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-chrissykes-4ppe2dp",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ],
+        "labels": [
+          {
+            "id": "dfg-gentebra-BJEI",
+            "panel": "found",
+            "correct": 1,
+            "incorrect": 0,
+            "p95_four_field_ms": 76.71196000446798
+          },
+          {
+            "id": "dfg-quintera-VS41",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 32.35901000152808
+          },
+          {
+            "id": "reddit-deleted-09s6sbl",
+            "panel": "found",
+            "correct": 1,
+            "incorrect": 0,
+            "p95_four_field_ms": 20.876060010050423
+          },
+          {
+            "id": "reddit-chrissykes-4ppe2dp",
+            "panel": "found",
+            "correct": 2,
+            "incorrect": 0,
+            "p95_four_field_ms": 44.573559999116696
+          }
+        ]
+      }
+    },
+    {
+      "trial": "small-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\small-v1.json",
+      "sha256": "6676123c99aed88cdffb9022ed3e8c66f01fb7bccd1a5ceffa11367e010c68c1",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "allegro-antica-4c39a50f",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ],
+        "small": [
+          {
+            "id": "allegro-antica-4c39a50f",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ]
+      }
+    },
+    {
+      "trial": "partial-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\partial-v1.json",
+      "sha256": "9d9c31bcfb91010d96af1863a59f9e04f09524cdb163da85e9349f6eb8439b19",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-gentebra-3XWB",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 69.43727000034411
+          }
+        ],
+        "partial": [
+          {
+            "id": "dfg-gentebra-3XWB",
+            "panel": "found",
+            "correct": 4,
+            "incorrect": 0,
+            "p95_four_field_ms": 29.375425003672717
+          }
+        ]
+      }
+    },
+    {
+      "trial": "combined-v1",
+      "raw_path": ".work/reader-techniques-20261017/combined-v1.json",
+      "sha256": "b44c444e7f93b2364edd0baac2b101d1d8a34eaf04bc03da285f40a25dbeafa9",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-belobra-2AHL",
+            "panel": "ambiguous",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-illustrious-mo9lbk5",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-daralion-0tx21ye",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 78.11294999992242
+          },
+          {
+            "id": "reddit-dworc-o0ap20c",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 41.718410000612494
+          }
+        ],
+        "combined_robust": [
+          {
+            "id": "dfg-belobra-2AHL",
+            "panel": "ambiguous",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-illustrious-mo9lbk5",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-daralion-0tx21ye",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 15.33598000169149
+          },
+          {
+            "id": "reddit-dworc-o0ap20c",
+            "panel": "found",
+            "correct": 4,
+            "incorrect": 0,
+            "p95_four_field_ms": 8.651100008137288
+          }
+        ]
+      },
+      "note": "No false accepts on duplicate/clipped controls; Dworc green capacity recovered. Daralion still has a value-region guard rejection despite its isolated numeric crop being readable."
+    }
+  ],
+  "selection": {
+    "promising": [
+      "cache",
+      "glyph_cache",
+      "green",
+      "labels",
+      "topology",
+      "consensus_glyph",
+      "partial"
+    ],
+    "no_clear_gain": [
+      "prune alone",
+      "vector scoring alone"
+    ],
+    "not_promoted": [
+      "small: no discovered panel or correct values in its target screenshot"
+    ]
+  },
+  "existing_guard_tests": {
+    "topology_numeric": {
+      "passed": 31
+    },
+    "robust_numeric": {
+      "passed": 31,
+      "note": "One initial OCR call-count failure fixed by restricting threshold consensus to the no-OCR path; rerun passed."
+    },
+    "combined_fast_before_partial_added": {
+      "passed": 60,
+      "deselected_full_corpus": 21
+    },
+    "partial": {
+      "passed": 60,
+      "deselected_full_corpus": 21
+    },
+    "latest_combinations": "Full existing guards will rerun in hosted CI."
+  }
+}

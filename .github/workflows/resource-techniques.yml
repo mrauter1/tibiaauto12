@@ -1,0 +1,71 @@
+name: Resource reader technique experiments
+
+on:
+  pull_request:
+    paths:
+      - 'tools/resource_reader_experiments.py'
+      - 'tools/resource_numeric_vector.py'
+      - 'tools/benchmark_resource_techniques.py'
+      - 'tools/check_resource_experiment_guards.py'
+      - '.github/workflows/resource-techniques.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  existing-safety-diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [combined_fast, combined_robust, partial]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: >-
+          python tools/check_resource_experiment_guards.py
+          --variant ${{ matrix.variant }}
+          --junit .work/techniques/guards-${{ matrix.variant }}.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: reader-guards-${{ matrix.variant }}
+          path: .work/techniques/
+          include-hidden-files: true
+          retention-days: 90
+
+  promoted-originals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Compare baseline and promoted techniques on identical originals
+        run: >-
+          python tools/benchmark_resource_techniques.py
+          --mode full --subset all --threads 1 --warm-reads 50 --budget-ms 50
+          --shards 6 --shard ${{ matrix.shard }}
+          --variants baseline cache glyph_cache green labels topology consensus_glyph partial combined_fast combined_robust
+          --out .work/techniques/shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: reader-techniques-shard-${{ matrix.shard }}
+          path: .work/techniques/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90
