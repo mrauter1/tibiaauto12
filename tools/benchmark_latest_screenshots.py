@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
 from tools.benchmark_resource_techniques import full_probe  # noqa: E402
 from tools.compare_resource_readers import environment, implementation_hashes, load_cases  # noqa: E402
 from tools.resource_reader_experiments import VARIANTS  # noqa: E402
-from tools.screenshot_split import load_split  # noqa: E402
+from tools.screenshot_split import load_split, text_digest  # noqa: E402
 
 CORPUS = ROOT / "tests/fixtures/screenshots"
 VARIANT_NAMES = ("baseline", "accelerated_fast", "accelerated_robust")
@@ -32,7 +32,26 @@ def fingerprints():
         "tests/fixtures/screenshots/split-2026-10-17-latest.json",
         "tests/fixtures/screenshots/collection-2026-10-17-latest.json",
     )
-    return {name: sha256((ROOT / name).read_bytes()).hexdigest() for name in names}
+    return {name: text_digest(ROOT / name) for name in names}
+
+
+def portable_implementation():
+    """Fingerprint the same reader/profile content on Windows and Linux."""
+    result = implementation_hashes()
+    result["code_files"] = {name: text_digest(ROOT / name) for name in result["code_files"]}
+    profile_root = ROOT / "profiles/paulistinha-skills-v1"
+    digest = sha256()
+    for path in sorted(p for p in profile_root.rglob("*") if p.is_file()):
+        relative = path.relative_to(profile_root).as_posix().encode("utf-8")
+        payload = path.read_bytes()
+        if path.suffix == ".json":
+            payload = payload.replace(b"\r\n", b"\n")
+        digest.update(len(relative).to_bytes(4, "big"))
+        digest.update(relative)
+        digest.update(len(payload).to_bytes(8, "big"))
+        digest.update(payload)
+    result["profile_bundle_sha256"] = digest.hexdigest()
+    return result
 
 
 def main():
@@ -44,7 +63,7 @@ def main():
     if args.shards < 1 or not 0 <= args.shard < args.shards:
         parser.error("A positive shard count and valid shard index are required")
     cv2.setNumThreads(1)
-    before, implementation = fingerprints(), implementation_hashes()
+    before, implementation = fingerprints(), portable_implementation()
     manifest, cases = load_cases(CORPUS / "manifest.json", include_generated=False)
     _, membership = load_split(SPLIT, manifest["screenshots"])
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -57,7 +76,7 @@ def main():
         for row in technique["cases"]:
             row["evaluation_split"] = membership[row["case_id"]]
             row["historical_manifest_split"] = row["split"]
-    assert fingerprints() == before and implementation_hashes() == implementation
+    assert fingerprints() == before and portable_implementation() == implementation
     result.update(
         schema="tibiaauto.latest-screenshot-benchmark", version=1,
         environment=environment(), opencv_threads=cv2.getNumThreads(),

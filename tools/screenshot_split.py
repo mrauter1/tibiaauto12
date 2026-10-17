@@ -7,6 +7,11 @@ import json
 from pathlib import Path
 
 
+def text_digest(path):
+    """Match Git text blobs across LF/CRLF checkouts; never use on image bytes."""
+    return sha256(Path(path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def annotation_digest(entry):
     return sha256(json.dumps(entry, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 

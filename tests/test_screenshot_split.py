@@ -1,13 +1,12 @@
 """Protect untouched evaluation membership and manual N/A semantics."""
 from copy import deepcopy
-from hashlib import sha256
 import json
 from pathlib import Path
 
 import pytest
 
 from tools.benchmark_resources import load_manifest
-from tools.screenshot_split import annotation_digest, load_split, validate_split
+from tools.screenshot_split import annotation_digest, load_split, text_digest, validate_split
 
 CORPUS = Path(__file__).parent / "fixtures/screenshots"
 
@@ -38,7 +37,7 @@ def test_latest_collection_and_split_match_pre_inference_freeze(frozen):
     for frozen_entry in freeze["entries"]:
         assert annotation_digest(by_id[frozen_entry["id"]]) == frozen_entry["annotation_sha256"]
     for name, digest in freeze["annotation_files_sha256"].items():
-        assert sha256((CORPUS / name).read_bytes()).hexdigest() == digest
+        assert text_digest(CORPUS / name) == digest
     for entry in batch:
         assert entry["client"]["version"] is None
         assert entry["capture_fidelity"]["downloaded_bytes_preserved"] is True
@@ -92,3 +91,13 @@ def test_partial_fields_are_scored_individually_without_inventing_hidden_values(
     assert clipped["labels"]["resource_health"]["visible"] is True
     assert clipped["labels"]["resource_health"]["value"] is None
     assert clipped["resource_annotations"]["resource_health"]["readability"] == "clipped_unreadable"
+
+
+def test_text_freeze_is_portable_but_still_detects_content_changes(tmp_path):
+    path = tmp_path / "metadata.json"
+    path.write_bytes(b'{\n  "value": 100\n}\n')
+    expected = text_digest(path)
+    path.write_bytes(b'{\r\n  "value": 100\r\n}\r\n')
+    assert text_digest(path) == expected
+    path.write_bytes(b'{\r\n  "value": 101\r\n}\r\n')
+    assert text_digest(path) != expected

@@ -8,27 +8,27 @@
   "inference_state": "Selection, annotations, readability, equivalence and source-group partition frozen before invoking any reader on a new retained image.",
   "implementation": {
     "code_files": {
-      "tibia_client/adaptive.py": "b4651c7790f9442f0bcaa11d57ce23b5fa92695ea8a95baf77ec47dc90199714",
-      "tibia_client/adaptive_text.py": "9378f736e20e2808f10cd6265a16e921c9249109698e7a3715be2f0f4a61815b",
-      "tibia_client/adaptive_runtime.py": "5c85edaa5e2c694c339fb42142a7f52189224e384f71cae4bd4cf409360aa80e",
-      "tibia_client/resource_profiles.py": "401ea4b199edcd0e4e8b4dce927d2786403b370b17f58eebf452a524c6d0dbb4",
-      "tibia_client/visual.py": "8b46717a462c3bd0f3009d53cf3d5fc346022a4ba99d2563b1b1e32496688e54",
-      "tools/benchmark_resources.py": "5c7d7f74fe9ae438b139e74e97a0b66a9b773195d3956ebd62b7952b413e98c1",
-      "tools/compare_resource_readers.py": "c278389b22fb0115aa77f409028d43e84da44b7b3519e1f8e8acfa79cc23662d"
+      "tibia_client/adaptive.py": "325eef4c0293b4fbcd086ac83b0c99deb30e8c0ff291da022ab3c7db4d959c68",
+      "tibia_client/adaptive_text.py": "14c549d73bf70f7125513854b77bb70375327b2aac3d372094cc20f940a9cb74",
+      "tibia_client/adaptive_runtime.py": "2af23983fdb11a5bf512d472e55652362724c938cb304f61ab35d8f20f3950d5",
+      "tibia_client/resource_profiles.py": "52142500319ee512b1bcd8b10dbd5e57b3451ce8be78696e9c642ef198b62249",
+      "tibia_client/visual.py": "f1c858bf82c7e390b57cef4c19ef9c12245cb3fc84368d808c9f76844e963b48",
+      "tools/benchmark_resources.py": "9adaa5dc2d1a44eeef9fa99600a76b6808cda299fd999f1747e70187ee1c4e50",
+      "tools/compare_resource_readers.py": "ae50646fc3735075d16636b658a89e19aa164cae2b4e2097a3ea0ae9d4daa538"
     },
-    "profile_bundle_sha256": "e30c6255f36e76b3ecbf5229666c30816c9d0ebf25f372174212ea7f045d974f",
+    "profile_bundle_sha256": "69087421c2017a0cfc534db2e9d9e9f0038259b0fbf02e1c0063d83004cbc195",
     "profile_file_count": 43
   },
   "experimental_reader_files_sha256": {
-    "tools/resource_reader_experiments.py": "f1e2a5c812e9cf96de6ee8803c7d66192c5752cf23d8a21d5e34dfffe44291f1",
-    "tools/resource_numeric_vector.py": "701df08c55f20daabb7bfd088b56a759d70f2b97fdd47230ca68ae7b6f517bf9",
+    "tools/resource_reader_experiments.py": "bfa5a676571242c5298ae7acfacdb07582da8331615e81555fca2531a6770f3f",
+    "tools/resource_numeric_vector.py": "10715ab63e0e13b0ba3f87f1e76e8eea5558ac97ed7b7804452de095dc5ee697",
     "tools/benchmark_resource_techniques.py": "621424d7d994a690171fa21d9adf98eef5fc1539b8343c233933008557763dc4"
   },
   "annotation_files_sha256": {
-    "manifest.json": "1ba3d2d6339eacc7fd5dbf587aae4f40597c74717dc471cc3a1d91a7347081f8",
-    "additional-sources.json": "23eac44d6484402ec4e4dfe13c591ffa33a2f484d4f2d079449430533cd6569a",
-    "visual-review.json": "36916fc09f09944a19dad1f511870d662c69b11e17f98253138c3a67d4e15553",
-    "split-2026-10-17-latest.json": "92ca2c59a7ba3c140fcc5e556716b7fbe2f2c3b6b1df65ed74559b926f5113ce"
+    "manifest.json": "24bf6b8f77b205d7bcdb19195fd110379f701f69e325138df5fba86b30d49a89",
+    "additional-sources.json": "9c6f3e0c75c7823f9327df7ac924913aa94372e407c2d06b99a0eb61aa70261f",
+    "visual-review.json": "93cedaa2adabde888a5f89945aa28a62d07b879eb2d310d3d5749522b103eec2",
+    "split-2026-10-17-latest.json": "c115a8335bc17764bee7e5fec85f56ed47a87f070f918c466a340e629c0e6f10"
   },
   "selection_counts": {
     "retained": 30,
@@ -324,5 +324,7 @@
     "Four partially clipped Hit Points values are unambiguously readable from their surviving glyphs; three other rows in each are N/A. A separate severely clipped Hit Points fragment is N/A.",
     "Static screenshot repetitions do not establish live freshness, capture latency, layout recovery or production error rates.",
     "No screenshot is excluded or relabeled because a reader fails. Future failure-driven tuning must use development images; test-derived tuning requires fresh test evidence."
-  ]
+  ],
+  "text_hash_policy": "UTF-8 text files use SHA-256 with CRLF normalized to LF, matching Git blob content. Original image byte and pixel hashes are never normalized.",
+  "serialization_correction": "The initial Linux workflow stopped before inference because raw Windows CRLF text hashes differed. Only text-hash serialization was corrected; selection, per-entry annotation hashes, image bytes, split and reader settings remain those frozen in 7af3111."
 }
