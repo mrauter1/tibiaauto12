@@ -683,5 +683,105 @@
       "gate": "Every compared output and bound region unchanged. Local p95 varies substantially; retain raw samples and use paired hosted timings for the final decision."
     }
   ],
-  "full_round_one_followup_selection": "Pruning reduces work in the two slowest cases; extending glyph caching especially helps consensus on Gladera but fast-only local timings are mixed. Promote the combinations and their matching ablations to the second full run to confirm or reject the timing benefit."
+  "full_round_one_followup_selection": "Pruning reduces work in the two slowest cases; extending glyph caching especially helps consensus on Gladera but fast-only local timings are mixed. Promote the combinations and their matching ablations to the second full run to confirm or reject the timing benefit.",
+  "accelerated_changing_frame_diagnostic": {
+    "scope": "Synthetic changing-value and forced glyph-cache-miss diagnostic; not primary corpus evidence. All variants preserve baseline rejects on profile-pasted glyph spacing.",
+    "raw_path": ".work/reader-techniques-20261017/changing-values-accelerated.json",
+    "sha256": "6cef992945284bc8e67b046d2b04eafdf40c21bb4faf8f4112aa3f06182945b3",
+    "variants": {
+      "baseline": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.488,
+            "p95_ms": 4.449,
+            "max_ms": 4.89
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.326,
+            "p95_ms": 4.878,
+            "max_ms": 5.48
+          }
+        }
+      },
+      "accelerated_fast": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.238,
+            "p95_ms": 4.45,
+            "max_ms": 5.358
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 4.191,
+            "p95_ms": 5.583,
+            "max_ms": 6.796
+          }
+        }
+      },
+      "accelerated_robust": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.223,
+            "p95_ms": 5.117,
+            "max_ms": 8.334
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.921,
+            "p95_ms": 5.081,
+            "max_ms": 7.838
+          }
+        }
+      }
+    },
+    "interpretation": "Every variant has the same 282 correct and 38 unknown fields per 80-frame mode; zero incorrect or stale accepted values. Rank-cache-cleared accelerated_robust p95 is 5.081 ms in this one-font synthetic diagnostic; this is not live full-screen evidence."
+  },
+  "followup_existing_guard_tests": {
+    "combined_pruned_fast": 60,
+    "combined_pruned_robust": 60,
+    "accelerated_fast": 60,
+    "accelerated_robust": 60,
+    "failures": 0,
+    "run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066"
+  }
 }

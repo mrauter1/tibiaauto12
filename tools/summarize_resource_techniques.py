@@ -140,10 +140,30 @@ def summarize(directory, revision):
             "new_primary_aggregate_cached_p95_within_50ms": groups["new"]["positive_acceptance"]["cached_four_field_reads"]["p95_ms"] <= 50,
             "every_new_primary_detected_image_cached_p95_within_50ms": not groups["new"]["positive_acceptance"]["cached_images_above_50ms_p95"],
         }
+    equivalence = {}
+    for earlier, later in (("combined_fast", "combined_pruned_fast"),
+                           ("combined_robust", "combined_pruned_robust"),
+                           ("combined_pruned_fast", "accelerated_fast"),
+                           ("combined_pruned_robust", "accelerated_robust")):
+        if earlier not in all_variants or later not in all_variants:
+            continue
+        differences = []
+        for case_id, old in all_variants[earlier].items():
+            new = all_variants[later][case_id]
+            if old["panel_status"] != new["panel_status"]:
+                differences.append({"case_id":case_id, "difference":"panel_status"})
+            for field, previous in old["fields"].items():
+                current = new["fields"][field]
+                for key in ("actual", "exact", "detected_region"):
+                    if previous[key] != current[key]:
+                        differences.append({"case_id":case_id, "field":field, "difference":key})
+        equivalence[f"{earlier} -> {later}"] = {"identical_values_and_regions":not differences,
+                                                "differences":differences}
     return {"schema":"tibiaauto.resource-technique-summary", "version":1,
         "evaluated_revision":revision, "original_count":len(entries), "variant_count":len(variants),
         "working_cached_p95_budget_ms":50, "fingerprints":fingerprints,
         "raw_files":raw_files, "environments":environments, "variants":variants,
+        "optimization_equivalence":equivalence,
         "limitations":["Previously inspected corpus is development/regression evidence, not an unseen holdout.",
             "Cached timings repeat static originals. All four resource rows are processed each time; glyph rankings, not output values, are memoized. These are not live capture/freshness or changing-frame latency measurements.",
             "Cases are paired on the same shard host/settings; aggregate quantiles pool several hosted machines and are descriptive, not confidence intervals.",
