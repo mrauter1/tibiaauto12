@@ -1,0 +1,56 @@
+{
+  "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167",
+  "evaluated_revision": "9fbc6d089f71db5855cac20e0e95ccb48cb3b371",
+  "local_directory": ".work/corpus-latest-20261017/benchmark/",
+  "all_zip_hashes_verified": true,
+  "artifacts": [
+    {
+      "id": 12117743135,
+      "name": "latest-screenshots-shard-0",
+      "bytes": 98483,
+      "sha256": "sha256:5b00b1da2f663aa5383f6bc0c7a6e7d00157f345784d53ee4dad4d06cf97f9a9",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12117743135"
+    },
+    {
+      "id": 12117772077,
+      "name": "latest-screenshots-shard-1",
+      "bytes": 91209,
+      "sha256": "sha256:43c50c75c11af930c725d5d590c6ec4b70eab87a7fcdf49f27e650c59046026a",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12117772077"
+    },
+    {
+      "id": 12117698603,
+      "name": "latest-screenshots-shard-2",
+      "bytes": 94334,
+      "sha256": "sha256:3e270ef281ed0161ebd144982e70a05570b5d2ccbe2a7d882f6f21520fa3998d",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12117698603"
+    },
+    {
+      "id": 12117413175,
+      "name": "latest-screenshots-shard-3",
+      "bytes": 94282,
+      "sha256": "sha256:091ee706eb00fd3bda9d7adcb7ec028134460e4e18ece45ff0b98324269b624e",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12117413175"
+    },
+    {
+      "id": 12117487732,
+      "name": "latest-screenshots-shard-4",
+      "bytes": 105580,
+      "sha256": "sha256:a38a7f3173be9cf2b0d4b278a5d0f9076cce80b14af0fec6fe0a4b2400d18b46",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12117487732"
+    },
+    {
+      "id": 12118100859,
+      "name": "latest-screenshots-shard-5",
+      "bytes": 84383,
+      "sha256": "sha256:5729d53e3c63e8d7d2652eb88d642b344d8f0a52b0e40d6d45fbde96e133bca8",
+      "expires_at": "2027-01-15T23:13:37Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167/artifacts/12118100859"
+    }
+  ]
+}

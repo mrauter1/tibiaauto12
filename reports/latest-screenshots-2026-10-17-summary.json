@@ -1,0 +1,5632 @@
+{
+  "schema": "tibiaauto.latest-screenshot-summary",
+  "version": 1,
+  "evaluated_revision": "9fbc6d089f71db5855cac20e0e95ccb48cb3b371",
+  "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39078190167",
+  "originals": 81,
+  "image_variant_cases": 243,
+  "partition_counts": {
+    "development": 57,
+    "test": 14,
+    "reference": 10
+  },
+  "annotation_freeze": "tests/fixtures/screenshots/collection-2026-10-17-latest.json",
+  "annotation_revision": "7af3111c928919ce5d0f604cbc0722f9f94a490c",
+  "profile_integrity": {
+    "git_tree": "eae736480dbc73600062d944aaa8492d92f0e96b",
+    "verified_revisions": [
+      "834ff7cf46fd53e9e75e6e541cfba849f855086e",
+      "7af3111c928919ce5d0f604cbc0722f9f94a490c",
+      "9fbc6d089f71db5855cac20e0e95ccb48cb3b371"
+    ],
+    "checkout_aggregate_sha256": {
+      "linux": "fc2e98c9dc5d4aab568e30c645dd427ee9fde9dbdc99055346966a81236b05af",
+      "windows": "69087421c2017a0cfc534db2e9d9e9f0038259b0fbf02e1c0063d83004cbc195"
+    },
+    "files": 43,
+    "content_identical": true
+  },
+  "no_test_tuning": true,
+  "fingerprints": {
+    "tools/resource_reader_experiments.py": "bfa5a676571242c5298ae7acfacdb07582da8331615e81555fca2531a6770f3f",
+    "tools/resource_numeric_vector.py": "10715ab63e0e13b0ba3f87f1e76e8eea5558ac97ed7b7804452de095dc5ee697",
+    "tools/benchmark_resource_techniques.py": "621424d7d994a690171fa21d9adf98eef5fc1539b8343c233933008557763dc4",
+    "tools/benchmark_latest_screenshots.py": "89528dae6ed043e8d31097647d7c46ff6b9aef5cba45541fdd8106c7e91cfc76",
+    "tools/screenshot_split.py": "709c4816439a30bd2124737ee14de1ee5abc9e8e3cf0e549f8596beadd8a51ec",
+    "tools/benchmark_resources.py": "9adaa5dc2d1a44eeef9fa99600a76b6808cda299fd999f1747e70187ee1c4e50",
+    "tools/compare_resource_readers.py": "ae50646fc3735075d16636b658a89e19aa164cae2b4e2097a3ea0ae9d4daa538",
+    "tests/fixtures/screenshots/manifest.json": "24bf6b8f77b205d7bcdb19195fd110379f701f69e325138df5fba86b30d49a89",
+    "tests/fixtures/screenshots/split-2026-10-17-latest.json": "c115a8335bc17764bee7e5fec85f56ed47a87f070f918c466a340e629c0e6f10",
+    "tests/fixtures/screenshots/collection-2026-10-17-latest.json": "0f944997b62fe043158d0c507117f6c2b65a488a1260a2b7c1d1dce335345bce"
+  },
+  "implementation": {
+    "code_files": {
+      "tibia_client/adaptive.py": "325eef4c0293b4fbcd086ac83b0c99deb30e8c0ff291da022ab3c7db4d959c68",
+      "tibia_client/adaptive_text.py": "14c549d73bf70f7125513854b77bb70375327b2aac3d372094cc20f940a9cb74",
+      "tibia_client/adaptive_runtime.py": "2af23983fdb11a5bf512d472e55652362724c938cb304f61ab35d8f20f3950d5",
+      "tibia_client/resource_profiles.py": "52142500319ee512b1bcd8b10dbd5e57b3451ce8be78696e9c642ef198b62249",
+      "tibia_client/visual.py": "f1c858bf82c7e390b57cef4c19ef9c12245cb3fc84368d808c9f76844e963b48",
+      "tools/benchmark_resources.py": "9adaa5dc2d1a44eeef9fa99600a76b6808cda299fd999f1747e70187ee1c4e50",
+      "tools/compare_resource_readers.py": "ae50646fc3735075d16636b658a89e19aa164cae2b4e2097a3ea0ae9d4daa538"
+    },
+    "profile_bundle_sha256": "fc2e98c9dc5d4aab568e30c645dd427ee9fde9dbdc99055346966a81236b05af",
+    "profile_file_count": 43
+  },
+  "raw_files": [
+    {
+      "file": "shard-0.json",
+      "sha256": "ab01b6a5dae268dfa78a3e41504f845a06136ebf25e2ce03a88cea50c71ca560"
+    },
+    {
+      "file": "shard-1.json",
+      "sha256": "3f4919b0c28ad30e726625481a53691baa6d98264ce3383acca0262f66cf415b"
+    },
+    {
+      "file": "shard-2.json",
+      "sha256": "2a0306e919557c4c60dfafd8dbb6120988dae69d288d2c94236d430dc4010f1e"
+    },
+    {
+      "file": "shard-3.json",
+      "sha256": "847fd1933c4b22802e1a750bbfe3c0e521bd8b82c17d496158e6f7ca2e8341c3"
+    },
+    {
+      "file": "shard-4.json",
+      "sha256": "f821c6e084b2f0080fb725a6153afa0f06798bcf7a093787f19118f2df12fed0"
+    },
+    {
+      "file": "shard-5.json",
+      "sha256": "9200f4c66ee8635623afb83a8700d424a9eae13ef4b5b2d45cfb4f1eb1f6e116"
+    }
+  ],
+  "environments": [
+    {
+      "shard": 0,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    {
+      "shard": 1,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    {
+      "shard": 2,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    {
+      "shard": 3,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    {
+      "shard": 4,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    {
+      "shard": 5,
+      "python": "3.12.15",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    }
+  ],
+  "variants": {
+    "baseline": {
+      "features": [],
+      "all_originals": {
+        "images": 81,
+        "source_groups": 58,
+        "readable_integer_fields": 239,
+        "correct_value_and_region": 197,
+        "unknown": 42,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 53,
+          "missing": 27,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 11,
+          "panel_discovery": 27,
+          "numeric_read": 4
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 44,
+          "mean_correct_fraction": 0.785985
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 63,
+            "correct": 50,
+            "unknown": 13,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 59,
+            "correct": 50,
+            "unknown": 9,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 59,
+            "correct": 51,
+            "unknown": 8,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 58,
+            "correct": 46,
+            "unknown": 12,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 81,
+          "p50_ms": 12.93,
+          "p95_ms": 14.245,
+          "max_ms": 14.738
+        },
+        "discovery": {
+          "samples": 81,
+          "p50_ms": 4923.469,
+          "p95_ms": 8902.241,
+          "max_ms": 31715.197
+        },
+        "first_read": {
+          "samples": 53,
+          "p50_ms": 10.388,
+          "p95_ms": 19.119,
+          "max_ms": 57.033
+        },
+        "ready_on_detected_images": {
+          "samples": 53,
+          "p50_ms": 3672.974,
+          "p95_ms": 8271.777,
+          "max_ms": 8941.92
+        },
+        "cached_four_field_reads": {
+          "samples": 2650,
+          "p50_ms": 10.311,
+          "p95_ms": 19.593,
+          "max_ms": 58.105
+        },
+        "cached_images": 53,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX"
+        ],
+        "slowest_image_cached_p95_ms": 57.252720649999134,
+        "inconsistent_cached_outputs": []
+      },
+      "all_full_screenshots": {
+        "images": 71,
+        "source_groups": 55,
+        "readable_integer_fields": 199,
+        "correct_value_and_region": 159,
+        "unknown": 40,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 43,
+          "missing": 27,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 10,
+          "panel_discovery": 27,
+          "numeric_read": 3
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 41,
+          "mean_correct_fraction": 0.773374
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 53,
+            "correct": 41,
+            "unknown": 12,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 49,
+            "correct": 40,
+            "unknown": 9,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 49,
+            "correct": 41,
+            "unknown": 8,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 48,
+            "correct": 37,
+            "unknown": 11,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 71,
+          "p50_ms": 12.906,
+          "p95_ms": 13.407,
+          "max_ms": 14.245
+        },
+        "discovery": {
+          "samples": 71,
+          "p50_ms": 4952.971,
+          "p95_ms": 8907.517,
+          "max_ms": 31715.197
+        },
+        "first_read": {
+          "samples": 43,
+          "p50_ms": 9.834,
+          "p95_ms": 19.94,
+          "max_ms": 57.033
+        },
+        "ready_on_detected_images": {
+          "samples": 43,
+          "p50_ms": 4931.337,
+          "p95_ms": 8364.305,
+          "max_ms": 8941.92
+        },
+        "cached_four_field_reads": {
+          "samples": 2150,
+          "p50_ms": 9.638,
+          "p95_ms": 19.733,
+          "max_ms": 58.105
+        },
+        "cached_images": 43,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX"
+        ],
+        "slowest_image_cached_p95_ms": 57.252720649999134,
+        "inconsistent_cached_outputs": []
+      },
+      "partitions": {
+        "development": {
+          "all": {
+            "images": 57,
+            "source_groups": 44,
+            "readable_integer_fields": 155,
+            "correct_value_and_region": 119,
+            "unknown": 36,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 64,
+            "na_abstentions": 64,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 14,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 32,
+              "missing": 24,
+              "ambiguous": 1
+            },
+            "miss_stages": {
+              "value_region": 6,
+              "panel_discovery": 27,
+              "numeric_read": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 33,
+              "mean_correct_fraction": 0.734848
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 42,
+                "correct": 31,
+                "unknown": 11,
+                "incorrect_accepted": 0,
+                "na": 13,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 38,
+                "correct": 30,
+                "unknown": 8,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 38,
+                "correct": 30,
+                "unknown": 8,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 37,
+                "correct": 28,
+                "unknown": 9,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 57,
+              "p50_ms": 12.943,
+              "p95_ms": 13.437,
+              "max_ms": 14.245
+            },
+            "discovery": {
+              "samples": 57,
+              "p50_ms": 4938.917,
+              "p95_ms": 8904.351,
+              "max_ms": 31715.197
+            },
+            "first_read": {
+              "samples": 32,
+              "p50_ms": 11.348,
+              "p95_ms": 32.894,
+              "max_ms": 57.033
+            },
+            "ready_on_detected_images": {
+              "samples": 32,
+              "p50_ms": 3828.648,
+              "p95_ms": 8456.727,
+              "max_ms": 8941.92
+            },
+            "cached_four_field_reads": {
+              "samples": 1600,
+              "p50_ms": 11.293,
+              "p95_ms": 46.378,
+              "max_ms": 58.105
+            },
+            "cached_images": 32,
+            "cached_images_above_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "slowest_image_cached_p95_ms": 57.252720649999134,
+            "inconsistent_cached_outputs": []
+          },
+          "ambiguous_safety_control": {
+            "images": 2,
+            "source_groups": 2,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 2,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "ambiguous": 1,
+              "missing": 1
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 2,
+              "p50_ms": 9.515,
+              "p95_ms": 12.763,
+              "max_ms": 13.123
+            },
+            "discovery": {
+              "samples": 2,
+              "p50_ms": 3285.052,
+              "p95_ms": 3548.367,
+              "max_ms": 3577.625
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 12,
+            "source_groups": 12,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 48,
+            "na_abstentions": 48,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 12,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 12
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 12,
+              "p50_ms": 12.954,
+              "p95_ms": 13.076,
+              "max_ms": 13.095
+            },
+            "discovery": {
+              "samples": 12,
+              "p50_ms": 6937.625,
+              "p95_ms": 26063.103,
+              "max_ms": 31715.197
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 40,
+            "source_groups": 31,
+            "readable_integer_fields": 148,
+            "correct_value_and_region": 116,
+            "unknown": 32,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 31,
+              "missing": 9
+            },
+            "miss_stages": {
+              "value_region": 5,
+              "panel_discovery": 24,
+              "numeric_read": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 31,
+              "mean_correct_fraction": 0.758065
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 40,
+                "correct": 30,
+                "unknown": 10,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 36,
+                "correct": 29,
+                "unknown": 7,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 36,
+                "correct": 30,
+                "unknown": 6,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 36,
+                "correct": 27,
+                "unknown": 9,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 40,
+              "p50_ms": 12.947,
+              "p95_ms": 13.445,
+              "max_ms": 14.245
+            },
+            "discovery": {
+              "samples": 40,
+              "p50_ms": 4931.193,
+              "p95_ms": 8130.456,
+              "max_ms": 8912.794
+            },
+            "first_read": {
+              "samples": 31,
+              "p50_ms": 12.547,
+              "p95_ms": 34.316,
+              "max_ms": 57.033
+            },
+            "ready_on_detected_images": {
+              "samples": 31,
+              "p50_ms": 3967.595,
+              "p95_ms": 8494.213,
+              "max_ms": 8941.92
+            },
+            "cached_four_field_reads": {
+              "samples": 1550,
+              "p50_ms": 12.328,
+              "p95_ms": 46.386,
+              "max_ms": 58.105
+            },
+            "cached_images": 31,
+            "cached_images_above_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "slowest_image_cached_p95_ms": 57.252720649999134,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 7,
+            "correct_value_and_region": 3,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 4,
+            "na_abstentions": 4,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 1,
+              "missing": 2
+            },
+            "miss_stages": {
+              "value_region": 1,
+              "panel_discovery": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 2,
+              "mean_correct_fraction": 0.375
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 2,
+                "correct": 0,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 1,
+                "correct": 1,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 12.864,
+              "p95_ms": 13.378,
+              "max_ms": 13.435
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 2580.822,
+              "p95_ms": 3980.205,
+              "max_ms": 4135.692
+            },
+            "first_read": {
+              "samples": 1,
+              "p50_ms": 4.107,
+              "p95_ms": 4.107,
+              "max_ms": 4.107
+            },
+            "ready_on_detected_images": {
+              "samples": 1,
+              "p50_ms": 2590.572,
+              "p95_ms": 2590.572,
+              "max_ms": 2590.572
+            },
+            "cached_four_field_reads": {
+              "samples": 50,
+              "p50_ms": 3.864,
+              "p95_ms": 3.932,
+              "max_ms": 3.951
+            },
+            "cached_images": 1,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 3.9322556499989503,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "test": {
+          "all": {
+            "images": 14,
+            "source_groups": 11,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 40,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11,
+              "missing": 3
+            },
+            "miss_stages": {
+              "value_region": 4
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.932292
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 9,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 14,
+              "p50_ms": 12.859,
+              "p95_ms": 13.192,
+              "max_ms": 13.202
+            },
+            "discovery": {
+              "samples": 14,
+              "p50_ms": 6304.982,
+              "p95_ms": 8621.609,
+              "max_ms": 9090.813
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 9.481,
+              "p95_ms": 13.043,
+              "max_ms": 13.27
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 4962.886,
+              "p95_ms": 8227.083,
+              "max_ms": 8391.522
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 9.318,
+              "p95_ms": 13.117,
+              "max_ms": 13.282
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 13.249335649992133,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 3
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 12.877,
+              "p95_ms": 12.959,
+              "max_ms": 12.969
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 8311.912,
+              "p95_ms": 9012.923,
+              "max_ms": 9090.813
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 11,
+            "source_groups": 8,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 40,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11
+            },
+            "miss_stages": {
+              "value_region": 4
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.932292
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 9,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 11,
+              "p50_ms": 12.842,
+              "p95_ms": 13.194,
+              "max_ms": 13.202
+            },
+            "discovery": {
+              "samples": 11,
+              "p50_ms": 4941.994,
+              "p95_ms": 8203.218,
+              "max_ms": 8368.961
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 9.481,
+              "p95_ms": 13.043,
+              "max_ms": 13.27
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 4962.886,
+              "p95_ms": 8227.083,
+              "max_ms": 8391.522
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 9.318,
+              "p95_ms": 13.117,
+              "max_ms": 13.282
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 13.249335649992133,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "reference": {
+          "all": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 13.082,
+              "p95_ms": 14.707,
+              "max_ms": 14.738
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 581.796,
+              "p95_ms": 5529.252,
+              "max_ms": 8179.81
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 12.196,
+              "p95_ms": 12.971,
+              "max_ms": 13.002
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 608.616,
+              "p95_ms": 5547.672,
+              "max_ms": 8191.946
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 11.623,
+              "p95_ms": 12.826,
+              "max_ms": 13.317
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 12.945069999998537,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 13.082,
+              "p95_ms": 14.707,
+              "max_ms": 14.738
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 581.796,
+              "p95_ms": 5529.252,
+              "max_ms": 8179.81
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 12.196,
+              "p95_ms": 12.971,
+              "max_ms": 13.002
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 608.616,
+              "p95_ms": 5547.672,
+              "max_ms": 8191.946
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 11.623,
+              "p95_ms": 12.826,
+              "max_ms": 13.317
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 12.945069999998537,
+            "inconsistent_cached_outputs": []
+          }
+        }
+      },
+      "new_batch": {
+        "all": {
+          "images": 30,
+          "source_groups": 20,
+          "readable_integer_fields": 76,
+          "correct_value_and_region": 66,
+          "unknown": 10,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 44,
+          "na_abstentions": 44,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18,
+            "missing": 12
+          },
+          "miss_stages": {
+            "panel_discovery": 4,
+            "value_region": 6
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 13,
+            "mean_correct_fraction": 0.86859
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 22,
+              "correct": 17,
+              "unknown": 5,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 14,
+              "unknown": 4,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 30,
+            "p50_ms": 12.932,
+            "p95_ms": 13.299,
+            "max_ms": 14.245
+          },
+          "discovery": {
+            "samples": 30,
+            "p50_ms": 5669.253,
+            "p95_ms": 9010.705,
+            "max_ms": 31715.197
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 9.512,
+            "p95_ms": 13.69,
+            "max_ms": 16.071
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5001.812,
+            "p95_ms": 8474.082,
+            "max_ms": 8941.92
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 9.353,
+            "p95_ms": 15.636,
+            "max_ms": 15.853
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 15.810395799996968,
+          "inconsistent_cached_outputs": []
+        },
+        "four_readable": {
+          "images": 18,
+          "source_groups": 12,
+          "readable_integer_fields": 72,
+          "correct_value_and_region": 66,
+          "unknown": 6,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 0,
+          "na_abstentions": 0,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18
+          },
+          "miss_stages": {
+            "value_region": 6
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 12,
+            "mean_correct_fraction": 0.940972
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 14,
+              "unknown": 4,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 18,
+            "p50_ms": 12.874,
+            "p95_ms": 13.509,
+            "max_ms": 14.245
+          },
+          "discovery": {
+            "samples": 18,
+            "p50_ms": 4983.952,
+            "p95_ms": 8450.536,
+            "max_ms": 8912.794
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 9.512,
+            "p95_ms": 13.69,
+            "max_ms": 16.071
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5001.812,
+            "p95_ms": 8474.082,
+            "max_ms": 8941.92
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 9.353,
+            "p95_ms": 15.636,
+            "max_ms": 15.853
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 15.810395799996968,
+          "inconsistent_cached_outputs": []
+        },
+        "partly_readable": {
+          "images": 4,
+          "source_groups": 1,
+          "readable_integer_fields": 4,
+          "correct_value_and_region": 0,
+          "unknown": 4,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 12,
+          "na_abstentions": 12,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 4
+          },
+          "miss_stages": {
+            "panel_discovery": 4
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 1,
+            "mean_correct_fraction": 0.0
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 4,
+              "correct": 0,
+              "unknown": 4,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 4,
+            "p50_ms": 13.042,
+            "p95_ms": 13.147,
+            "max_ms": 13.153
+          },
+          "discovery": {
+            "samples": 4,
+            "p50_ms": 5976.464,
+            "p95_ms": 6046.617,
+            "max_ms": 6056.205
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        },
+        "all_na": {
+          "images": 8,
+          "source_groups": 8,
+          "readable_integer_fields": 0,
+          "correct_value_and_region": 0,
+          "unknown": 0,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 32,
+          "na_abstentions": 32,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 8
+          },
+          "miss_stages": {},
+          "group_macro": {
+            "groups_with_readable_targets": 0,
+            "mean_correct_fraction": null
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 8,
+            "p50_ms": 12.949,
+            "p95_ms": 13.032,
+            "max_ms": 13.041
+          },
+          "discovery": {
+            "samples": 8,
+            "p50_ms": 8235.683,
+            "p95_ms": 23796.663,
+            "max_ms": 31715.197
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        }
+      },
+      "changes_from_baseline": {
+        "gained": [],
+        "regressed": []
+      },
+      "paired_full_primary_cached": {
+        "images_detected_by_both": 42,
+        "baseline": {
+          "samples": 2100,
+          "p50_ms": 9.877,
+          "p95_ms": 19.755,
+          "max_ms": 58.105
+        },
+        "candidate": {
+          "samples": 2100,
+          "p50_ms": 9.877,
+          "p95_ms": 19.755,
+          "max_ms": 58.105
+        }
+      },
+      "new_batch_misses": [
+        {
+          "case_id": "reddit-musquitu96-9sol5rg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5017,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-wzgn2qg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5277,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-local-ad3036-w1iymdg",
+          "partition": "development",
+          "field": "resource_capacity",
+          "expected": 7671,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-eurbina14-9vscc20",
+          "partition": "development",
+          "field": "resource_capacity",
+          "expected": 2349,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "partition": "test",
+          "field": "resource_health",
+          "expected": 2116,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-uuhie47",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5365,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-cowboyisaac-9muurr2",
+          "partition": "test",
+          "field": "resource_capacity",
+          "expected": 2391,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-cowboyisaac-dhlws3d",
+          "partition": "test",
+          "field": "resource_capacity",
+          "expected": 1176,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-keasol-2yqk8uk",
+          "partition": "test",
+          "field": "resource_mana",
+          "expected": 4112,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-zw6jbqg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5369,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        }
+      ],
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_na_or_ambiguity_accepts": true,
+        "no_unscored_accepts": true,
+        "all_safety_controls_abstain": true,
+        "no_correct_field_regressions": true,
+        "cached_outputs_consistent": true,
+        "every_detected_full_image_p95_within_50ms": false
+      }
+    },
+    "accelerated_fast": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "prune",
+        "touching_cache"
+      ],
+      "all_originals": {
+        "images": 81,
+        "source_groups": 58,
+        "readable_integer_fields": 239,
+        "correct_value_and_region": 211,
+        "unknown": 28,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 57,
+          "missing": 23,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 7,
+          "panel_discovery": 11,
+          "numeric_read": 10
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 44,
+          "mean_correct_fraction": 0.847538
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 63,
+            "correct": 51,
+            "unknown": 12,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 59,
+            "correct": 53,
+            "unknown": 6,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 59,
+            "correct": 54,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 58,
+            "correct": 53,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 81,
+          "p50_ms": 12.966,
+          "p95_ms": 13.936,
+          "max_ms": 16.414
+        },
+        "discovery": {
+          "samples": 81,
+          "p50_ms": 4364.975,
+          "p95_ms": 9726.55,
+          "max_ms": 35401.371
+        },
+        "first_read": {
+          "samples": 57,
+          "p50_ms": 7.3,
+          "p95_ms": 15.085,
+          "max_ms": 24.52
+        },
+        "ready_on_detected_images": {
+          "samples": 57,
+          "p50_ms": 3692.476,
+          "p95_ms": 8816.389,
+          "max_ms": 9747.566
+        },
+        "cached_four_field_reads": {
+          "samples": 2850,
+          "p50_ms": 4.617,
+          "p95_ms": 8.169,
+          "max_ms": 14.879
+        },
+        "cached_images": 57,
+        "cached_images_above_50ms_p95": [],
+        "slowest_image_cached_p95_ms": 14.82119445000123,
+        "inconsistent_cached_outputs": []
+      },
+      "all_full_screenshots": {
+        "images": 71,
+        "source_groups": 55,
+        "readable_integer_fields": 199,
+        "correct_value_and_region": 173,
+        "unknown": 26,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 47,
+          "missing": 23,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 6,
+          "panel_discovery": 11,
+          "numeric_read": 9
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 41,
+          "mean_correct_fraction": 0.84248
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 53,
+            "correct": 42,
+            "unknown": 11,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 49,
+            "correct": 43,
+            "unknown": 6,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 49,
+            "correct": 44,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 48,
+            "correct": 44,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 71,
+          "p50_ms": 12.972,
+          "p95_ms": 13.545,
+          "max_ms": 13.936
+        },
+        "discovery": {
+          "samples": 71,
+          "p50_ms": 5253.053,
+          "p95_ms": 9764.998,
+          "max_ms": 35401.371
+        },
+        "first_read": {
+          "samples": 47,
+          "p50_ms": 7.454,
+          "p95_ms": 15.604,
+          "max_ms": 24.52
+        },
+        "ready_on_detected_images": {
+          "samples": 47,
+          "p50_ms": 3984.869,
+          "p95_ms": 8881.105,
+          "max_ms": 9747.566
+        },
+        "cached_four_field_reads": {
+          "samples": 2350,
+          "p50_ms": 4.785,
+          "p95_ms": 8.245,
+          "max_ms": 14.879
+        },
+        "cached_images": 47,
+        "cached_images_above_50ms_p95": [],
+        "slowest_image_cached_p95_ms": 14.82119445000123,
+        "inconsistent_cached_outputs": []
+      },
+      "partitions": {
+        "development": {
+          "all": {
+            "images": 57,
+            "source_groups": 44,
+            "readable_integer_fields": 155,
+            "correct_value_and_region": 132,
+            "unknown": 23,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 64,
+            "na_abstentions": 64,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 14,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 36,
+              "missing": 20,
+              "ambiguous": 1
+            },
+            "miss_stages": {
+              "value_region": 3,
+              "panel_discovery": 11,
+              "numeric_read": 9
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 33,
+              "mean_correct_fraction": 0.818182
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 42,
+                "correct": 32,
+                "unknown": 10,
+                "incorrect_accepted": 0,
+                "na": 13,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 38,
+                "correct": 33,
+                "unknown": 5,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 38,
+                "correct": 33,
+                "unknown": 5,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 37,
+                "correct": 34,
+                "unknown": 3,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 57,
+              "p50_ms": 12.973,
+              "p95_ms": 13.691,
+              "max_ms": 13.936
+            },
+            "discovery": {
+              "samples": 57,
+              "p50_ms": 4364.975,
+              "p95_ms": 9741.929,
+              "max_ms": 35401.371
+            },
+            "first_read": {
+              "samples": 36,
+              "p50_ms": 7.828,
+              "p95_ms": 17.75,
+              "max_ms": 24.52
+            },
+            "ready_on_detected_images": {
+              "samples": 36,
+              "p50_ms": 3751.982,
+              "p95_ms": 8789.501,
+              "max_ms": 9747.566
+            },
+            "cached_four_field_reads": {
+              "samples": 1800,
+              "p50_ms": 5.04,
+              "p95_ms": 12.155,
+              "max_ms": 14.879
+            },
+            "cached_images": 36,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 14.82119445000123,
+            "inconsistent_cached_outputs": []
+          },
+          "ambiguous_safety_control": {
+            "images": 2,
+            "source_groups": 2,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 2,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "ambiguous": 1,
+              "missing": 1
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 2,
+              "p50_ms": 9.778,
+              "p95_ms": 12.862,
+              "max_ms": 13.205
+            },
+            "discovery": {
+              "samples": 2,
+              "p50_ms": 3550.213,
+              "p95_ms": 3799.345,
+              "max_ms": 3827.026
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 12,
+            "source_groups": 12,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 48,
+            "na_abstentions": 48,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 12,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 12
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 12,
+              "p50_ms": 13.066,
+              "p95_ms": 13.752,
+              "max_ms": 13.878
+            },
+            "discovery": {
+              "samples": 12,
+              "p50_ms": 7642.813,
+              "p95_ms": 29324.208,
+              "max_ms": 35401.371
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 40,
+            "source_groups": 31,
+            "readable_integer_fields": 148,
+            "correct_value_and_region": 129,
+            "unknown": 19,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 35,
+              "missing": 5
+            },
+            "miss_stages": {
+              "panel_discovery": 8,
+              "numeric_read": 9,
+              "value_region": 2
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 31,
+              "mean_correct_fraction": 0.846774
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 40,
+                "correct": 31,
+                "unknown": 9,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 36,
+                "correct": 32,
+                "unknown": 4,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 36,
+                "correct": 33,
+                "unknown": 3,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 36,
+                "correct": 33,
+                "unknown": 3,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 40,
+              "p50_ms": 12.956,
+              "p95_ms": 13.459,
+              "max_ms": 13.936
+            },
+            "discovery": {
+              "samples": 40,
+              "p50_ms": 3961.897,
+              "p95_ms": 8733.151,
+              "max_ms": 9726.55
+            },
+            "first_read": {
+              "samples": 35,
+              "p50_ms": 7.866,
+              "p95_ms": 18.117,
+              "max_ms": 24.52
+            },
+            "ready_on_detected_images": {
+              "samples": 35,
+              "p50_ms": 3752.781,
+              "p95_ms": 8798.196,
+              "max_ms": 9747.566
+            },
+            "cached_four_field_reads": {
+              "samples": 1750,
+              "p50_ms": 5.073,
+              "p95_ms": 12.16,
+              "max_ms": 14.879
+            },
+            "cached_images": 35,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 14.82119445000123,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 7,
+            "correct_value_and_region": 3,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 4,
+            "na_abstentions": 4,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 1,
+              "missing": 2
+            },
+            "miss_stages": {
+              "value_region": 1,
+              "panel_discovery": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 2,
+              "mean_correct_fraction": 0.375
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 2,
+                "correct": 0,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 1,
+                "correct": 1,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 13.089,
+              "p95_ms": 13.106,
+              "max_ms": 13.108
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 2821.519,
+              "p95_ms": 4372.829,
+              "max_ms": 4545.196
+            },
+            "first_read": {
+              "samples": 1,
+              "p50_ms": 3.056,
+              "p95_ms": 3.056,
+              "max_ms": 3.056
+            },
+            "ready_on_detected_images": {
+              "samples": 1,
+              "p50_ms": 1492.711,
+              "p95_ms": 1492.711,
+              "max_ms": 1492.711
+            },
+            "cached_four_field_reads": {
+              "samples": 50,
+              "p50_ms": 1.622,
+              "p95_ms": 1.674,
+              "max_ms": 1.71
+            },
+            "cached_images": 1,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 1.673640150000466,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "test": {
+          "all": {
+            "images": 14,
+            "source_groups": 11,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 41,
+            "unknown": 3,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11,
+              "missing": 3
+            },
+            "miss_stages": {
+              "value_region": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.942708
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 14,
+              "p50_ms": 12.922,
+              "p95_ms": 13.282,
+              "max_ms": 13.441
+            },
+            "discovery": {
+              "samples": 14,
+              "p50_ms": 6821.52,
+              "p95_ms": 9639.8,
+              "max_ms": 9985.705
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 6.195,
+              "p95_ms": 8.121,
+              "max_ms": 8.454
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 5416.651,
+              "p95_ms": 8940.634,
+              "max_ms": 9090.767
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 3.79,
+              "p95_ms": 5.592,
+              "max_ms": 6.0
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.740754550016902,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 3
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 13.084,
+              "p95_ms": 13.185,
+              "max_ms": 13.196
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 9453.544,
+              "p95_ms": 9932.489,
+              "max_ms": 9985.705
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 11,
+            "source_groups": 8,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 41,
+            "unknown": 3,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11
+            },
+            "miss_stages": {
+              "value_region": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.942708
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 11,
+              "p50_ms": 12.843,
+              "p95_ms": 13.282,
+              "max_ms": 13.441
+            },
+            "discovery": {
+              "samples": 11,
+              "p50_ms": 5407.75,
+              "p95_ms": 8920.227,
+              "max_ms": 9071.448
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 6.195,
+              "p95_ms": 8.121,
+              "max_ms": 8.454
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 5416.651,
+              "p95_ms": 8940.634,
+              "max_ms": 9090.767
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 3.79,
+              "p95_ms": 5.592,
+              "max_ms": 6.0
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.740754550016902,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "reference": {
+          "all": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 12.95,
+              "p95_ms": 16.374,
+              "max_ms": 16.414
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 645.208,
+              "p95_ms": 3860.062,
+              "max_ms": 4908.11
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 7.227,
+              "p95_ms": 8.291,
+              "max_ms": 8.406
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 668.35,
+              "p95_ms": 3875.94,
+              "max_ms": 4919.779
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 4.529,
+              "p95_ms": 5.37,
+              "max_ms": 11.486
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 7.076754299997743,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 12.95,
+              "p95_ms": 16.374,
+              "max_ms": 16.414
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 645.208,
+              "p95_ms": 3860.062,
+              "max_ms": 4908.11
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 7.227,
+              "p95_ms": 8.291,
+              "max_ms": 8.406
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 668.35,
+              "p95_ms": 3875.94,
+              "max_ms": 4919.779
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 4.529,
+              "p95_ms": 5.37,
+              "max_ms": 11.486
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 7.076754299997743,
+            "inconsistent_cached_outputs": []
+          }
+        }
+      },
+      "new_batch": {
+        "all": {
+          "images": 30,
+          "source_groups": 20,
+          "readable_integer_fields": 76,
+          "correct_value_and_region": 69,
+          "unknown": 7,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 44,
+          "na_abstentions": 44,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18,
+            "missing": 12
+          },
+          "miss_stages": {
+            "panel_discovery": 4,
+            "value_region": 3
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 13,
+            "mean_correct_fraction": 0.887821
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 22,
+              "correct": 17,
+              "unknown": 5,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 30,
+            "p50_ms": 12.965,
+            "p95_ms": 13.326,
+            "max_ms": 13.441
+          },
+          "discovery": {
+            "samples": 30,
+            "p50_ms": 6007.066,
+            "p95_ms": 9903.689,
+            "max_ms": 35401.371
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 6.657,
+            "p95_ms": 9.295,
+            "max_ms": 14.056
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5410.906,
+            "p95_ms": 8835.542,
+            "max_ms": 9090.767
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 4.203,
+            "p95_ms": 6.899,
+            "max_ms": 9.738
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 7.010120349997351,
+          "inconsistent_cached_outputs": []
+        },
+        "four_readable": {
+          "images": 18,
+          "source_groups": 12,
+          "readable_integer_fields": 72,
+          "correct_value_and_region": 69,
+          "unknown": 3,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 0,
+          "na_abstentions": 0,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18
+          },
+          "miss_stages": {
+            "value_region": 3
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 12,
+            "mean_correct_fraction": 0.961806
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 18,
+            "p50_ms": 12.858,
+            "p95_ms": 13.434,
+            "max_ms": 13.441
+          },
+          "discovery": {
+            "samples": 18,
+            "p50_ms": 5402.124,
+            "p95_ms": 8814.371,
+            "max_ms": 9071.448
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 6.657,
+            "p95_ms": 9.295,
+            "max_ms": 14.056
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5410.906,
+            "p95_ms": 8835.542,
+            "max_ms": 9090.767
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 4.203,
+            "p95_ms": 6.899,
+            "max_ms": 9.738
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 7.010120349997351,
+          "inconsistent_cached_outputs": []
+        },
+        "partly_readable": {
+          "images": 4,
+          "source_groups": 1,
+          "readable_integer_fields": 4,
+          "correct_value_and_region": 0,
+          "unknown": 4,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 12,
+          "na_abstentions": 12,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 4
+          },
+          "miss_stages": {
+            "panel_discovery": 4
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 1,
+            "mean_correct_fraction": 0.0
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 4,
+              "correct": 0,
+              "unknown": 4,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 4,
+            "p50_ms": 13.06,
+            "p95_ms": 13.174,
+            "max_ms": 13.176
+          },
+          "discovery": {
+            "samples": 4,
+            "p50_ms": 7074.415,
+            "p95_ms": 7426.766,
+            "max_ms": 7472.832
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        },
+        "all_na": {
+          "images": 8,
+          "source_groups": 8,
+          "readable_integer_fields": 0,
+          "correct_value_and_region": 0,
+          "unknown": 0,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 32,
+          "na_abstentions": 32,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 8
+          },
+          "miss_stages": {},
+          "group_macro": {
+            "groups_with_readable_targets": 0,
+            "mean_correct_fraction": null
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 8,
+            "p50_ms": 13.035,
+            "p95_ms": 13.188,
+            "max_ms": 13.196
+          },
+          "discovery": {
+            "samples": 8,
+            "p50_ms": 9219.322,
+            "p95_ms": 26505.888,
+            "max_ms": 35401.371
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        }
+      },
+      "changes_from_baseline": {
+        "gained": [
+          {
+            "case_id": "reddit-dworc-o0ap20c",
+            "field": "resource_capacity",
+            "expected": 730,
+            "actual": 730,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-BJEI",
+            "field": "resource_soul",
+            "expected": 102,
+            "actual": 102,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-BJEI",
+            "field": "resource_capacity",
+            "expected": 1264,
+            "actual": 1264,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-blake-m91oix5",
+            "field": "resource_mana",
+            "expected": 18475,
+            "actual": 18475,
+            "role": "positive_acceptance",
+            "previous_stage": "numeric_read",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-chrissykes-4ppe2dp",
+            "field": "resource_mana",
+            "expected": 518,
+            "actual": 518,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-chrissykes-4ppe2dp",
+            "field": "resource_capacity",
+            "expected": 195,
+            "actual": 195,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-local-ad3036-w1iymdg",
+            "field": "resource_capacity",
+            "expected": 7671,
+            "actual": 7671,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-eurbina14-9vscc20",
+            "field": "resource_capacity",
+            "expected": 2349,
+            "actual": 2349,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_health",
+            "expected": 938,
+            "actual": 938,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_soul",
+            "expected": 100,
+            "actual": 100,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_capacity",
+            "expected": 1686,
+            "actual": 1686,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-cowboyisaac-9muurr2",
+            "field": "resource_capacity",
+            "expected": 2391,
+            "actual": 2391,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-deleted-09s6sbl",
+            "field": "resource_soul",
+            "expected": 200,
+            "actual": 200,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-3XWB",
+            "field": "resource_mana",
+            "expected": 1451,
+            "actual": 1451,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          }
+        ],
+        "regressed": []
+      },
+      "paired_full_primary_cached": {
+        "images_detected_by_both": 42,
+        "baseline": {
+          "samples": 2100,
+          "p50_ms": 9.877,
+          "p95_ms": 19.755,
+          "max_ms": 58.105
+        },
+        "candidate": {
+          "samples": 2100,
+          "p50_ms": 4.756,
+          "p95_ms": 6.966,
+          "max_ms": 14.879
+        }
+      },
+      "new_batch_misses": [
+        {
+          "case_id": "reddit-musquitu96-9sol5rg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5017,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-wzgn2qg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5277,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "partition": "test",
+          "field": "resource_health",
+          "expected": 2116,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-uuhie47",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5365,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-cowboyisaac-dhlws3d",
+          "partition": "test",
+          "field": "resource_capacity",
+          "expected": 1176,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-keasol-2yqk8uk",
+          "partition": "test",
+          "field": "resource_mana",
+          "expected": 4112,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-zw6jbqg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5369,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        }
+      ],
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_na_or_ambiguity_accepts": true,
+        "no_unscored_accepts": true,
+        "all_safety_controls_abstain": true,
+        "no_correct_field_regressions": true,
+        "cached_outputs_consistent": true,
+        "every_detected_full_image_p95_within_50ms": true
+      }
+    },
+    "accelerated_robust": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "consensus",
+        "prune",
+        "touching_cache"
+      ],
+      "all_originals": {
+        "images": 81,
+        "source_groups": 58,
+        "readable_integer_fields": 239,
+        "correct_value_and_region": 215,
+        "unknown": 24,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 57,
+          "missing": 23,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 7,
+          "panel_discovery": 11,
+          "numeric_read": 6
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 44,
+          "mean_correct_fraction": 0.870265
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 63,
+            "correct": 53,
+            "unknown": 10,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 59,
+            "correct": 54,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 59,
+            "correct": 54,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 58,
+            "correct": 54,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 81,
+          "p50_ms": 12.971,
+          "p95_ms": 13.463,
+          "max_ms": 13.609
+        },
+        "discovery": {
+          "samples": 81,
+          "p50_ms": 4361.636,
+          "p95_ms": 9747.161,
+          "max_ms": 35405.955
+        },
+        "first_read": {
+          "samples": 57,
+          "p50_ms": 7.605,
+          "p95_ms": 19.829,
+          "max_ms": 74.976
+        },
+        "ready_on_detected_images": {
+          "samples": 57,
+          "p50_ms": 3726.419,
+          "p95_ms": 8804.692,
+          "max_ms": 9768.242
+        },
+        "cached_four_field_reads": {
+          "samples": 2850,
+          "p50_ms": 4.667,
+          "p95_ms": 20.195,
+          "max_ms": 55.776
+        },
+        "cached_images": 57,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX"
+        ],
+        "slowest_image_cached_p95_ms": 55.698785900002434,
+        "inconsistent_cached_outputs": []
+      },
+      "all_full_screenshots": {
+        "images": 71,
+        "source_groups": 55,
+        "readable_integer_fields": 199,
+        "correct_value_and_region": 177,
+        "unknown": 22,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_unbound_region": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "na_fields": 76,
+        "na_abstentions": 76,
+        "unsafe_na_accepts": 0,
+        "ambiguity_required_unknown_fields": 8,
+        "unsafe_ambiguity_accepts": 0,
+        "unscored_accepted": 0,
+        "control_images": 17,
+        "control_accepted_values": 0,
+        "control_false_panels": 0,
+        "panel_statuses": {
+          "found": 47,
+          "missing": 23,
+          "ambiguous": 1
+        },
+        "miss_stages": {
+          "value_region": 6,
+          "panel_discovery": 11,
+          "numeric_read": 5
+        },
+        "group_macro": {
+          "groups_with_readable_targets": 41,
+          "mean_correct_fraction": 0.86687
+        },
+        "per_resource": {
+          "resource_health": {
+            "readable": 53,
+            "correct": 44,
+            "unknown": 9,
+            "incorrect_accepted": 0,
+            "na": 16,
+            "unsafe_na_accepts": 0
+          },
+          "resource_mana": {
+            "readable": 49,
+            "correct": 44,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_soul": {
+            "readable": 49,
+            "correct": 44,
+            "unknown": 5,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          },
+          "resource_capacity": {
+            "readable": 48,
+            "correct": 45,
+            "unknown": 3,
+            "incorrect_accepted": 0,
+            "na": 20,
+            "unsafe_na_accepts": 0
+          }
+        },
+        "initialization": {
+          "samples": 71,
+          "p50_ms": 12.965,
+          "p95_ms": 13.474,
+          "max_ms": 13.609
+        },
+        "discovery": {
+          "samples": 71,
+          "p50_ms": 5250.337,
+          "p95_ms": 9772.699,
+          "max_ms": 35405.955
+        },
+        "first_read": {
+          "samples": 47,
+          "p50_ms": 7.695,
+          "p95_ms": 29.559,
+          "max_ms": 74.976
+        },
+        "ready_on_detected_images": {
+          "samples": 47,
+          "p50_ms": 3985.425,
+          "p95_ms": 8867.205,
+          "max_ms": 9768.242
+        },
+        "cached_four_field_reads": {
+          "samples": 2350,
+          "p50_ms": 4.845,
+          "p95_ms": 20.315,
+          "max_ms": 55.776
+        },
+        "cached_images": 47,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX"
+        ],
+        "slowest_image_cached_p95_ms": 55.698785900002434,
+        "inconsistent_cached_outputs": []
+      },
+      "partitions": {
+        "development": {
+          "all": {
+            "images": 57,
+            "source_groups": 44,
+            "readable_integer_fields": 155,
+            "correct_value_and_region": 136,
+            "unknown": 19,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 64,
+            "na_abstentions": 64,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 14,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 36,
+              "missing": 20,
+              "ambiguous": 1
+            },
+            "miss_stages": {
+              "value_region": 3,
+              "panel_discovery": 11,
+              "numeric_read": 5
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 33,
+              "mean_correct_fraction": 0.848485
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 42,
+                "correct": 34,
+                "unknown": 8,
+                "incorrect_accepted": 0,
+                "na": 13,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 38,
+                "correct": 34,
+                "unknown": 4,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 38,
+                "correct": 33,
+                "unknown": 5,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 37,
+                "correct": 35,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 17,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 57,
+              "p50_ms": 12.971,
+              "p95_ms": 13.487,
+              "max_ms": 13.609
+            },
+            "discovery": {
+              "samples": 57,
+              "p50_ms": 4361.636,
+              "p95_ms": 9757.377,
+              "max_ms": 35405.955
+            },
+            "first_read": {
+              "samples": 36,
+              "p50_ms": 7.872,
+              "p95_ms": 42.409,
+              "max_ms": 74.976
+            },
+            "ready_on_detected_images": {
+              "samples": 36,
+              "p50_ms": 3744.769,
+              "p95_ms": 8789.643,
+              "max_ms": 9768.242
+            },
+            "cached_four_field_reads": {
+              "samples": 1800,
+              "p50_ms": 5.099,
+              "p95_ms": 40.009,
+              "max_ms": 55.776
+            },
+            "cached_images": 36,
+            "cached_images_above_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "slowest_image_cached_p95_ms": 55.698785900002434,
+            "inconsistent_cached_outputs": []
+          },
+          "ambiguous_safety_control": {
+            "images": 2,
+            "source_groups": 2,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 8,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 2,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "ambiguous": 1,
+              "missing": 1
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 2,
+              "p50_ms": 9.807,
+              "p95_ms": 12.873,
+              "max_ms": 13.213
+            },
+            "discovery": {
+              "samples": 2,
+              "p50_ms": 3592.254,
+              "p95_ms": 3810.802,
+              "max_ms": 3835.085
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 12,
+            "source_groups": 12,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 48,
+            "na_abstentions": 48,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 12,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 12
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 12,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 12,
+              "p50_ms": 13.076,
+              "p95_ms": 13.411,
+              "max_ms": 13.509
+            },
+            "discovery": {
+              "samples": 12,
+              "p50_ms": 7649.47,
+              "p95_ms": 29327.046,
+              "max_ms": 35405.955
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 40,
+            "source_groups": 31,
+            "readable_integer_fields": 148,
+            "correct_value_and_region": 133,
+            "unknown": 15,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 35,
+              "missing": 5
+            },
+            "miss_stages": {
+              "panel_discovery": 8,
+              "numeric_read": 5,
+              "value_region": 2
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 31,
+              "mean_correct_fraction": 0.879032
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 40,
+                "correct": 33,
+                "unknown": 7,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 36,
+                "correct": 33,
+                "unknown": 3,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 36,
+                "correct": 33,
+                "unknown": 3,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 36,
+                "correct": 34,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 4,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 40,
+              "p50_ms": 12.955,
+              "p95_ms": 13.486,
+              "max_ms": 13.609
+            },
+            "discovery": {
+              "samples": 40,
+              "p50_ms": 3961.923,
+              "p95_ms": 8737.59,
+              "max_ms": 9747.161
+            },
+            "first_read": {
+              "samples": 35,
+              "p50_ms": 7.908,
+              "p95_ms": 43.811,
+              "max_ms": 74.976
+            },
+            "ready_on_detected_images": {
+              "samples": 35,
+              "p50_ms": 3763.12,
+              "p95_ms": 8797.314,
+              "max_ms": 9768.242
+            },
+            "cached_four_field_reads": {
+              "samples": 1750,
+              "p50_ms": 5.112,
+              "p95_ms": 40.039,
+              "max_ms": 55.776
+            },
+            "cached_images": 35,
+            "cached_images_above_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "slowest_image_cached_p95_ms": 55.698785900002434,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 7,
+            "correct_value_and_region": 3,
+            "unknown": 4,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 4,
+            "na_abstentions": 4,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 1,
+              "missing": 2
+            },
+            "miss_stages": {
+              "value_region": 1,
+              "panel_discovery": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 2,
+              "mean_correct_fraction": 0.375
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 2,
+                "correct": 1,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 2,
+                "correct": 0,
+                "unknown": 2,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 1,
+                "correct": 1,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 1,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 12.923,
+              "p95_ms": 13.038,
+              "max_ms": 13.051
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 2822.813,
+              "p95_ms": 4371.084,
+              "max_ms": 4543.114
+            },
+            "first_read": {
+              "samples": 1,
+              "p50_ms": 3.11,
+              "p95_ms": 3.11,
+              "max_ms": 3.11
+            },
+            "ready_on_detected_images": {
+              "samples": 1,
+              "p50_ms": 1493.494,
+              "p95_ms": 1493.494,
+              "max_ms": 1493.494
+            },
+            "cached_four_field_reads": {
+              "samples": 50,
+              "p50_ms": 1.625,
+              "p95_ms": 1.653,
+              "max_ms": 1.817
+            },
+            "cached_images": 1,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 1.6530520999985754,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "test": {
+          "all": {
+            "images": 14,
+            "source_groups": 11,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 41,
+            "unknown": 3,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11,
+              "missing": 3
+            },
+            "miss_stages": {
+              "value_region": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.942708
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 14,
+              "p50_ms": 12.923,
+              "p95_ms": 13.251,
+              "max_ms": 13.361
+            },
+            "discovery": {
+              "samples": 14,
+              "p50_ms": 6833.651,
+              "p95_ms": 9637.224,
+              "max_ms": 9993.284
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 6.227,
+              "p95_ms": 8.232,
+              "max_ms": 8.623
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 5408.634,
+              "p95_ms": 8927.073,
+              "max_ms": 9074.458
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 3.802,
+              "p95_ms": 5.61,
+              "max_ms": 5.785
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.718194149994815,
+            "inconsistent_cached_outputs": []
+          },
+          "negative_safety_control": {
+            "images": 3,
+            "source_groups": 3,
+            "readable_integer_fields": 0,
+            "correct_value_and_region": 0,
+            "unknown": 0,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 12,
+            "na_abstentions": 12,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 3,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "missing": 3
+            },
+            "miss_stages": {},
+            "group_macro": {
+              "groups_with_readable_targets": 0,
+              "mean_correct_fraction": null
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 0,
+                "correct": 0,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 3,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 3,
+              "p50_ms": 13.076,
+              "p95_ms": 13.333,
+              "max_ms": 13.361
+            },
+            "discovery": {
+              "samples": 3,
+              "p50_ms": 9445.5,
+              "p95_ms": 9938.505,
+              "max_ms": 9993.284
+            },
+            "first_read": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "ready_on_detected_images": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_four_field_reads": {
+              "samples": 0,
+              "p50_ms": null,
+              "p95_ms": null,
+              "max_ms": null
+            },
+            "cached_images": 0,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": null,
+            "inconsistent_cached_outputs": []
+          },
+          "positive_acceptance": {
+            "images": 11,
+            "source_groups": 8,
+            "readable_integer_fields": 44,
+            "correct_value_and_region": 41,
+            "unknown": 3,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 11
+            },
+            "miss_stages": {
+              "value_region": 3
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 8,
+              "mean_correct_fraction": 0.942708
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 11,
+                "correct": 11,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 11,
+                "correct": 10,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 11,
+              "p50_ms": 12.887,
+              "p95_ms": 13.157,
+              "max_ms": 13.192
+            },
+            "discovery": {
+              "samples": 11,
+              "p50_ms": 5388.625,
+              "p95_ms": 8906.52,
+              "max_ms": 9055.168
+            },
+            "first_read": {
+              "samples": 11,
+              "p50_ms": 6.227,
+              "p95_ms": 8.232,
+              "max_ms": 8.623
+            },
+            "ready_on_detected_images": {
+              "samples": 11,
+              "p50_ms": 5408.634,
+              "p95_ms": 8927.073,
+              "max_ms": 9074.458
+            },
+            "cached_four_field_reads": {
+              "samples": 550,
+              "p50_ms": 3.802,
+              "p95_ms": 5.61,
+              "max_ms": 5.785
+            },
+            "cached_images": 11,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.718194149994815,
+            "inconsistent_cached_outputs": []
+          }
+        },
+        "reference": {
+          "all": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 13.011,
+              "p95_ms": 13.33,
+              "max_ms": 13.338
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 644.551,
+              "p95_ms": 3863.403,
+              "max_ms": 4907.819
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 7.263,
+              "p95_ms": 8.657,
+              "max_ms": 8.871
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 664.714,
+              "p95_ms": 3881.281,
+              "max_ms": 4922.951
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 4.528,
+              "p95_ms": 5.376,
+              "max_ms": 5.679
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.475426099996383,
+            "inconsistent_cached_outputs": []
+          },
+          "reference_diagnostic": {
+            "images": 10,
+            "source_groups": 4,
+            "readable_integer_fields": 40,
+            "correct_value_and_region": 38,
+            "unknown": 2,
+            "incorrect_accepted": 0,
+            "wrong_numeric_value": 0,
+            "accepted_unbound_region": 0,
+            "accepted_region_contains_other_resource_center": 0,
+            "na_fields": 0,
+            "na_abstentions": 0,
+            "unsafe_na_accepts": 0,
+            "ambiguity_required_unknown_fields": 0,
+            "unsafe_ambiguity_accepts": 0,
+            "unscored_accepted": 0,
+            "control_images": 0,
+            "control_accepted_values": 0,
+            "control_false_panels": 0,
+            "panel_statuses": {
+              "found": 10
+            },
+            "miss_stages": {
+              "numeric_read": 1,
+              "value_region": 1
+            },
+            "group_macro": {
+              "groups_with_readable_targets": 4,
+              "mean_correct_fraction": 0.875
+            },
+            "per_resource": {
+              "resource_health": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_mana": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_soul": {
+                "readable": 10,
+                "correct": 10,
+                "unknown": 0,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              },
+              "resource_capacity": {
+                "readable": 10,
+                "correct": 9,
+                "unknown": 1,
+                "incorrect_accepted": 0,
+                "na": 0,
+                "unsafe_na_accepts": 0
+              }
+            },
+            "initialization": {
+              "samples": 10,
+              "p50_ms": 13.011,
+              "p95_ms": 13.33,
+              "max_ms": 13.338
+            },
+            "discovery": {
+              "samples": 10,
+              "p50_ms": 644.551,
+              "p95_ms": 3863.403,
+              "max_ms": 4907.819
+            },
+            "first_read": {
+              "samples": 10,
+              "p50_ms": 7.263,
+              "p95_ms": 8.657,
+              "max_ms": 8.871
+            },
+            "ready_on_detected_images": {
+              "samples": 10,
+              "p50_ms": 664.714,
+              "p95_ms": 3881.281,
+              "max_ms": 4922.951
+            },
+            "cached_four_field_reads": {
+              "samples": 500,
+              "p50_ms": 4.528,
+              "p95_ms": 5.376,
+              "max_ms": 5.679
+            },
+            "cached_images": 10,
+            "cached_images_above_50ms_p95": [],
+            "slowest_image_cached_p95_ms": 5.475426099996383,
+            "inconsistent_cached_outputs": []
+          }
+        }
+      },
+      "new_batch": {
+        "all": {
+          "images": 30,
+          "source_groups": 20,
+          "readable_integer_fields": 76,
+          "correct_value_and_region": 69,
+          "unknown": 7,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 44,
+          "na_abstentions": 44,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18,
+            "missing": 12
+          },
+          "miss_stages": {
+            "panel_discovery": 4,
+            "value_region": 3
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 13,
+            "mean_correct_fraction": 0.887821
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 22,
+              "correct": 17,
+              "unknown": 5,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 12,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 30,
+            "p50_ms": 12.989,
+            "p95_ms": 13.429,
+            "max_ms": 13.609
+          },
+          "discovery": {
+            "samples": 30,
+            "p50_ms": 5984.153,
+            "p95_ms": 9905.513,
+            "max_ms": 35405.955
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 6.675,
+            "p95_ms": 9.435,
+            "max_ms": 14.034
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5409.853,
+            "p95_ms": 8823.903,
+            "max_ms": 9074.458
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 4.234,
+            "p95_ms": 6.879,
+            "max_ms": 7.039
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 7.0063584500104525,
+          "inconsistent_cached_outputs": []
+        },
+        "four_readable": {
+          "images": 18,
+          "source_groups": 12,
+          "readable_integer_fields": 72,
+          "correct_value_and_region": 69,
+          "unknown": 3,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 0,
+          "na_abstentions": 0,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "found": 18
+          },
+          "miss_stages": {
+            "value_region": 3
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 12,
+            "mean_correct_fraction": 0.961806
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 18,
+              "correct": 18,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 18,
+              "correct": 17,
+              "unknown": 1,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 18,
+            "p50_ms": 12.907,
+            "p95_ms": 13.199,
+            "max_ms": 13.24
+          },
+          "discovery": {
+            "samples": 18,
+            "p50_ms": 5395.518,
+            "p95_ms": 8802.467,
+            "max_ms": 9055.168
+          },
+          "first_read": {
+            "samples": 18,
+            "p50_ms": 6.675,
+            "p95_ms": 9.435,
+            "max_ms": 14.034
+          },
+          "ready_on_detected_images": {
+            "samples": 18,
+            "p50_ms": 5409.853,
+            "p95_ms": 8823.903,
+            "max_ms": 9074.458
+          },
+          "cached_four_field_reads": {
+            "samples": 900,
+            "p50_ms": 4.234,
+            "p95_ms": 6.879,
+            "max_ms": 7.039
+          },
+          "cached_images": 18,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": 7.0063584500104525,
+          "inconsistent_cached_outputs": []
+        },
+        "partly_readable": {
+          "images": 4,
+          "source_groups": 1,
+          "readable_integer_fields": 4,
+          "correct_value_and_region": 0,
+          "unknown": 4,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 12,
+          "na_abstentions": 12,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 0,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 4
+          },
+          "miss_stages": {
+            "panel_discovery": 4
+          },
+          "group_macro": {
+            "groups_with_readable_targets": 1,
+            "mean_correct_fraction": 0.0
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 4,
+              "correct": 0,
+              "unknown": 4,
+              "incorrect_accepted": 0,
+              "na": 0,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 4,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 4,
+            "p50_ms": 13.228,
+            "p95_ms": 13.591,
+            "max_ms": 13.609
+          },
+          "discovery": {
+            "samples": 4,
+            "p50_ms": 7047.88,
+            "p95_ms": 7421.318,
+            "max_ms": 7471.824
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        },
+        "all_na": {
+          "images": 8,
+          "source_groups": 8,
+          "readable_integer_fields": 0,
+          "correct_value_and_region": 0,
+          "unknown": 0,
+          "incorrect_accepted": 0,
+          "wrong_numeric_value": 0,
+          "accepted_unbound_region": 0,
+          "accepted_region_contains_other_resource_center": 0,
+          "na_fields": 32,
+          "na_abstentions": 32,
+          "unsafe_na_accepts": 0,
+          "ambiguity_required_unknown_fields": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "unscored_accepted": 0,
+          "control_images": 8,
+          "control_accepted_values": 0,
+          "control_false_panels": 0,
+          "panel_statuses": {
+            "missing": 8
+          },
+          "miss_stages": {},
+          "group_macro": {
+            "groups_with_readable_targets": 0,
+            "mean_correct_fraction": null
+          },
+          "per_resource": {
+            "resource_health": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_mana": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_soul": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            },
+            "resource_capacity": {
+              "readable": 0,
+              "correct": 0,
+              "unknown": 0,
+              "incorrect_accepted": 0,
+              "na": 8,
+              "unsafe_na_accepts": 0
+            }
+          },
+          "initialization": {
+            "samples": 8,
+            "p50_ms": 13.074,
+            "p95_ms": 13.295,
+            "max_ms": 13.361
+          },
+          "discovery": {
+            "samples": 8,
+            "p50_ms": 9216.311,
+            "p95_ms": 26511.52,
+            "max_ms": 35405.955
+          },
+          "first_read": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "ready_on_detected_images": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_four_field_reads": {
+            "samples": 0,
+            "p50_ms": null,
+            "p95_ms": null,
+            "max_ms": null
+          },
+          "cached_images": 0,
+          "cached_images_above_50ms_p95": [],
+          "slowest_image_cached_p95_ms": null,
+          "inconsistent_cached_outputs": []
+        }
+      },
+      "changes_from_baseline": {
+        "gained": [
+          {
+            "case_id": "reddit-dworc-o0ap20c",
+            "field": "resource_capacity",
+            "expected": 730,
+            "actual": 730,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-BJEI",
+            "field": "resource_health",
+            "expected": 2992,
+            "actual": 2992,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-BJEI",
+            "field": "resource_soul",
+            "expected": 102,
+            "actual": 102,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-BJEI",
+            "field": "resource_capacity",
+            "expected": 1264,
+            "actual": 1264,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-blake-m91oix5",
+            "field": "resource_mana",
+            "expected": 18475,
+            "actual": 18475,
+            "role": "positive_acceptance",
+            "previous_stage": "numeric_read",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-chrissykes-4ppe2dp",
+            "field": "resource_mana",
+            "expected": 518,
+            "actual": 518,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-chrissykes-4ppe2dp",
+            "field": "resource_capacity",
+            "expected": 195,
+            "actual": 195,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-local-ad3036-w1iymdg",
+            "field": "resource_capacity",
+            "expected": 7671,
+            "actual": 7671,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-eurbina14-9vscc20",
+            "field": "resource_capacity",
+            "expected": 2349,
+            "actual": 2349,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_health",
+            "expected": 938,
+            "actual": 938,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_soul",
+            "expected": 100,
+            "actual": 100,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-quintera-VS41",
+            "field": "resource_capacity",
+            "expected": 1686,
+            "actual": 1686,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-cowboyisaac-9muurr2",
+            "field": "resource_capacity",
+            "expected": 2391,
+            "actual": 2391,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-deleted-09s6sbl",
+            "field": "resource_health",
+            "expected": 4799,
+            "actual": 4799,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-deleted-09s6sbl",
+            "field": "resource_mana",
+            "expected": 3216,
+            "actual": 3216,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-deleted-09s6sbl",
+            "field": "resource_soul",
+            "expected": 200,
+            "actual": 200,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "reddit-deleted-09s6sbl",
+            "field": "resource_capacity",
+            "expected": 2755,
+            "actual": 2755,
+            "role": "positive_acceptance",
+            "previous_stage": "panel_discovery",
+            "current_stage": null,
+            "detail": ""
+          },
+          {
+            "case_id": "dfg-gentebra-3XWB",
+            "field": "resource_mana",
+            "expected": 1451,
+            "actual": 1451,
+            "role": "positive_acceptance",
+            "previous_stage": "value_region",
+            "current_stage": null,
+            "detail": ""
+          }
+        ],
+        "regressed": []
+      },
+      "paired_full_primary_cached": {
+        "images_detected_by_both": 42,
+        "baseline": {
+          "samples": 2100,
+          "p50_ms": 9.877,
+          "p95_ms": 19.755,
+          "max_ms": 58.105
+        },
+        "candidate": {
+          "samples": 2100,
+          "p50_ms": 4.772,
+          "p95_ms": 6.994,
+          "max_ms": 55.776
+        }
+      },
+      "new_batch_misses": [
+        {
+          "case_id": "reddit-musquitu96-9sol5rg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5017,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-wzgn2qg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5277,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "partition": "test",
+          "field": "resource_health",
+          "expected": 2116,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-uuhie47",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5365,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-cowboyisaac-dhlws3d",
+          "partition": "test",
+          "field": "resource_capacity",
+          "expected": 1176,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-keasol-2yqk8uk",
+          "partition": "test",
+          "field": "resource_mana",
+          "expected": 4112,
+          "actual": null,
+          "stage": "value_region",
+          "detail": "resource row does not have a unique complete value in the verified column",
+          "incorrect_accepted": false
+        },
+        {
+          "case_id": "reddit-musquitu96-zw6jbqg",
+          "partition": "development",
+          "field": "resource_health",
+          "expected": 5369,
+          "actual": null,
+          "stage": "panel_discovery",
+          "detail": "no verified resource panel and value column found",
+          "incorrect_accepted": false
+        }
+      ],
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_na_or_ambiguity_accepts": true,
+        "no_unscored_accepts": true,
+        "all_safety_controls_abstain": true,
+        "no_correct_field_regressions": true,
+        "cached_outputs_consistent": true,
+        "every_detected_full_image_p95_within_50ms": false
+      }
+    }
+  },
+  "limitations": [
+    "All 30 additions come from one community/platform, across 20 conservative source groups; this is not a representative production sample.",
+    "Public attachment dimensions do not establish native resolution, DPI or original capture date. Every exact client version stays null.",
+    "All 51 older images have been inspected during prior work; none enters the new untouched test partition.",
+    "Four partially clipped Hit Points values are unambiguously readable from their surviving glyphs; three other rows in each are N/A. A separate severely clipped Hit Points fragment is N/A.",
+    "Static screenshot repetitions do not establish live freshness, capture latency, layout recovery or production error rates.",
+    "No screenshot is excluded or relabeled because a reader fails. Future failure-driven tuning must use development images; test-derived tuning requires fresh test evidence.",
+    "Cached latency is conditional on successful discovery. Missing layouts do not count as fast successful reads.",
+    "One run per image/variant; 50 repeats measure warm static behavior, not independent gameplay samples."
+  ]
+}

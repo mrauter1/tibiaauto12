@@ -5,7 +5,7 @@ import argparse
 from collections import Counter, defaultdict
 from hashlib import sha256
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import subprocess
 import sys
 
@@ -20,6 +20,46 @@ from tools.summarize_resource_techniques import changes, timings  # noqa: E402
 
 CORPUS = ROOT / "tests/fixtures/screenshots"
 BATCH = "2026-10-17-latest"
+ANNOTATION_REVISION = "7af3111c928919ce5d0f604cbc0722f9f94a490c"
+
+
+def verify_profile_bundle(revision, freeze, implementation):
+    """Reconcile checkout-specific aggregate hashes against immutable Git blobs.
+
+    The evaluated wrapper normalizes JSON, but its Path ordering and README
+    bytes still differ between Windows and Linux. Reconstruct both encodings;
+    never update the pre-inference freeze or silently ignore a hash mismatch.
+    """
+    root = "profiles/paulistinha-skills-v1"
+    revisions = (freeze["reader_base_commit"], ANNOTATION_REVISION, revision)
+    trees = {rev: subprocess.check_output(
+        ["git", "rev-parse", f"{rev}:{root}"], cwd=ROOT).decode().strip()
+        for rev in revisions}
+    assert len(set(trees.values())) == 1, "Profile files changed after the freeze"
+    paths = subprocess.check_output(
+        ["git", "ls-tree", "-r", "--name-only", revision, "--", root], cwd=ROOT
+    ).decode().splitlines()
+    blobs = {path: subprocess.check_output(
+        ["git", "show", f"{revision}:{path}"], cwd=ROOT) for path in paths}
+    hashes = {}
+    for platform, key in (("linux", PurePosixPath), ("windows", PureWindowsPath)):
+        digest = sha256()
+        for path in sorted(paths, key=key):
+            relative = path[len(root) + 1:].encode("utf-8")
+            payload = blobs[path]
+            if platform == "windows" and path.endswith(".md"):
+                payload = payload.replace(b"\n", b"\r\n")
+            digest.update(len(relative).to_bytes(4, "big"))
+            digest.update(relative)
+            digest.update(len(payload).to_bytes(8, "big"))
+            digest.update(payload)
+        hashes[platform] = digest.hexdigest()
+    assert freeze["implementation"]["profile_bundle_sha256"] == hashes["windows"]
+    assert implementation["profile_bundle_sha256"] in hashes.values()
+    assert freeze["implementation"]["profile_file_count"] == implementation["profile_file_count"] == len(paths)
+    return {"git_tree": next(iter(trees.values())), "verified_revisions": list(revisions),
+            "checkout_aggregate_sha256": hashes, "files": len(paths),
+            "content_identical": True}
 
 
 def scorecard(rows, entries, groups):
@@ -125,7 +165,8 @@ def summarize(directory, revision, run_url):
         blob = subprocess.check_output(["git", "show", f"{revision}:{name}"], cwd=ROOT)
         assert sha256(blob).hexdigest() == digest, (name, "revision mismatch")
     freeze = json.loads((CORPUS / "collection-2026-10-17-latest.json").read_text())
-    assert freeze["implementation"] == implementation
+    assert freeze["implementation"]["code_files"] == implementation["code_files"]
+    profile_integrity = verify_profile_bundle(revision, freeze, implementation)
     assert all(fingerprints[name] == digest for name, digest in freeze["experimental_reader_files_sha256"].items())
     variants = {}
     baseline = all_variants["baseline"]
@@ -179,6 +220,7 @@ def summarize(directory, revision, run_url):
         "originals": len(entries), "image_variant_cases": len(entries) * len(variants),
         "partition_counts": {key: len(ids) for key, ids in split["partitions"].items()},
         "annotation_freeze": "tests/fixtures/screenshots/collection-2026-10-17-latest.json",
+        "annotation_revision": ANNOTATION_REVISION, "profile_integrity": profile_integrity,
         "no_test_tuning": True, "fingerprints": fingerprints, "implementation": implementation,
         "raw_files": raw_files, "environments": environments, "variants": variants,
         "limitations": freeze["limits"] + ["Cached latency is conditional on successful discovery. Missing layouts do not count as fast successful reads.", "One run per image/variant; 50 repeats measure warm static behavior, not independent gameplay samples."],

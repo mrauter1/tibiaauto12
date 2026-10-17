@@ -4,8 +4,8 @@ Thirty additional **complete, real client screenshots** were selected and
 manually annotated before reader inference. The corpus now contains **81
 unchanged originals: 71 full screenshots and ten supplemental crops**.
 
-The additions were published July 13–October 14, 2026, after the
-[July 13 summer update](https://www.tibia.com/news/?id=8845&subtopic=newsarchive).
+The additions were published July 13–October 14, 2026, spanning the period since
+the [July 13 summer update](https://www.tibia.com/news/?id=8845&subtopic=newsarchive).
 Echo Raid and Make Believe content in several captures supports that update
 period. These are contemporary public captures, not independently verified
 executables: **all exact build numbers, native resolutions, DPI settings and
