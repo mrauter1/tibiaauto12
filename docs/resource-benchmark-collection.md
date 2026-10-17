@@ -5,6 +5,11 @@ Screenshot correctness alone is not a measurement of success during ordinary
 gameplay. Use the [session recorder and replay benchmark](resource-sequences.md)
 for native capture sessions.
 
+The [2026-10-17 public collection](resource-corpus-2026-10-17.md) adds 31 full
+screenshots and one partial reference, with a pre-inference annotation freeze,
+source/session grouping, duplicate audit and navigation contact sheets. It is
+static screenshot evidence; it does not replace the native-session work below.
+
 Do not resize, crop, paste, sharpen, or otherwise manufacture benchmark inputs.
 A proposed rendering transform is admissible only after comparison with actual
 captures proves that a documented, supported game configuration renders the

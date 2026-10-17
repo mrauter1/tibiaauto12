@@ -5,6 +5,7 @@ from dataclasses import replace
 from hashlib import sha256
 from math import ceil, floor
 from pathlib import Path
+import shutil
 
 import cv2
 import numpy as np
@@ -702,9 +703,10 @@ def historical_manifest(tmp_path_factory):
     document["screenshots"] = [
         entry for entry in document["screenshots"] if not entry.get("collection_batch")
     ]
-    for entry in document["screenshots"]:
-        entry["file"] = str(corpus.DEFAULT_MANIFEST.parent / entry["file"])
     path = tmp_path_factory.mktemp("historical-corpus") / "manifest.json"
+    (path.parent / "originals").mkdir()
+    for entry in document["screenshots"]:
+        shutil.copyfile(corpus.DEFAULT_MANIFEST.parent / entry["file"], path.parent / entry["file"])
     path.write_text(json.dumps(document), encoding="utf-8")
     return path
 

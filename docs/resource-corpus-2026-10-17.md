@@ -54,6 +54,11 @@ before inference. The [freeze audit](../tests/fixtures/screenshots/collection-20
 records rejected large candidates and access limitations, including DFG rate
 limiting and unavailable external landing pages.
 
+The freeze's whole-file annotation hashes describe the Windows working copy
+(CRLF). Git stores those JSON files with LF; the canonical per-entry hashes are
+the portable annotation audit and pass on both platforms. Original image hashes
+always describe the exact downloaded bytes and are unaffected by line endings.
+
 Use the [manifest](../tests/fixtures/screenshots/manifest.json) and
 [visual reviews](../tests/fixtures/screenshots/visual-review.json) for exact source
 links and annotations. The contact sheets below are **resized navigation only**;
