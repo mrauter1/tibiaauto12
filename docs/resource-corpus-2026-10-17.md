@@ -6,6 +6,11 @@ with source names/marks preserved. Selection, values, visibility, splits and
 visual equivalence were frozen in commit `12b52ff` **before reader inference**.
 No reader, profile or template was changed.
 
+The [frozen-reader baseline](../reports/resource-corpus-2026-10-17.md) reads
+62/88 new primary values correctly and abstains on 26, with no incorrect accepted
+values or wrong-row associations. All seven new safety controls abstain. The
+report separates these results from prior regressions and cold/cached latency.
+
 The batch contains 28 conservative author/listing groups from DFG, Reddit,
 DrenoxBot, TibiaUtils, TibiaBR, TibiaQA and Allegro. These are provenance groups,
 not proven independent capture sessions. Four images share three existing
