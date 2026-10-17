@@ -2,7 +2,7 @@
   "schema": "tibiaauto.screenshot-corpus",
   "version": 1,
   "box_format": "xyxy-half-open",
-  "generated_at": "2026-10-14",
+  "generated_at": "2026-10-17",
   "notes": [
     "Boxes are absolute full-image [left, top, right, bottom] coordinates; right and bottom are excluded.",
     "Resource boxes tightly enclose numeric glyphs (including displayed thousands separators), not row labels.",
@@ -1816,6 +1816,5687 @@
         "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture.",
         "reviewed_at": "2026-10-14",
         "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+      }
+    },
+    {
+      "id": "dfg-demolidores-4KCJ",
+      "file": "originals/905898076-vendo-char-tibia-ot-demolidores-mage-full-set-4KCJ.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "different_interface_reference",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/vendo-char-ot-demolidores-mage-full-set-905898076",
+        "image_url": "https://cdn.dfg.com.br/itemimages/905898076-vendo-char-tibia-ot-demolidores-mage-full-set-4KCJ.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "905898076-vendo-char-tibia-ot-demolidores-mage-full-set-4KCJ.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "f6ddda5d53bbcf447e57548224d4c869a28736005c5e7d344230220d4f9e9853",
+        "width": 1280,
+        "height": 720,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Demolidores custom client",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Windows desktop containing a complete Demolidores client. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1087,
+          372,
+          1275,
+          602
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2878519,
+          "visible": true,
+          "box": [
+            1208,
+            399,
+            1255,
+            407
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 20139633,
+          "visible": true,
+          "box": [
+            1201,
+            416,
+            1255,
+            424
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 48,
+          "visible": true,
+          "box": [
+            1242,
+            433,
+            1255,
+            441
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": true,
+          "box": [
+            1199,
+            450,
+            1255,
+            458
+          ],
+          "verification": "visible_value_unknown"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1095,
+            399,
+            1148,
+            407
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1208,
+            399,
+            1255,
+            407
+          ],
+          "display_text": "2878519",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1095,
+            416,
+            1124,
+            424
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1201,
+            416,
+            1255,
+            424
+          ],
+          "display_text": "20139633",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1095,
+            433,
+            1156,
+            441
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1242,
+            433,
+            1255,
+            441
+          ],
+          "display_text": "48",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1095,
+            450,
+            1143,
+            458
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1199,
+            450,
+            1255,
+            458
+          ],
+          "display_text": "104966.56",
+          "readability": "readable_decimal_outside_integer_schema"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_desktop_with_complete_client",
+        "extent_evidence": "Windows desktop containing a complete Demolidores client."
+      },
+      "lineage": {
+        "group": "dfg-listing-905898076",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visibly_different",
+        "evidence": "Windows desktop containing a complete Demolidores client. Flat panel, narrower ungrouped seven/eight-digit values and fractional Capacity differ from the target. The readable decimal 104966.56 is retained as text; the integer-only scoring schema cannot represent it and it is never rounded."
+      }
+    },
+    {
+      "id": "dfg-belobra-2AHL",
+      "file": "originals/966830394-master-sorcerer-323-belobra-leia-a-descricao-2AHL.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/master-sorcerer-323-belobra-leia-a-descricao-966830394",
+        "image_url": "https://cdn.dfg.com.br/itemimages/966830394-master-sorcerer-323-belobra-leia-a-descricao-2AHL.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-2AHL.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "2261c4f9e20573c7e13c3569f9e65a27b9e17e9286e3e87370b9f643202a828e",
+        "width": 1366,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete borderless client. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          174,
+          260
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1760,
+          "visible": true,
+          "box": [
+            121,
+            92,
+            154,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 4726,
+          "visible": true,
+          "box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            132,
+            120,
+            154,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 732,
+          "visible": true,
+          "box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            92,
+            70,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            121,
+            92,
+            154,
+            101
+          ],
+          "display_text": "1,760",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            10,
+            106,
+            42,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "display_text": "4,726",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            10,
+            120,
+            80,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            120,
+            154,
+            128
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            10,
+            134,
+            64,
+            142
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "display_text": "732",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete borderless client."
+      },
+      "lineage": {
+        "group": "dfg-listing-966830394",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-belobra-S50Q"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "expected_final_unknown_fields": [
+        "resource_health",
+        "resource_mana",
+        "resource_soul",
+        "resource_capacity"
+      ],
+      "abstention_reason": "Two complete plausible resource panels; automatic binding must abstain.",
+      "ambiguity_evidence": "Left Skills and central Cyclopedia Character each display all four resource rows with matching values.",
+      "additional_resource_panels": [
+        {
+          "box": [
+            522,
+            152,
+            771,
+            568
+          ],
+          "rows": {
+            "resource_health": {
+              "value": 1760,
+              "label_box": [
+                528,
+                243,
+                589,
+                252
+              ],
+              "value_box": [
+                729,
+                243,
+                765,
+                252
+              ]
+            },
+            "resource_mana": {
+              "value": 4726,
+              "label_box": [
+                528,
+                261,
+                589,
+                270
+              ],
+              "value_box": [
+                729,
+                261,
+                765,
+                270
+              ]
+            },
+            "resource_soul": {
+              "value": 200,
+              "label_box": [
+                528,
+                279,
+                599,
+                288
+              ],
+              "value_box": [
+                741,
+                279,
+                765,
+                288
+              ]
+            },
+            "resource_capacity": {
+              "value": 732,
+              "label_box": [
+                528,
+                297,
+                589,
+                306
+              ],
+              "value_box": [
+                741,
+                297,
+                765,
+                306
+              ]
+            }
+          }
+        }
+      ],
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete borderless client. Top-left Skills and a central Cyclopedia Character dialog both show Hit Points 1,760, Mana 4,726, Soul Points 200 and Capacity 732. Two complete plausible resource panels require abstention, even though their displayed values agree."
+      }
+    },
+    {
+      "id": "dfg-belobra-S50Q",
+      "file": "originals/966830394-master-sorcerer-323-belobra-leia-a-descricao-S50Q.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/master-sorcerer-323-belobra-leia-a-descricao-966830394",
+        "image_url": "https://cdn.dfg.com.br/itemimages/966830394-master-sorcerer-323-belobra-leia-a-descricao-S50Q.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-S50Q.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "5aac31390581568e445af53a03d4fdbe16e79216a1d243c18573d59679ace65f",
+        "width": 1366,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete borderless client with upper-left Skills above XP Analyser, bottom action bar and right inventory. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          174,
+          260
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1760,
+          "visible": true,
+          "box": [
+            121,
+            92,
+            154,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 4726,
+          "visible": true,
+          "box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            132,
+            120,
+            154,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 732,
+          "visible": true,
+          "box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            92,
+            70,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            121,
+            92,
+            154,
+            101
+          ],
+          "display_text": "1,760",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            10,
+            106,
+            42,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "display_text": "4,726",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            10,
+            120,
+            80,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            120,
+            154,
+            128
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            10,
+            134,
+            64,
+            142
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "display_text": "732",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete borderless client with upper-left Skills above XP Analyser, bottom action bar and right inventory."
+      },
+      "lineage": {
+        "group": "dfg-listing-966830394",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-belobra-2AHL"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete borderless client with upper-left Skills above XP Analyser, bottom action bar and right inventory. Same character/location as 2AHL; removing the Character dialog creates a materially different single-panel state. Four resource rows have the same bold labels, comma grouping, textured dock and right alignment as the target."
+      }
+    },
+    {
+      "id": "drenox-client",
+      "file": "originals/client.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://drenoxbot.com/paulistinha",
+        "image_url": "https://drenoxbot.com/img/shots/client.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "client.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "7e8ca450e491cfedead9423a5c6204490e651ecddb44899dd50212eeb464e026",
+        "width": 1920,
+        "height": 1009,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with large DrenoxBot dialog and dense numeric text in its center. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1744,
+          574,
+          1919,
+          791
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 470,
+          "visible": true,
+          "box": [
+            1876,
+            666,
+            1898,
+            674
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 24,
+          "visible": true,
+          "box": [
+            1884,
+            680,
+            1898,
+            688
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1877,
+            694,
+            1898,
+            702
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 0,
+          "visible": true,
+          "box": [
+            1892,
+            708,
+            1898,
+            716
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1754,
+            666,
+            1814,
+            674
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1876,
+            666,
+            1898,
+            674
+          ],
+          "display_text": "470",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1754,
+            680,
+            1786,
+            688
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1884,
+            680,
+            1898,
+            688
+          ],
+          "display_text": "24",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1754,
+            694,
+            1824,
+            702
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1877,
+            694,
+            1898,
+            702
+          ],
+          "display_text": "100",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1754,
+            708,
+            1808,
+            716
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1892,
+            708,
+            1898,
+            716
+          ],
+          "display_text": "0",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with large DrenoxBot dialog and dense numeric text in its center."
+      },
+      "lineage": {
+        "group": "drenoxbot-paulistinha-page",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with large DrenoxBot dialog and dense numeric text in its center. Uncovered Skills is low on the right and shows Mana 24 and Capacity 0. Its four labels, row order, light bold glyphs, textured panel and right alignment match the target. The surrounding custom dialog is different; the source page discusses several clients and does not identify the build/server of this specific image."
+      }
+    },
+    {
+      "id": "dfg-gentebra-3XWB",
+      "file": "originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-3XWB.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/paladin-lvl-193-skills-101-na-barra-gentebra-906563910",
+        "image_url": "https://cdn.dfg.com.br/itemimages/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-3XWB.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-3XWB.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "b0e968b2a63b67076ffe1a5bdbd7ca9533acf5e7c15a9768e4dae592b60515e9",
+        "width": 1360,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with a central mount dialog covering the left prefixes of all four Skills labels. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1005,
+          0,
+          1182,
+          433
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 1969,
+          "visible": true,
+          "box": [
+            1129,
+            92,
+            1162,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1451,
+          "visible": true,
+          "box": [
+            1129,
+            106,
+            1161,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1140,
+            120,
+            1162,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 330,
+          "visible": true,
+          "box": [
+            1140,
+            134,
+            1162,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1032,
+            92,
+            1078,
+            100
+          ],
+          "label_visibility": "clipped_by_dialog",
+          "value_box": [
+            1129,
+            92,
+            1162,
+            101
+          ],
+          "display_text": "1,969",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1032,
+            108,
+            1050,
+            114
+          ],
+          "label_visibility": "clipped_by_dialog",
+          "value_box": [
+            1129,
+            106,
+            1161,
+            115
+          ],
+          "display_text": "1,451",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1034,
+            120,
+            1088,
+            128
+          ],
+          "label_visibility": "clipped_by_dialog",
+          "value_box": [
+            1140,
+            120,
+            1162,
+            128
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1034,
+            134,
+            1072,
+            142
+          ],
+          "label_visibility": "clipped_by_dialog",
+          "value_box": [
+            1140,
+            134,
+            1162,
+            142
+          ],
+          "display_text": "330",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with a central mount dialog covering the left prefixes of all four Skills labels."
+      },
+      "lineage": {
+        "group": "dfg-listing-906563910",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-gentebra-AZ3L",
+          "dfg-gentebra-rp193-PPNB"
+        ],
+        "known_regression_relatives": [
+          "dfg-gentebra-rp193-PPNB"
+        ],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "occlusions": [
+        {
+          "box": [
+            1005,
+            83,
+            1032,
+            433
+          ],
+          "kind": "natural_cyclopedia_dialog",
+          "effect": "Covers the first letters of every resource label; value glyphs remain complete."
+        }
+      ],
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with a central mount dialog covering the left prefixes of all four Skills labels. Remaining text and full values are readable in the right dock. Gray textured panel, adjacent four-row order, comma glyphs and right alignment match the target; prefix clipping is recorded explicitly, not inferred away."
+      }
+    },
+    {
+      "id": "dfg-gentebra-AZ3L",
+      "file": "originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-AZ3L.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas-com-carta-rk/paladin-lvl-193-skills-101-na-barra-gentebra-906563910",
+        "image_url": "https://cdn.dfg.com.br/itemimages/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-AZ3L.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-AZ3L.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "8fab23b14e0fb1c3b02d1cac806f7090052c3a76ba38f77fd7fc397d6789a88c",
+        "width": 1360,
+        "height": 705,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with an open Quest Log in the middle. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1005,
+          0,
+          1182,
+          433
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2035,
+          "visible": true,
+          "box": [
+            1128,
+            92,
+            1162,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1455,
+          "visible": true,
+          "box": [
+            1129,
+            106,
+            1162,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1140,
+            120,
+            1162,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 335,
+          "visible": true,
+          "box": [
+            1140,
+            134,
+            1162,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1018,
+            92,
+            1078,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1128,
+            92,
+            1162,
+            101
+          ],
+          "display_text": "2,035",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1018,
+            106,
+            1050,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1129,
+            106,
+            1162,
+            115
+          ],
+          "display_text": "1,455",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1018,
+            120,
+            1088,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1140,
+            120,
+            1162,
+            128
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1018,
+            134,
+            1072,
+            142
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1140,
+            134,
+            1162,
+            142
+          ],
+          "display_text": "335",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with an open Quest Log in the middle."
+      },
+      "lineage": {
+        "group": "dfg-listing-906563910",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-gentebra-3XWB",
+          "dfg-gentebra-rp193-PPNB"
+        ],
+        "known_regression_relatives": [
+          "dfg-gentebra-rp193-PPNB"
+        ],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with an open Quest Log in the middle. Right Skills labels and values are unobscured, with the same four-row order, comma glyphs, textured dock and right alignment as the target. Values differ from 3XWB; annotated independently from these pixels."
+      }
+    },
+    {
+      "id": "dfg-gentebra-BJEI",
+      "file": "originals/904190487-char-tibia-lvl-302-em-gentebra-royal-palladin-BJEI.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/char-lvl-302-em-gentebra-royal-palladin-904190487",
+        "image_url": "https://cdn.dfg.com.br/itemimages/904190487-char-tibia-lvl-302-em-gentebra-royal-palladin-BJEI.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "904190487-char-tibia-lvl-302-em-gentebra-royal-palladin-BJEI.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "299f3f42dcc5bb76de8c4ce0baef7153c1a62fd04d97b69243c8349f7c1b366d",
+        "width": 1400,
+        "height": 875,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Windows desktop with complete client and lower-right Skills, top status bars and bottom action bar. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1228,
+          435,
+          1400,
+          832
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2992,
+          "visible": true,
+          "box": [
+            1346,
+            525,
+            1379,
+            534
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 3628,
+          "visible": true,
+          "box": [
+            1346,
+            539,
+            1379,
+            548
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 102,
+          "visible": true,
+          "box": [
+            1359,
+            552,
+            1378,
+            560
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1264,
+          "visible": true,
+          "box": [
+            1347,
+            566,
+            1378,
+            575
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1239,
+            525,
+            1297,
+            533
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1346,
+            525,
+            1379,
+            534
+          ],
+          "display_text": "2,992",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1239,
+            539,
+            1270,
+            546
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1346,
+            539,
+            1379,
+            548
+          ],
+          "display_text": "3,628",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1239,
+            552,
+            1307,
+            560
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1359,
+            552,
+            1378,
+            560
+          ],
+          "display_text": "102",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1239,
+            566,
+            1291,
+            575
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1347,
+            566,
+            1378,
+            575
+          ],
+          "display_text": "1,264",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_desktop_with_complete_client",
+        "extent_evidence": "Windows desktop with complete client and lower-right Skills, top status bars and bottom action bar."
+      },
+      "lineage": {
+        "group": "dfg-listing-904190487",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Windows desktop with complete client and lower-right Skills, top status bars and bottom action bar. The resource labels/order, right alignment, comma grouping and gray textured panel match the target. Publisher name marks and compressed soft glyph edges are preserved."
+      }
+    },
+    {
+      "id": "dfg-yonabra-8LN9",
+      "file": "originals/974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-8LN9.webp",
+      "split": "train",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-974104750",
+        "image_url": "https://cdn.dfg.com.br/itemimages/974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-8LN9.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-8LN9.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "c841d917dbb77342649bc15c39be8fd074314ea72069d06be2bb60be91d60224",
+        "width": 1400,
+        "height": 788,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete macOS client at character selection. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": false,
+        "box": null
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete macOS client at character selection."
+      },
+      "lineage": {
+        "group": "dfg-listing-974104750",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-yonabra-ek195"
+        ],
+        "known_regression_relatives": [
+          "dfg-yonabra-ek195"
+        ],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete macOS client at character selection. Skills and its resource rows are absent. Listing is the existing Yonabra source lineage; character levels and account-status numbers must not be bound as resources. Resource render equivalence cannot be inspected on this login screen."
+      }
+    },
+    {
+      "id": "dfg-quintera-VS41",
+      "file": "originals/975471397-druid-level-167-ml-77-quintera-VS41.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/druid-level-167-ml-77-quintera-975471397",
+        "image_url": "https://cdn.dfg.com.br/itemimages/975471397-druid-level-167-ml-77-quintera-VS41.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "975471397-druid-level-167-ml-77-quintera-VS41.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "9fdb83bf28ddb596af33ed0f399a9536c08289319da8cd2d7d88da46ee01118a",
+        "width": 1400,
+        "height": 875,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Windows 7 desktop containing a complete client, lower-right Skills and bottom action bar. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1228,
+          398,
+          1400,
+          800
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 938,
+          "visible": true,
+          "box": [
+            1356,
+            487,
+            1378,
+            495
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 4123,
+          "visible": true,
+          "box": [
+            1345,
+            501,
+            1378,
+            510
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1357,
+            514,
+            1378,
+            522
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1686,
+          "visible": true,
+          "box": [
+            1346,
+            528,
+            1378,
+            537
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1240,
+            487,
+            1298,
+            495
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1356,
+            487,
+            1378,
+            495
+          ],
+          "display_text": "938",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1240,
+            501,
+            1271,
+            508
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1345,
+            501,
+            1378,
+            510
+          ],
+          "display_text": "4,123",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1240,
+            514,
+            1308,
+            522
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1357,
+            514,
+            1378,
+            522
+          ],
+          "display_text": "100",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1240,
+            528,
+            1292,
+            537
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1346,
+            528,
+            1378,
+            537
+          ],
+          "display_text": "1,686",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_desktop_with_complete_client",
+        "extent_evidence": "Windows 7 desktop containing a complete client, lower-right Skills and bottom action bar."
+      },
+      "lineage": {
+        "group": "dfg-listing-975471397",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Windows 7 desktop containing a complete client, lower-right Skills and bottom action bar. Resource order, bold labels, comma values, right alignment and gray dock match the target despite softer WebP glyphs. Older compass/tools and Magic Level below the resource block differ; equivalence is restricted to the four inspected resource rows."
+      }
+    },
+    {
+      "id": "dfg-retropvp-BYZ0",
+      "file": "originals/978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-BYZ0-1924051.webp",
+      "split": "train",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/tibia/contas/50-loyalty-rp-535-com-itens-retro-pvp-978242455",
+        "image_url": "https://cdn.dfg.com.br/itemimages/978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-BYZ0-1924051.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-BYZ0-1924051.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "3de3616b41135bba5727327f42b1dbefceaa04c0d7ebeffaf8242260cc799708",
+        "width": 1920,
+        "height": 1080,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with Skills at the far left, many inventory docks on the right and central Cyclopedia boss statistics. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          175,
+          441
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 5455,
+          "visible": true,
+          "box": [
+            120,
+            92,
+            154,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 7995,
+          "visible": true,
+          "box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            133,
+            120,
+            154,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 4250,
+          "visible": true,
+          "box": [
+            120,
+            134,
+            154,
+            143
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            92,
+            70,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            92,
+            154,
+            101
+          ],
+          "display_text": "5,455",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            10,
+            106,
+            42,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            106,
+            154,
+            115
+          ],
+          "display_text": "7,995",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            10,
+            120,
+            80,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            133,
+            120,
+            154,
+            128
+          ],
+          "display_text": "100",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            10,
+            134,
+            64,
+            143
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            134,
+            154,
+            143
+          ],
+          "display_text": "4,250",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with Skills at the far left, many inventory docks on the right and central Cyclopedia boss statistics."
+      },
+      "lineage": {
+        "group": "dfg-listing-978242455",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "dfg-retro-pvp-rp535"
+        ],
+        "known_regression_relatives": [
+          "dfg-retro-pvp-rp535"
+        ],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with Skills at the far left, many inventory docks on the right and central Cyclopedia boss statistics. Adjacent Hit Points/Mana/Soul Points/Capacity rows, comma glyphs, right alignment and textured dock match the target. Same listing/character as the existing RP535 image; boss counters are useful numeric distractors, not a new independent session."
+      }
+    },
+    {
+      "id": "tibiautils-d35caff",
+      "file": "originals/d35caff.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://tibiautils.com/",
+        "image_url": "https://i.imgur.com/d35caff.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "d35caff.png",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified. The page/image relationship was found through indexed public image results; the landing page was unavailable or not independently retrievable during collection."
+      },
+      "integrity": {
+        "sha256": "4b345f4aa40834b0289d010290dda13cafb2ca4729aef54a0efe1dc1e4161b61",
+        "width": 1440,
+        "height": 900,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with Skills between Battle List and Glooth Backpack on the right, dense action bars and world combat. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1090,
+          317,
+          1261,
+          572
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3738,
+          "visible": true,
+          "box": [
+            1208,
+            410,
+            1242,
+            419
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 20328,
+          "visible": true,
+          "box": [
+            1200,
+            424,
+            1242,
+            433
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1220,
+            438,
+            1242,
+            446
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 473,
+          "visible": true,
+          "box": [
+            1220,
+            452,
+            1242,
+            460
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1098,
+            410,
+            1158,
+            418
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1208,
+            410,
+            1242,
+            419
+          ],
+          "display_text": "3,738",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1098,
+            424,
+            1130,
+            432
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1200,
+            424,
+            1242,
+            433
+          ],
+          "display_text": "20,328",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1098,
+            438,
+            1168,
+            446
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1220,
+            438,
+            1242,
+            446
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1098,
+            452,
+            1152,
+            460
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1220,
+            452,
+            1242,
+            460
+          ],
+          "display_text": "473",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with Skills between Battle List and Glooth Backpack on the right, dense action bars and world combat."
+      },
+      "lineage": {
+        "group": "tibiautils-d35caff",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with Skills between Battle List and Glooth Backpack on the right, dense action bars and world combat. Resource labels/order, bold comma glyphs, right alignment and gray dock match the target; five-digit Mana 20,328 is fully readable."
+      }
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "file": "originals/sidebars-filled.JPG",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.tibiabr.com/3176/patch-notes-4427/",
+        "image_url": "https://images.tibiabr.com/hotnews/sidebars-filled.JPG",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "sidebars-filled.JPG",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified. The page/image relationship was found through indexed public image results; the landing page was unavailable or not independently retrievable during collection."
+      },
+      "integrity": {
+        "sha256": "c2c73d322b429d4f9e8dd48d30fe9bfb18b33b79007b65bb7650bce535a7f64e",
+        "width": 1437,
+        "height": 835,
+        "format": "JPEG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client body with chat, minimap, equipment, action icons and two filled right sidebars. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": false,
+        "box": null
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client body with chat, minimap, equipment, action icons and two filled right sidebars."
+      },
+      "lineage": {
+        "group": "tibiabr-patch-4427",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete client body with chat, minimap, equipment, action icons and two filled right sidebars. Skills is closed; health/mana bars and equipment Soul/Cap are visible elsewhere. Older compass/control arrangement is visible, but absent resource rows prevent a resource-glyph equivalence claim."
+      }
+    },
+    {
+      "id": "dfg-gladera-SSVX",
+      "file": "originals/953559644-vendo-royal-paladin-383-tibia-global-gladera-SSVX.webp",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.dfg.com.br/en/tibia/accounts/royal-paladin-383-non-pvp-gladera-953559644",
+        "image_url": "https://cdn.dfg.com.br/itemimages/953559644-vendo-royal-paladin-383-tibia-global-gladera-SSVX.webp",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "953559644-vendo-royal-paladin-383-tibia-global-gladera-SSVX.webp",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "176c21eeb420068f58781830fb2e3af328510cb65fbbaa43ca880543f2e0e32a",
+        "width": 1400,
+        "height": 723,
+        "format": "WEBP"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with Skills in the inner right dock surrounded by depot item grids. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          918,
+          0,
+          1078,
+          407
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3935,
+          "visible": true,
+          "box": [
+            1028,
+            84,
+            1059,
+            92
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 5715,
+          "visible": true,
+          "box": [
+            1028,
+            97,
+            1059,
+            104
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            1040,
+            109,
+            1059,
+            117
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 3700,
+          "visible": true,
+          "box": [
+            1028,
+            122,
+            1059,
+            131
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            928,
+            84,
+            983,
+            91
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1028,
+            84,
+            1059,
+            92
+          ],
+          "display_text": "3,935",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            928,
+            97,
+            957,
+            104
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1028,
+            97,
+            1059,
+            104
+          ],
+          "display_text": "5,715",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            928,
+            109,
+            992,
+            117
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1040,
+            109,
+            1059,
+            117
+          ],
+          "display_text": "100",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            928,
+            122,
+            977,
+            131
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1028,
+            122,
+            1059,
+            131
+          ],
+          "display_text": "3,700",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with Skills in the inner right dock surrounded by depot item grids."
+      },
+      "lineage": {
+        "group": "dfg-listing-953559644",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client with Skills in the inner right dock surrounded by depot item grids. Light bold resource labels, comma glyphs, adjacent row order, textured dock and right alignment match the target. Softer source WebP rendering and numerous inventory counts are preserved."
+      }
+    },
+    {
+      "id": "tibiaqa-flash-v1QxvNN",
+      "file": "originals/v1QxvNN.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "different_interface_reference",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.tibiaqa.com/9688/how-has-the-tibia-client-changed-since-tibia-was-created",
+        "image_url": "https://i.imgur.com/v1QxvNN.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "v1QxvNN.png",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "8a8ef1fb56903695c4d90103e698ce234120afd2cff337b632de39175138e7ab",
+        "width": 974,
+        "height": 621,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Flash-style Tibia client",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete Flash-style client with blue/gold framed controls, a different top-bar font, left minimap, right bags and action buttons on all sides. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": false,
+        "box": null
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete Flash-style client with blue/gold framed controls, a different top-bar font, left minimap, right bags and action buttons on all sides."
+      },
+      "lineage": {
+        "group": "tibiaqa-client-history",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visibly_different",
+        "evidence": "Complete Flash-style client with blue/gold framed controls, a different top-bar font, left minimap, right bags and action buttons on all sides. No Skills rows are visible. Visibly different interface; reference only, not target acceptance or a target safety claim."
+      }
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "file": "originals/TIBIA-350-EK-270-RP-i-noob-chary-KENORA-ANTICA.jpg",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://allegro.pl/listing?string=tibia+antica+postacie",
+        "image_url": "https://a.allegroimg.com/original/1e5172/4c39a50f4d1e8f35c6eff986c268/TIBIA-350-EK-270-RP-i-noob-chary-KENORA-ANTICA",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "TIBIA-350-EK-270-RP-i-noob-chary-KENORA-ANTICA",
+        "author": null,
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified. The page/image relationship was found through indexed public image results; the landing page was unavailable or not independently retrievable during collection."
+      },
+      "integrity": {
+        "sha256": "860673a2636f91594775a1ec38dbed4bbeeb15acaec389c664067c88892dbf22",
+        "width": 1024,
+        "height": 576,
+        "format": "JPEG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Windows desktop containing a complete client. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          12,
+          93,
+          317
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2845,
+          "visible": true,
+          "box": [
+            64,
+            61,
+            82,
+            66
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 4080,
+          "visible": true,
+          "box": [
+            64,
+            69,
+            82,
+            73
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 100,
+          "visible": true,
+          "box": [
+            71,
+            76,
+            82,
+            81
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1301,
+          "visible": true,
+          "box": [
+            65,
+            84,
+            81,
+            88
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            5,
+            61,
+            37,
+            66
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            64,
+            61,
+            82,
+            66
+          ],
+          "display_text": "2,845",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            5,
+            69,
+            22,
+            73
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            64,
+            69,
+            82,
+            73
+          ],
+          "display_text": "4,080",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            5,
+            76,
+            43,
+            81
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            71,
+            76,
+            82,
+            81
+          ],
+          "display_text": "100",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            5,
+            84,
+            34,
+            88
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            65,
+            84,
+            81,
+            88
+          ],
+          "display_text": "1,301",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_desktop_with_complete_client",
+        "extent_evidence": "Windows desktop containing a complete client."
+      },
+      "lineage": {
+        "group": "allegro-kenora-antica",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Windows desktop containing a complete client. Very small left Skills text remains readable at source pixels: 2,845 / 4,080 / 100 / 1,301. Order, comma grouping, right alignment and textured gray dock match the target, with softened/resampled glyphs and green Capacity. Original-resolution CDN path does not prove native capture resolution."
+      }
+    },
+    {
+      "id": "reddit-koro-3brbvbq",
+      "file": "originals/3brbvbqv0e6d1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1df6y2p/",
+        "image_url": "https://i.redd.it/3brbvbqv0e6d1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "3brbvbqv0e6d1.png",
+        "author": "KoroTheKoro",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "256776d48d410894cde874fe9353fb587f98914c7ff0d92381bd03c1bbc932c7",
+        "width": 2560,
+        "height": 1009,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete wide client with Skills in the fourth left dock among hunt/loot/input analysers. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          528,
+          0,
+          703,
+          221
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3176,
+          "visible": true,
+          "box": [
+            648,
+            85,
+            682,
+            94
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 15802,
+          "visible": true,
+          "box": [
+            641,
+            99,
+            682,
+            108
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            660,
+            113,
+            682,
+            121
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1134,
+          "visible": true,
+          "box": [
+            649,
+            127,
+            682,
+            136
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            538,
+            85,
+            598,
+            93
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            648,
+            85,
+            682,
+            94
+          ],
+          "display_text": "3,176",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            538,
+            99,
+            570,
+            107
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            641,
+            99,
+            682,
+            108
+          ],
+          "display_text": "15,802",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            538,
+            113,
+            608,
+            121
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            660,
+            113,
+            682,
+            121
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            538,
+            127,
+            592,
+            136
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            649,
+            127,
+            682,
+            136
+          ],
+          "display_text": "1,134",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete wide client with Skills in the fourth left dock among hunt/loot/input analysers."
+      },
+      "lineage": {
+        "group": "reddit-author-KoroTheKoro",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "reddit-koro-9rwszeb"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete wide client with Skills in the fourth left dock among hunt/loot/input analysers. Resource order, comma glyphs, light bold labels, textured dock and right alignment match the target. Mana is 15,802; many neighboring numbers and a narrow game viewport provide natural clutter."
+      }
+    },
+    {
+      "id": "reddit-koro-9rwszeb",
+      "file": "originals/9rwszebw0e6d1.png",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1df6y2p/",
+        "image_url": "https://i.redd.it/9rwszebw0e6d1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "9rwszebw0e6d1.png",
+        "author": "KoroTheKoro",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "24c7f26e673444ae3df75302c1c42582e728d60f573787ace569f2080338a317",
+        "width": 5104,
+        "height": 1000,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete 5104-pixel-wide client with many empty docks, a small centered game viewport, top bars, chat, minimap and right inventory. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": false,
+        "box": null
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "panel_absent"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete 5104-pixel-wide client with many empty docks, a small centered game viewport, top bars, chat, minimap and right inventory."
+      },
+      "lineage": {
+        "group": "reddit-author-KoroTheKoro",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "reddit-koro-3brbvbq"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete 5104-pixel-wide client with many empty docks, a small centered game viewport, top bars, chat, minimap and right inventory. No Skills panel appears anywhere. Same Reddit author/post as 3brbvbq; different layout and character state, not an independent source."
+      }
+    },
+    {
+      "id": "reddit-kollector-awoeqer",
+      "file": "originals/awoeqer2he6d1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1df6y2p/comment/l8hcn12/",
+        "image_url": "https://i.redd.it/awoeqer2he6d1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "awoeqer2he6d1.png",
+        "author": "TheKollector_",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "c90b1bcc94e0c0194a7d680088e24f1ac957edd8619f9750471596a38d6a0b76",
+        "width": 3440,
+        "height": 1369,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete ultrawide client with Skills on an inner right dock, hunt analysers on the left and bottom status bars. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          2555,
+          0,
+          2732,
+          435
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3441,
+          "visible": true,
+          "box": [
+            2680,
+            92,
+            2713,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 3235,
+          "visible": true,
+          "box": [
+            2680,
+            106,
+            2714,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            2692,
+            120,
+            2714,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 103,
+          "visible": true,
+          "box": [
+            2693,
+            134,
+            2714,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            2570,
+            92,
+            2630,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            2680,
+            92,
+            2713,
+            101
+          ],
+          "display_text": "3,441",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            2570,
+            106,
+            2602,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            2680,
+            106,
+            2714,
+            115
+          ],
+          "display_text": "3,235",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            2570,
+            120,
+            2640,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            2692,
+            120,
+            2714,
+            128
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            2570,
+            134,
+            2624,
+            142
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            2693,
+            134,
+            2714,
+            142
+          ],
+          "display_text": "103",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete ultrawide client with Skills on an inner right dock, hunt analysers on the left and bottom status bars."
+      },
+      "lineage": {
+        "group": "reddit-author-TheKollector_",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete ultrawide client with Skills on an inner right dock, hunt analysers on the left and bottom status bars. Four labels/order, bold comma glyphs, textured dock and alignment match the target. Capacity 103 and many adjoining panel numbers are fully readable."
+      }
+    },
+    {
+      "id": "reddit-strike-e0qinag",
+      "file": "originals/e0qinagktzcb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsn41q2/",
+        "image_url": "https://i.redd.it/e0qinagktzcb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "e0qinagktzcb1.png",
+        "author": "StrikeStraight9961",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "dd71122743d22700a71abb3da0bd16518cfa529a8f36c113e904f78b6d86168e",
+        "width": 2560,
+        "height": 1440,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete 2560x1440 client with top-left Skills, narrow left analyser stack, large game viewport and bottom status bars. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          176,
+          251
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 6012,
+          "visible": true,
+          "box": [
+            120,
+            92,
+            154,
+            101
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 27645,
+          "visible": true,
+          "box": [
+            112,
+            106,
+            154,
+            115
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 18,
+          "visible": true,
+          "box": [
+            141,
+            120,
+            154,
+            128
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 826,
+          "visible": true,
+          "box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            92,
+            70,
+            100
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            92,
+            154,
+            101
+          ],
+          "display_text": "6,012",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            10,
+            106,
+            42,
+            114
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            112,
+            106,
+            154,
+            115
+          ],
+          "display_text": "27,645",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            10,
+            120,
+            80,
+            128
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            141,
+            120,
+            154,
+            128
+          ],
+          "display_text": "18",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            10,
+            134,
+            64,
+            142
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            134,
+            154,
+            142
+          ],
+          "display_text": "826",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete 2560x1440 client with top-left Skills, narrow left analyser stack, large game viewport and bottom status bars."
+      },
+      "lineage": {
+        "group": "reddit-author-StrikeStraight9961",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete 2560x1440 client with top-left Skills, narrow left analyser stack, large game viewport and bottom status bars. Labels/order, comma glyphs, textured dock and alignment match the target. Mana 27,645, Soul 18 and Capacity 826 are visible."
+      }
+    },
+    {
+      "id": "reddit-nwasmb-8q86ims",
+      "file": "originals/8q86ims5v1db1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsou5zm/",
+        "image_url": "https://i.redd.it/8q86ims5v1db1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "8q86ims5v1db1.png",
+        "author": "Nwasmb",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "7237a97d02c5e356f1c6687ed84b88c75c545939d05c9739feecbceb9ab93ae9",
+        "width": 2560,
+        "height": 1377,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete wide client with Skills below a collapsed Quest Tracker in the second left dock, house decoration in the viewport and many right bags. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          176,
+          20,
+          351,
+          418
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 5924,
+          "visible": true,
+          "box": [
+            296,
+            111,
+            330,
+            120
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1648,
+          "visible": true,
+          "box": [
+            297,
+            125,
+            330,
+            134
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            308,
+            139,
+            330,
+            147
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1858,
+          "visible": true,
+          "box": [
+            297,
+            153,
+            330,
+            162
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            186,
+            111,
+            246,
+            119
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            296,
+            111,
+            330,
+            120
+          ],
+          "display_text": "5,924",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            186,
+            125,
+            218,
+            133
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            297,
+            125,
+            330,
+            134
+          ],
+          "display_text": "1,648",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            186,
+            139,
+            256,
+            147
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            308,
+            139,
+            330,
+            147
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            186,
+            153,
+            240,
+            162
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            297,
+            153,
+            330,
+            162
+          ],
+          "display_text": "1,858",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete wide client with Skills below a collapsed Quest Tracker in the second left dock, house decoration in the viewport and many right bags."
+      },
+      "lineage": {
+        "group": "reddit-author-Nwasmb",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete wide client with Skills below a collapsed Quest Tracker in the second left dock, house decoration in the viewport and many right bags. Resource row order, bold labels, comma glyphs, textured panel and right alignment match the target."
+      }
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "file": "originals/xcqycuywhzcb1.jpeg",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsn2oo8/",
+        "image_url": "https://i.redd.it/xcqycuywhzcb1.jpeg",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "xcqycuywhzcb1.jpeg",
+        "author": "Adventurous-Size-935",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "9b227285eed99ce4f6b223b935a6755a5066b66be6f52f2a18648354350b5c18",
+        "width": 1920,
+        "height": 1080,
+        "format": "JPEG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete JPEG client capture during combat, Skills low on the far right above Battle List. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1743,
+          376,
+          1919,
+          687
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2645,
+          "visible": true,
+          "box": [
+            1864,
+            471,
+            1898,
+            480
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 910,
+          "visible": true,
+          "box": [
+            1876,
+            485,
+            1898,
+            493
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1876,
+            499,
+            1898,
+            507
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1625,
+          "visible": true,
+          "box": [
+            1865,
+            513,
+            1898,
+            522
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1754,
+            471,
+            1814,
+            479
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1864,
+            471,
+            1898,
+            480
+          ],
+          "display_text": "2,645",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1754,
+            485,
+            1786,
+            493
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1876,
+            485,
+            1898,
+            493
+          ],
+          "display_text": "910",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1754,
+            499,
+            1824,
+            507
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1876,
+            499,
+            1898,
+            507
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1754,
+            513,
+            1808,
+            522
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1865,
+            513,
+            1898,
+            522
+          ],
+          "display_text": "1,625",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete JPEG client capture during combat, Skills low on the far right above Battle List."
+      },
+      "lineage": {
+        "group": "reddit-author-Adventurous-Size-935",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete JPEG client capture during combat, Skills low on the far right above Battle List. Its four resource rows match target order, bold comma glyphs, right alignment and textured dock. Dense world damage numbers, dual chat and JPEG artifacts are retained."
+      }
+    },
+    {
+      "id": "reddit-deleted-09s6sbl",
+      "file": "originals/09s6sbltm1db1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsop4k8/",
+        "image_url": "https://i.redd.it/09s6sbltm1db1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "09s6sbltm1db1.png",
+        "author": "deleted-jsop4k8",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "3e6531ebb59ca350e802a5c344203986346b1c89fd93f5e76fef8e9c2ed87867",
+        "width": 1875,
+        "height": 995,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client body with inner-right Skills, top status bars and multiple action/bag docks. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1531,
+          0,
+          1705,
+          363
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 4799,
+          "visible": true,
+          "box": [
+            1650,
+            91,
+            1683,
+            100
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 3216,
+          "visible": true,
+          "box": [
+            1650,
+            104,
+            1683,
+            114
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1661,
+            118,
+            1683,
+            126
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 2755,
+          "visible": true,
+          "box": [
+            1650,
+            132,
+            1683,
+            141
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1542,
+            91,
+            1601,
+            99
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1650,
+            91,
+            1683,
+            100
+          ],
+          "display_text": "4,799",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1542,
+            104,
+            1574,
+            112
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1650,
+            104,
+            1683,
+            114
+          ],
+          "display_text": "3,216",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1542,
+            118,
+            1611,
+            126
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1661,
+            118,
+            1683,
+            126
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1542,
+            132,
+            1595,
+            141
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1650,
+            132,
+            1683,
+            141
+          ],
+          "display_text": "2,755",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client body with inner-right Skills, top status bars and multiple action/bag docks."
+      },
+      "lineage": {
+        "group": "reddit-author-deleted-jsop4k8",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client body with inner-right Skills, top status bars and multiple action/bag docks. Resource labels/order, right-aligned comma glyphs and gray dock match the target. Publisher red marks conceal names only; those marks are retained and do not cover resources."
+      }
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "file": "originals/pl7tust26zcb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsmrywa/",
+        "image_url": "https://i.redd.it/pl7tust26zcb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "pl7tust26zcb1.png",
+        "author": "Valouran",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "96b472f9e12b7b82f9da228e0eeb9962025065ae17a61f10bfd7339e3d52635a",
+        "width": 1536,
+        "height": 864,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete 1536x864 client in crowded combat, Skills below XP Analyser on the far left. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          82,
+          175,
+          464
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3973,
+          "visible": true,
+          "box": [
+            120,
+            174,
+            154,
+            183
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 743,
+          "visible": true,
+          "box": [
+            132,
+            188,
+            154,
+            196
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            132,
+            202,
+            154,
+            210
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 369,
+          "visible": true,
+          "box": [
+            132,
+            216,
+            154,
+            224
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            174,
+            70,
+            182
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            120,
+            174,
+            154,
+            183
+          ],
+          "display_text": "3,973",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            10,
+            188,
+            42,
+            196
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            188,
+            154,
+            196
+          ],
+          "display_text": "743",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            10,
+            202,
+            80,
+            210
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            202,
+            154,
+            210
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            10,
+            216,
+            64,
+            224
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            132,
+            216,
+            154,
+            224
+          ],
+          "display_text": "369",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete 1536x864 client in crowded combat, Skills below XP Analyser on the far left."
+      },
+      "lineage": {
+        "group": "reddit-author-Valouran",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete 1536x864 client in crowded combat, Skills below XP Analyser on the far left. Four labels/order, comma glyphs, right alignment and dock texture match the target. Damage text, numeric hotkeys and bottom status bars add distractors."
+      }
+    },
+    {
+      "id": "reddit-illustrious-mo9lbk5",
+      "file": "originals/mo9lbk5m52db1.png",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsozhww/",
+        "image_url": "https://i.redd.it/mo9lbk5m52db1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "mo9lbk5m52db1.png",
+        "author": "Illustrious_Ad4910",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "318518ca462a27ed0d11dfb777522ab85fde2cff10e49ac711dcf515b03df805",
+        "width": 1920,
+        "height": 1080,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with Skills vertically shortened at top left. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          175,
+          92
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": true,
+          "box": [
+            112,
+            86,
+            154,
+            89
+          ],
+          "verification": "visible_value_unknown"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            10,
+            86,
+            70,
+            89
+          ],
+          "label_visibility": "clipped_by_panel_height",
+          "value_box": [
+            112,
+            86,
+            154,
+            89
+          ],
+          "display_text": null,
+          "readability": "clipped_unreadable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with Skills vertically shortened at top left."
+      },
+      "lineage": {
+        "group": "reddit-author-Illustrious_Ad4910",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete client with Skills vertically shortened at top left. Only the uppermost sliver of the Hit Points row is visible at y86-89; its value is unreadable. Mana/Soul/Capacity rows are outside the visible panel. Top bars/equipment numbers must not supply the missing Skills truth. Resource-glyph equivalence is unresolved for this clipped block."
+      }
+    },
+    {
+      "id": "reddit-blake-m91oix5",
+      "file": "originals/m91oix5olzcb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/1542et6/comment/jsn66b9/",
+        "image_url": "https://i.redd.it/m91oix5olzcb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "m91oix5olzcb1.png",
+        "author": "Blakee1",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "e9efcb17585d00d12239343df4e4bc255a7621b3e03841e70f6588939aed5c4b",
+        "width": 2512,
+        "height": 1374,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client body below a narrow black strip, with mid-left Skills between Loot and Hunt analysers. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          259,
+          171,
+          451
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 3996,
+          "visible": true,
+          "box": [
+            117,
+            345,
+            150,
+            354
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 18475,
+          "visible": true,
+          "box": [
+            110,
+            359,
+            150,
+            367
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            129,
+            373,
+            150,
+            381
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 2536,
+          "visible": true,
+          "box": [
+            117,
+            386,
+            150,
+            395
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            9,
+            345,
+            68,
+            353
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            117,
+            345,
+            150,
+            354
+          ],
+          "display_text": "3,996",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            9,
+            359,
+            40,
+            367
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            110,
+            359,
+            150,
+            367
+          ],
+          "display_text": "18,475",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            9,
+            373,
+            78,
+            381
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            129,
+            373,
+            150,
+            381
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            9,
+            386,
+            62,
+            395
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            117,
+            386,
+            150,
+            395
+          ],
+          "display_text": "2,536",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client body below a narrow black strip, with mid-left Skills between Loot and Hunt analysers."
+      },
+      "lineage": {
+        "group": "reddit-author-Blakee1",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "reddit-blake-ib60r93"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete client body below a narrow black strip, with mid-left Skills between Loot and Hunt analysers. Four labels/order, right-aligned comma values and textured dock match the target. Five-digit Mana 18,475 and publisher marks in the neighboring VIP area are preserved."
+      }
+    },
+    {
+      "id": "reddit-kthrygg-nfiiftq",
+      "file": "originals/nfiiftqak5wb1.png",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/",
+        "image_url": "https://i.redd.it/nfiiftqak5wb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "nfiiftqak5wb1.png",
+        "author": "Kthrygg",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "f299a921624e90a6adf4d5de7aa177ba6012b4b91f06ec1b177787127a869d5c",
+        "width": 1920,
+        "height": 1017,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with Skills shortened to Level/XP/XP Gain Rate at mid-right; all four target rows are below the visible panel. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1743,
+          442,
+          1919,
+          535
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with Skills shortened to Level/XP/XP Gain Rate at mid-right; all four target rows are below the visible panel."
+      },
+      "lineage": {
+        "group": "reddit-author-Kthrygg",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete client with Skills shortened to Level/XP/XP Gain Rate at mid-right; all four target rows are below the visible panel. An action-button tooltip covers bottom hotkeys, not resource values. Numbers in status bars/equipment do not establish Skills-row truth."
+      }
+    },
+    {
+      "id": "reddit-yamalz-dfbygh7",
+      "file": "originals/dfbygh7z06wb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k69a5ok/",
+        "image_url": "https://i.redd.it/dfbygh7z06wb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "dfbygh7z06wb1.png",
+        "author": "Yamalz",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "149a08fe2fa3d7021e7f18ac1dbf54ee16f98c50ad87dc13088cdd2438bad37e",
+        "width": 2560,
+        "height": 1377,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete wide client with Skills low in the second left dock, below bestiary counters and above another tracker. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          176,
+          1017,
+          352,
+          1219
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 6695,
+          "visible": true,
+          "box": [
+            296,
+            1110,
+            330,
+            1119
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 8773,
+          "visible": true,
+          "box": [
+            296,
+            1124,
+            330,
+            1133
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            308,
+            1138,
+            330,
+            1146
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 3344,
+          "visible": true,
+          "box": [
+            296,
+            1152,
+            330,
+            1161
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            186,
+            1110,
+            246,
+            1118
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            296,
+            1110,
+            330,
+            1119
+          ],
+          "display_text": "6,695",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            186,
+            1124,
+            218,
+            1132
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            296,
+            1124,
+            330,
+            1133
+          ],
+          "display_text": "8,773",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            186,
+            1138,
+            256,
+            1146
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            308,
+            1138,
+            330,
+            1146
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            186,
+            1152,
+            240,
+            1161
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            296,
+            1152,
+            330,
+            1161
+          ],
+          "display_text": "3,344",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete wide client with Skills low in the second left dock, below bestiary counters and above another tracker."
+      },
+      "lineage": {
+        "group": "reddit-author-Yamalz",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete wide client with Skills low in the second left dock, below bestiary counters and above another tracker. Labels/order, bold comma glyphs, right alignment and panel texture match the target. The unusually low resource block is fully visible."
+      }
+    },
+    {
+      "id": "reddit-blake-ib60r93",
+      "file": "originals/ib60r93w1fwb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "supplemental_crop",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k6g9r2s/",
+        "image_url": "https://i.redd.it/ib60r93w1fwb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "ib60r93w1fwb1.png",
+        "author": "Blakee1",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "3e0d0bfae1757a2e3cea4519c06cbe5ff04a4174d396e1ee852f3f584ce925df",
+        "width": 2545,
+        "height": 1208,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Client interface with mid-left Skills, combat, many right docks and bottom status bars; the lower chat/client boundary is uncertain, so conservatively supplemental rather than full-client coverage. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          6,
+          215,
+          179,
+          455
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 793,
+          "visible": true,
+          "box": [
+            137,
+            306,
+            158,
+            314
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 13907,
+          "visible": true,
+          "box": [
+            118,
+            320,
+            158,
+            329
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            137,
+            334,
+            158,
+            342
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1039,
+          "visible": true,
+          "box": [
+            126,
+            348,
+            158,
+            356
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            17,
+            306,
+            76,
+            314
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            137,
+            306,
+            158,
+            314
+          ],
+          "display_text": "793",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            17,
+            320,
+            48,
+            328
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            118,
+            320,
+            158,
+            329
+          ],
+          "display_text": "13,907",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            17,
+            334,
+            86,
+            342
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            137,
+            334,
+            158,
+            342
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            17,
+            348,
+            70,
+            356
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            126,
+            348,
+            158,
+            356
+          ],
+          "display_text": "1,039",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "partial_or_uncertain_client_boundary",
+        "extent_evidence": "Client interface with mid-left Skills, combat, many right docks and bottom status bars; the lower chat/client boundary is uncertain, so conservatively supplemental rather than full-client coverage."
+      },
+      "lineage": {
+        "group": "reddit-author-Blakee1",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [
+          "reddit-blake-m91oix5"
+        ],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "Related source; materially different UI state or scene, not independent evidence."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Client interface with mid-left Skills, combat, many right docks and bottom status bars; the lower chat/client boundary is uncertain, so conservatively supplemental rather than full-client coverage. Four resource rows match the target order, bold comma glyphs and alignment. Same Reddit author as m91oix5; publisher white marks do not obscure the resources."
+      }
+    },
+    {
+      "id": "reddit-daralion-0tx21ye",
+      "file": "originals/0tx21yeyn6wb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k69vb8k/",
+        "image_url": "https://i.redd.it/0tx21yeyn6wb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "0tx21yeyn6wb1.png",
+        "author": "Daralion",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "346dc778d7e224e6361ca9f7221e1665b5c42d736c6e7c5f70f72a780affa699",
+        "width": 1920,
+        "height": 1017,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete combat client with Skills at the lower far right beneath Store Inbox. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1743,
+          615,
+          1919,
+          1009
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2533,
+          "visible": true,
+          "box": [
+            1864,
+            708,
+            1898,
+            717
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 2368,
+          "visible": true,
+          "box": [
+            1864,
+            722,
+            1898,
+            731
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1876,
+            736,
+            1898,
+            744
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 1433,
+          "visible": true,
+          "box": [
+            1865,
+            750,
+            1899,
+            760
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1754,
+            708,
+            1814,
+            716
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1864,
+            708,
+            1898,
+            717
+          ],
+          "display_text": "2,533",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1754,
+            722,
+            1786,
+            730
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1864,
+            722,
+            1898,
+            731
+          ],
+          "display_text": "2,368",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1754,
+            736,
+            1824,
+            744
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1876,
+            736,
+            1898,
+            744
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1754,
+            750,
+            1808,
+            760
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1865,
+            750,
+            1899,
+            760
+          ],
+          "display_text": "1,433",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete combat client with Skills at the lower far right beneath Store Inbox."
+      },
+      "lineage": {
+        "group": "reddit-author-Daralion",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete combat client with Skills at the lower far right beneath Store Inbox. Labels/order, comma glyphs, panel texture and alignment match the target; Capacity 1,433 is green. Hunt/loot statistics, hotkey decimals and world damage text surround the resource block."
+      }
+    },
+    {
+      "id": "reddit-dworc-o0ap20c",
+      "file": "originals/o0ap20coqcwb1.png",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k6e4tdt/",
+        "image_url": "https://i.redd.it/o0ap20coqcwb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "o0ap20coqcwb1.png",
+        "author": "dworc",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "1b171fa3b8fb78d0ac118f5fa88dfba100e6b861f33e47d64b83b9e16f90789e",
+        "width": 1920,
+        "height": 1017,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete combat client with Skills high in the inner-right dock, shortened after Offline Training but with all four resource rows visible. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          1567,
+          0,
+          1743,
+          226
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 5687,
+          "visible": true,
+          "box": [
+            1688,
+            86,
+            1722,
+            95
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 1885,
+          "visible": true,
+          "box": [
+            1689,
+            100,
+            1722,
+            109
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            1700,
+            114,
+            1722,
+            122
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 730,
+          "visible": true,
+          "box": [
+            1700,
+            128,
+            1722,
+            136
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            1578,
+            86,
+            1638,
+            94
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1688,
+            86,
+            1722,
+            95
+          ],
+          "display_text": "5,687",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            1578,
+            100,
+            1610,
+            108
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1689,
+            100,
+            1722,
+            109
+          ],
+          "display_text": "1,885",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            1578,
+            114,
+            1648,
+            122
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1700,
+            114,
+            1722,
+            122
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            1578,
+            128,
+            1632,
+            136
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            1700,
+            128,
+            1722,
+            136
+          ],
+          "display_text": "730",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete combat client with Skills high in the inner-right dock, shortened after Offline Training but with all four resource rows visible."
+      },
+      "lineage": {
+        "group": "reddit-author-dworc",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete combat client with Skills high in the inner-right dock, shortened after Offline Training but with all four resource rows visible. Labels/order, comma glyphs, gray texture and alignment match the target. Capacity 730 is green; the nearby Speed 456 is orange."
+      }
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "file": "originals/h8odlbhia8wb1.png",
+      "split": "heldout",
+      "classification": "negative",
+      "client_class": "official_style_transfer",
+      "expected_discovery": false,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_original",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k6bcu5p/",
+        "image_url": "https://i.redd.it/h8odlbhia8wb1.png",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "h8odlbhia8wb1.png",
+        "author": "weirdnonamer",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "008b9760f61068b80ec1715447a9cdca66ed8a23d0b622ac482756611836a8cf",
+        "width": 1920,
+        "height": 1017,
+        "format": "PNG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete client with a short Skills dock on the left showing only Level/XP/XP Gain Rate. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          192,
+          175,
+          279
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_mana": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_soul": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        },
+        "resource_capacity": {
+          "value": null,
+          "visible": false,
+          "box": null,
+          "verification": "not_visible"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": null,
+          "label_visibility": "absent",
+          "value_box": null,
+          "display_text": null,
+          "readability": "hidden_by_panel_height"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete client with a short Skills dock on the left showing only Level/XP/XP Gain Rate."
+      },
+      "lineage": {
+        "group": "reddit-author-weirdnonamer",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "unknown",
+        "evidence": "Complete client with a short Skills dock on the left showing only Level/XP/XP Gain Rate. All target resource rows are hidden below its boundary. Health/mana bars and equipment Soul/Cap remain elsewhere, providing a natural wrong-region safety test."
+      }
+    },
+    {
+      "id": "reddit-chrissykes-4ppe2dp",
+      "file": "originals/4ppe2dpqiawb1.jpeg",
+      "split": "heldout",
+      "classification": "similar",
+      "client_class": "official_style_transfer",
+      "expected_discovery": true,
+      "coverage": "full_screenshot",
+      "data_origin": "real",
+      "asset_fidelity": "source_transcode",
+      "source": {
+        "kind": "web",
+        "page_url": "https://www.reddit.com/r/TibiaMMO/comments/17fcvau/comment/k6cz84c/",
+        "image_url": "https://i.redd.it/4ppe2dpqiawb1.jpeg",
+        "retrieved_at": "2026-10-17",
+        "posted_at": null,
+        "character": null,
+        "original_filename": "4ppe2dpqiawb1.jpeg",
+        "author": "chrissykes78",
+        "provenance_note": "Downloaded the direct source object and preserved its bytes. Publisher resizing, compression, capture settings and any existing marks are not independently verified."
+      },
+      "integrity": {
+        "sha256": "f7f185f29c17fa2f11a63979b60ec94252195ff68349667ed2e64dfde0292355",
+        "width": 1600,
+        "height": 900,
+        "format": "JPEG"
+      },
+      "client": {
+        "family": "Tibia-style dockable client; exact implementation unverified",
+        "version": null,
+        "confidence": "visual_review_only",
+        "evidence": "Complete compressed JPEG client with small top-left Skills above Loot Analyser and hunt panels next door. No authoritative build is displayed; the separate visual review records the resource comparison."
+      },
+      "skills_panel": {
+        "visible": true,
+        "box": [
+          0,
+          0,
+          146,
+          167
+        ]
+      },
+      "labels": {
+        "resource_health": {
+          "value": 2810,
+          "visible": true,
+          "box": [
+            100,
+            77,
+            128,
+            83
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_mana": {
+          "value": 518,
+          "visible": true,
+          "box": [
+            110,
+            88,
+            128,
+            95
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_soul": {
+          "value": 200,
+          "visible": true,
+          "box": [
+            110,
+            100,
+            128,
+            107
+          ],
+          "verification": "manual_verified"
+        },
+        "resource_capacity": {
+          "value": 195,
+          "visible": true,
+          "box": [
+            111,
+            112,
+            128,
+            118
+          ],
+          "verification": "manual_verified"
+        }
+      },
+      "resource_annotations": {
+        "resource_health": {
+          "label_text": "Hit Points",
+          "label_box": [
+            8,
+            77,
+            58,
+            83
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            100,
+            77,
+            128,
+            83
+          ],
+          "display_text": "2,810",
+          "readability": "readable"
+        },
+        "resource_mana": {
+          "label_text": "Mana",
+          "label_box": [
+            8,
+            88,
+            35,
+            95
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            110,
+            88,
+            128,
+            95
+          ],
+          "display_text": "518",
+          "readability": "readable"
+        },
+        "resource_soul": {
+          "label_text": "Soul Points",
+          "label_box": [
+            8,
+            100,
+            67,
+            107
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            110,
+            100,
+            128,
+            107
+          ],
+          "display_text": "200",
+          "readability": "readable"
+        },
+        "resource_capacity": {
+          "label_text": "Capacity",
+          "label_box": [
+            8,
+            112,
+            53,
+            118
+          ],
+          "label_visibility": "complete",
+          "value_box": [
+            111,
+            112,
+            128,
+            118
+          ],
+          "display_text": "195",
+          "readability": "readable"
+        }
+      },
+      "capture_fidelity": {
+        "downloaded_bytes_preserved": true,
+        "native_resolution_verified": false,
+        "display_scale": null,
+        "publisher_processing": "Unknown prior resizing/compression and capture settings; source-side marks retained.",
+        "extent": "full_client",
+        "extent_evidence": "Complete compressed JPEG client with small top-left Skills above Loot Analyser and hunt panels next door."
+      },
+      "lineage": {
+        "group": "reddit-author-chrissykes78",
+        "session_id": null,
+        "session_certainty": "Same public author/listing is conservatively grouped; capture timestamps and independence of sessions are unknown.",
+        "related_ids": [],
+        "known_regression_relatives": [],
+        "duplicate_relationship": "No exact duplicate or visually matching scene found in retained corpus."
+      },
+      "collection_batch": "2026-10-17",
+      "notes": "Selected and visually annotated before reader inference. No local pixel transforms; any publisher marks remain intact. See resource_annotations and render_equivalence for field visibility and concrete review evidence.",
+      "render_equivalence": {
+        "reviewed_at": "2026-10-17",
+        "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+        "status": "visually_equivalent",
+        "evidence": "Complete compressed JPEG client with small top-left Skills above Loot Analyser and hunt panels next door. Resource labels/order, right alignment, comma grouping and textured panel match the target despite soft glyph edges. Values are 2,810 / 518 / 200 / 195; source marks on the character/chat are retained."
       }
     }
   ]

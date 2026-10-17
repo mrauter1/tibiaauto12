@@ -114,6 +114,198 @@
       "evidence": "Full desktop/client capture titled Tibia Beta. The four resource labels and order remain legible, but the compass/tools, smaller font and panel context differ visibly from the target; Experience appears before Level and the panel is embedded lower in the right dock. Retain only as an older-interface reference, not a target-equivalent primary fixture.",
       "reviewed_at": "2026-10-14",
       "scope": "Resource-reader interface contract reviewed independently by research agent and parent; exact build remains unknown."
+    },
+    "dfg-demolidores-4KCJ": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visibly_different",
+      "evidence": "Windows desktop containing a complete Demolidores client. Flat panel, narrower ungrouped seven/eight-digit values and fractional Capacity differ from the target. The readable decimal 104966.56 is retained as text; the integer-only scoring schema cannot represent it and it is never rounded."
+    },
+    "dfg-belobra-2AHL": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete borderless client. Top-left Skills and a central Cyclopedia Character dialog both show Hit Points 1,760, Mana 4,726, Soul Points 200 and Capacity 732. Two complete plausible resource panels require abstention, even though their displayed values agree."
+    },
+    "dfg-belobra-S50Q": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete borderless client with upper-left Skills above XP Analyser, bottom action bar and right inventory. Same character/location as 2AHL; removing the Character dialog creates a materially different single-panel state. Four resource rows have the same bold labels, comma grouping, textured dock and right alignment as the target."
+    },
+    "drenox-client": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with large DrenoxBot dialog and dense numeric text in its center. Uncovered Skills is low on the right and shows Mana 24 and Capacity 0. Its four labels, row order, light bold glyphs, textured panel and right alignment match the target. The surrounding custom dialog is different; the source page discusses several clients and does not identify the build/server of this specific image."
+    },
+    "dfg-gentebra-3XWB": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with a central mount dialog covering the left prefixes of all four Skills labels. Remaining text and full values are readable in the right dock. Gray textured panel, adjacent four-row order, comma glyphs and right alignment match the target; prefix clipping is recorded explicitly, not inferred away."
+    },
+    "dfg-gentebra-AZ3L": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with an open Quest Log in the middle. Right Skills labels and values are unobscured, with the same four-row order, comma glyphs, textured dock and right alignment as the target. Values differ from 3XWB; annotated independently from these pixels."
+    },
+    "dfg-gentebra-BJEI": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Windows desktop with complete client and lower-right Skills, top status bars and bottom action bar. The resource labels/order, right alignment, comma grouping and gray textured panel match the target. Publisher name marks and compressed soft glyph edges are preserved."
+    },
+    "dfg-yonabra-8LN9": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete macOS client at character selection. Skills and its resource rows are absent. Listing is the existing Yonabra source lineage; character levels and account-status numbers must not be bound as resources. Resource render equivalence cannot be inspected on this login screen."
+    },
+    "dfg-quintera-VS41": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Windows 7 desktop containing a complete client, lower-right Skills and bottom action bar. Resource order, bold labels, comma values, right alignment and gray dock match the target despite softer WebP glyphs. Older compass/tools and Magic Level below the resource block differ; equivalence is restricted to the four inspected resource rows."
+    },
+    "dfg-retropvp-BYZ0": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with Skills at the far left, many inventory docks on the right and central Cyclopedia boss statistics. Adjacent Hit Points/Mana/Soul Points/Capacity rows, comma glyphs, right alignment and textured dock match the target. Same listing/character as the existing RP535 image; boss counters are useful numeric distractors, not a new independent session."
+    },
+    "tibiautils-d35caff": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with Skills between Battle List and Glooth Backpack on the right, dense action bars and world combat. Resource labels/order, bold comma glyphs, right alignment and gray dock match the target; five-digit Mana 20,328 is fully readable."
+    },
+    "tibiabr-sidebars-filled": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete client body with chat, minimap, equipment, action icons and two filled right sidebars. Skills is closed; health/mana bars and equipment Soul/Cap are visible elsewhere. Older compass/control arrangement is visible, but absent resource rows prevent a resource-glyph equivalence claim."
+    },
+    "dfg-gladera-SSVX": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client with Skills in the inner right dock surrounded by depot item grids. Light bold resource labels, comma glyphs, adjacent row order, textured dock and right alignment match the target. Softer source WebP rendering and numerous inventory counts are preserved."
+    },
+    "tibiaqa-flash-v1QxvNN": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visibly_different",
+      "evidence": "Complete Flash-style client with blue/gold framed controls, a different top-bar font, left minimap, right bags and action buttons on all sides. No Skills rows are visible. Visibly different interface; reference only, not target acceptance or a target safety claim."
+    },
+    "allegro-antica-4c39a50f": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Windows desktop containing a complete client. Very small left Skills text remains readable at source pixels: 2,845 / 4,080 / 100 / 1,301. Order, comma grouping, right alignment and textured gray dock match the target, with softened/resampled glyphs and green Capacity. Original-resolution CDN path does not prove native capture resolution."
+    },
+    "reddit-koro-3brbvbq": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete wide client with Skills in the fourth left dock among hunt/loot/input analysers. Resource order, comma glyphs, light bold labels, textured dock and right alignment match the target. Mana is 15,802; many neighboring numbers and a narrow game viewport provide natural clutter."
+    },
+    "reddit-koro-9rwszeb": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete 5104-pixel-wide client with many empty docks, a small centered game viewport, top bars, chat, minimap and right inventory. No Skills panel appears anywhere. Same Reddit author/post as 3brbvbq; different layout and character state, not an independent source."
+    },
+    "reddit-kollector-awoeqer": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete ultrawide client with Skills on an inner right dock, hunt analysers on the left and bottom status bars. Four labels/order, bold comma glyphs, textured dock and alignment match the target. Capacity 103 and many adjoining panel numbers are fully readable."
+    },
+    "reddit-strike-e0qinag": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete 2560x1440 client with top-left Skills, narrow left analyser stack, large game viewport and bottom status bars. Labels/order, comma glyphs, textured dock and alignment match the target. Mana 27,645, Soul 18 and Capacity 826 are visible."
+    },
+    "reddit-nwasmb-8q86ims": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete wide client with Skills below a collapsed Quest Tracker in the second left dock, house decoration in the viewport and many right bags. Resource row order, bold labels, comma glyphs, textured panel and right alignment match the target."
+    },
+    "reddit-adventurous-xcqycuy": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete JPEG client capture during combat, Skills low on the far right above Battle List. Its four resource rows match target order, bold comma glyphs, right alignment and textured dock. Dense world damage numbers, dual chat and JPEG artifacts are retained."
+    },
+    "reddit-deleted-09s6sbl": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client body with inner-right Skills, top status bars and multiple action/bag docks. Resource labels/order, right-aligned comma glyphs and gray dock match the target. Publisher red marks conceal names only; those marks are retained and do not cover resources."
+    },
+    "reddit-valouran-pl7tust": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete 1536x864 client in crowded combat, Skills below XP Analyser on the far left. Four labels/order, comma glyphs, right alignment and dock texture match the target. Damage text, numeric hotkeys and bottom status bars add distractors."
+    },
+    "reddit-illustrious-mo9lbk5": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete client with Skills vertically shortened at top left. Only the uppermost sliver of the Hit Points row is visible at y86-89; its value is unreadable. Mana/Soul/Capacity rows are outside the visible panel. Top bars/equipment numbers must not supply the missing Skills truth. Resource-glyph equivalence is unresolved for this clipped block."
+    },
+    "reddit-blake-m91oix5": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete client body below a narrow black strip, with mid-left Skills between Loot and Hunt analysers. Four labels/order, right-aligned comma values and textured dock match the target. Five-digit Mana 18,475 and publisher marks in the neighboring VIP area are preserved."
+    },
+    "reddit-kthrygg-nfiiftq": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete client with Skills shortened to Level/XP/XP Gain Rate at mid-right; all four target rows are below the visible panel. An action-button tooltip covers bottom hotkeys, not resource values. Numbers in status bars/equipment do not establish Skills-row truth."
+    },
+    "reddit-yamalz-dfbygh7": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete wide client with Skills low in the second left dock, below bestiary counters and above another tracker. Labels/order, bold comma glyphs, right alignment and panel texture match the target. The unusually low resource block is fully visible."
+    },
+    "reddit-blake-ib60r93": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Client interface with mid-left Skills, combat, many right docks and bottom status bars; the lower chat/client boundary is uncertain, so conservatively supplemental rather than full-client coverage. Four resource rows match the target order, bold comma glyphs and alignment. Same Reddit author as m91oix5; publisher white marks do not obscure the resources."
+    },
+    "reddit-daralion-0tx21ye": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete combat client with Skills at the lower far right beneath Store Inbox. Labels/order, comma glyphs, panel texture and alignment match the target; Capacity 1,433 is green. Hunt/loot statistics, hotkey decimals and world damage text surround the resource block."
+    },
+    "reddit-dworc-o0ap20c": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete combat client with Skills high in the inner-right dock, shortened after Offline Training but with all four resource rows visible. Labels/order, comma glyphs, gray texture and alignment match the target. Capacity 730 is green; the nearby Speed 456 is orange."
+    },
+    "reddit-weirdnonamer-h8odlbh": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "unknown",
+      "evidence": "Complete client with a short Skills dock on the left showing only Level/XP/XP Gain Rate. All target resource rows are hidden below its boundary. Health/mana bars and equipment Soul/Cap remain elsewhere, providing a natural wrong-region safety test."
+    },
+    "reddit-chrissykes-4ppe2dp": {
+      "reviewed_at": "2026-10-17",
+      "scope": "Only the four resource rows and visible context; no exact executable/build, native scale, or whole-client equivalence is asserted.",
+      "status": "visually_equivalent",
+      "evidence": "Complete compressed JPEG client with small top-left Skills above Loot Analyser and hunt panels next door. Resource labels/order, right alignment, comma grouping and textured panel match the target despite soft glyph edges. Values are 2,810 / 518 / 200 / 195; source marks on the character/chat are retained."
     }
   }
 }
