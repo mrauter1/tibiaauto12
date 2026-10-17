@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [combined_fast, combined_robust, partial]
+        variant: [combined_pruned_fast, combined_pruned_robust, accelerated_fast, accelerated_robust]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
@@ -59,7 +59,7 @@ jobs:
           python tools/benchmark_resource_techniques.py
           --mode full --subset all --threads 1 --warm-reads 50 --budget-ms 50
           --shards 6 --shard ${{ matrix.shard }}
-          --variants baseline cache glyph_cache green labels topology consensus_glyph partial combined_fast combined_robust
+          --variants baseline combined_fast combined_robust combined_pruned_fast combined_pruned_robust accelerated_fast accelerated_robust
           --out .work/techniques/shard-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

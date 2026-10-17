@@ -589,6 +589,10 @@ VARIANTS = {
     'robust_numeric': ('cache','vector','glyph_cache','topology','consensus'),
     'combined_fast': ('cache','vector','glyph_cache','green','labels','topology','partial'),
     'combined_robust': ('cache','vector','glyph_cache','green','labels','topology','partial','consensus'),
+    'combined_pruned_fast': ('cache','vector','glyph_cache','green','labels','topology','partial','prune'),
+    'combined_pruned_robust': ('cache','vector','glyph_cache','green','labels','topology','partial','consensus','prune'),
+    'accelerated_fast': ('cache','vector','glyph_cache','green','labels','topology','partial','prune','touching_cache'),
+    'accelerated_robust': ('cache','vector','glyph_cache','green','labels','topology','partial','consensus','prune','touching_cache'),
 }
 
 
