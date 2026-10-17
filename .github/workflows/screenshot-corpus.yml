@@ -1,0 +1,58 @@
+name: Frozen screenshot corpus baseline
+
+on:
+  pull_request:
+    paths:
+      - 'tests/fixtures/screenshots/**'
+      - 'tools/*resource*.py'
+      - 'tibia_client/**'
+      - 'profiles/paulistinha-skills-v1/**'
+      - '.github/workflows/screenshot-corpus.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-only-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Evaluate unchanged originals and preserve misses
+        id: comparison
+        continue-on-error: true
+        run: >-
+          python tools/compare_resource_readers.py --technique adaptive --warm-reads 3
+          --json-out .work/corpus-baseline/baseline.json
+          --markdown-out .work/corpus-baseline/baseline.md
+      - name: Measure cold discovery and 50 cached reads separately
+        id: latency
+        continue-on-error: true
+        run: >-
+          python tools/benchmark_resource_latency.py --warm-reads 50 --timeout 60
+          --json-out .work/corpus-baseline/latency.json
+          --markdown-out .work/corpus-baseline/latency.md
+      - name: Publish baseline status
+        if: always()
+        env:
+          COMPARISON_OUTCOME: ${{ steps.comparison.outcome }}
+          LATENCY_OUTCOME: ${{ steps.latency.outcome }}
+        run: |
+          echo "Original-only comparison: $COMPARISON_OUTCOME" >> "$GITHUB_STEP_SUMMARY"
+          echo "Static-image latency: $LATENCY_OUTCOME" >> "$GITHUB_STEP_SUMMARY"
+          echo "Reader misses remain evidence; see the downloadable raw reports. No generated inputs or OCR are enabled." >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload raw experiment outputs separately from Git history
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: screenshot-corpus-baseline-${{ github.sha }}
+          path: .work/corpus-baseline/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90

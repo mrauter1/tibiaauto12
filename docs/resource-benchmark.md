@@ -5,6 +5,12 @@ the adaptive reader on the same frozen screenshot cases. Tesseract is an
 explicit optional technique because its installed version and latency can differ
 between machines.
 
+The current corpus and first evaluation of its 32 new sources are documented in
+[the 2026-10-17 collection review](resource-corpus-2026-10-17.md). Keep those
+results separate from the prior 19 regression sources. Verbose original-only
+comparison and latency reports are downloadable artifacts of the
+`Frozen screenshot corpus baseline` workflow; concise summaries belong in Git.
+
 Run the comparison from the repository root:
 
 ```bash

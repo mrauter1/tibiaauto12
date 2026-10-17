@@ -5,6 +5,7 @@ from dataclasses import replace
 from hashlib import sha256
 from math import ceil, floor
 from pathlib import Path
+import shutil
 
 import cv2
 import numpy as np
@@ -694,8 +695,24 @@ def test_manifest_rejects_incomplete_ambiguity_contract(
         corpus.load_manifest(manifest_path)
 
 
-def test_generated_dense_scale_bank_has_stable_ids_and_hashes():
-    _, cases = load_cases(corpus.DEFAULT_MANIFEST, include_generated=True)
+@pytest.fixture(scope="module")
+def historical_manifest(tmp_path_factory):
+    # Historical synthetic unit diagnostics do not need to manufacture variants
+    # of newly collected originals. Keep their scope fixed and CI memory bounded.
+    document = json.loads(corpus.DEFAULT_MANIFEST.read_text(encoding="utf-8"))
+    document["screenshots"] = [
+        entry for entry in document["screenshots"] if not entry.get("collection_batch")
+    ]
+    path = tmp_path_factory.mktemp("historical-corpus") / "manifest.json"
+    (path.parent / "originals").mkdir()
+    for entry in document["screenshots"]:
+        shutil.copyfile(corpus.DEFAULT_MANIFEST.parent / entry["file"], path.parent / entry["file"])
+    path.write_text(json.dumps(document), encoding="utf-8")
+    return path
+
+
+def test_generated_dense_scale_bank_has_stable_ids_and_hashes(historical_manifest):
+    _, cases = load_cases(historical_manifest, include_generated=True)
     target = [
         case for case in cases
         if case.source_id == "user-paulistinha-20261013"
@@ -766,11 +783,11 @@ def test_acceptance_selection_matches_reviewed_manifest_without_inference():
     assert _acceptance_role(by_id["dfg-pvp-ek133"])[0] == "reference_diagnostic"
 
 
-def test_existing_case_ids_and_hashes_match_schema_v1_reference_report():
+def test_existing_case_ids_and_hashes_match_schema_v1_reference_report(historical_manifest):
     reference = json.loads(
         (Path("reports") / "resource-benchmark.json").read_text(encoding="utf-8")
     )
-    _, cases = load_cases(corpus.DEFAULT_MANIFEST, include_generated=True)
+    _, cases = load_cases(historical_manifest, include_generated=True)
     reference_rows = next(iter(reference["techniques"].values()))["cases"]
 
     current = {
@@ -782,9 +799,9 @@ def test_existing_case_ids_and_hashes_match_schema_v1_reference_report():
     )
 
 
-def test_generated_case_inventory_and_all_visible_boxes_are_in_bounds():
-    document, cases = load_cases(corpus.DEFAULT_MANIFEST, include_generated=True)
-    originals = [case for case in cases if "::" not in case.id]
+def test_generated_case_inventory_and_all_visible_boxes_are_in_bounds(historical_manifest):
+    document, originals = load_cases(corpus.DEFAULT_MANIFEST)
+    historical, cases = load_cases(historical_manifest, include_generated=True)
     generated = [case for case in cases if "::" in case.id]
 
     assert len(document["screenshots"]) == len(originals)
@@ -816,7 +833,7 @@ def test_generated_case_inventory_and_all_visible_boxes_are_in_bounds():
         "cached-digit-occlusion",
         *(f"panel-scale-{factor:g}" for factor in corpus.SCALE_BANK),
     }
-    for entry in document["screenshots"]:
+    for entry in historical["screenshots"]:
         source_cases = by_source[entry["id"]]
         if entry.get("expected_final_unknown_fields"):
             assert source_cases == []
@@ -837,7 +854,7 @@ def test_generated_case_inventory_and_all_visible_boxes_are_in_bounds():
     assert all(case.source_coverage is not None for case in cases)
     groups = {_evidence_group(case) for case in generated}
     assert groups == {"synthetic_full_frame_stress", "synthetic_cropped_stress"}
-    for case in cases:
+    for case in [*cases, *originals]:
         for label in case.labels.values():
             if not label["visible"]:
                 continue
@@ -930,8 +947,8 @@ def test_simple_benchmark_preserves_ambiguity_contract_and_excludes_numeric_reca
     assert summary["passed"] is True
 
 
-def test_generated_pixels_boxes_and_digests_match_declared_transforms():
-    document, cases = load_cases(corpus.DEFAULT_MANIFEST, include_generated=True)
+def test_generated_pixels_boxes_and_digests_match_declared_transforms(historical_manifest):
+    document, cases = load_cases(historical_manifest, include_generated=True)
     entry = next(
         item for item in document["screenshots"]
         if item["id"] == "user-paulistinha-20261013"
@@ -1002,7 +1019,7 @@ def test_generated_pixels_boxes_and_digests_match_declared_transforms():
         assert case.case_sha256 == sha256(case.frame.pixels.tobytes()).hexdigest()
 
 
-def test_kalibra_location_regression_cases_remain_in_dense_matrix():
+def test_kalibra_location_regression_cases_remain_in_dense_matrix(historical_manifest):
     # These strict containment misses were observed before the final reader
     # freeze. Keep their stable IDs/affected fields explicit for the final run.
     regressions = {
@@ -1013,7 +1030,7 @@ def test_kalibra_location_regression_cases_remain_in_dense_matrix():
         2.0: {"resource_mana", "resource_soul"},
         2.5: {"resource_health", "resource_mana", "resource_soul"},
     }
-    _, cases = load_cases(corpus.DEFAULT_MANIFEST, include_generated=True)
+    _, cases = load_cases(historical_manifest, include_generated=True)
     ids = {case.id for case in cases}
     for factor, fields in regressions.items():
         identifier = f"dfg-kalibra-ek362::panel-scale-{factor:g}"

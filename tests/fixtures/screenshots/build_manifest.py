@@ -440,7 +440,7 @@ manifest = {
     "schema": "tibiaauto.screenshot-corpus",
     "version": 1,
     "box_format": "xyxy-half-open",
-    "generated_at": "2026-10-14",
+    "generated_at": "2026-10-17",
     "notes": [
         "Boxes are absolute full-image [left, top, right, bottom] coordinates; right and bottom are excluded.",
         "Resource boxes tightly enclose numeric glyphs (including displayed thousands separators), not row labels.",

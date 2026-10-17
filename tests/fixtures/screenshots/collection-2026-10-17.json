@@ -1,0 +1,544 @@
+{
+  "schema": "tibiaauto.collection-freeze",
+  "version": 1,
+  "batch": "2026-10-17",
+  "frozen_at_utc": "2026-10-17T14:04:18.996451+00:00",
+  "reader_base_commit": "92195dd9d49b38c4d529c7a7f08aa22f00e3c47b",
+  "reader_last_implementation_commit": "f853899a7f57e0a24acd459513f7603363cb5c31",
+  "inference_state": "Selection, values, visibility, splits and equivalence frozen before running the reader on any new retained image.",
+  "implementation": {
+    "code_files": {
+      "tibia_client/adaptive.py": "b4651c7790f9442f0bcaa11d57ce23b5fa92695ea8a95baf77ec47dc90199714",
+      "tibia_client/adaptive_text.py": "9378f736e20e2808f10cd6265a16e921c9249109698e7a3715be2f0f4a61815b",
+      "tibia_client/adaptive_runtime.py": "5c85edaa5e2c694c339fb42142a7f52189224e384f71cae4bd4cf409360aa80e",
+      "tibia_client/resource_profiles.py": "401ea4b199edcd0e4e8b4dce927d2786403b370b17f58eebf452a524c6d0dbb4",
+      "tibia_client/visual.py": "8b46717a462c3bd0f3009d53cf3d5fc346022a4ba99d2563b1b1e32496688e54",
+      "tools/benchmark_resources.py": "5c7d7f74fe9ae438b139e74e97a0b66a9b773195d3956ebd62b7952b413e98c1",
+      "tools/compare_resource_readers.py": "c278389b22fb0115aa77f409028d43e84da44b7b3519e1f8e8acfa79cc23662d"
+    },
+    "profile_bundle_sha256": "e30c6255f36e76b3ecbf5229666c30816c9d0ebf25f372174212ea7f045d974f",
+    "profile_file_count": 43
+  },
+  "annotation_files_sha256": {
+    "manifest.json": "25605ffe8d589edbb99dbf3b7af840719c46521ba74d80c929ccca0dc47190e1",
+    "additional-sources.json": "b2ab72117a15118fbcd9dc90bcf141aa5b57fb9d7dfdc1456a9e700c18a5ca1f",
+    "visual-review.json": "9e9a7bb9277ffb2b5f76a4e9ae194f0b365453ef6c7146002457bfd57de7fb30"
+  },
+  "selection_counts": {
+    "retained": 32,
+    "new_full": 31,
+    "additional_partial_reference": 1,
+    "primary_positive": 22,
+    "negative_safety": 6,
+    "ambiguity_safety": 1,
+    "reference_diagnostic": 3,
+    "lineage_groups": 28,
+    "new_bytes": 55303233
+  },
+  "deduplication": {
+    "exact_bytes_checked_against_existing": 19,
+    "decoded_rgb_checked_across_all": 51,
+    "retained_exact_duplicates": 0,
+    "method": "SHA-256 of downloaded bytes and decoded RGB; 63-bit low-frequency DCT hash <=10 for review candidates, followed by visual full-image comparison. Perceptual similarity is not proof of independent sessions.",
+    "near_pairs": [
+      {
+        "ids": [
+          "dfg-retro-pvp-rp535",
+          "dfg-retropvp-BYZ0"
+        ],
+        "phash63_hamming": 8,
+        "review": "Compared full originals; different scene/dialog/state. Related author/listing captures remain in one split."
+      }
+    ]
+  },
+  "source_groups": {
+    "allegro-kenora-antica": [
+      "allegro-antica-4c39a50f"
+    ],
+    "dfg-listing-904190487": [
+      "dfg-gentebra-BJEI"
+    ],
+    "dfg-listing-905898076": [
+      "dfg-demolidores-4KCJ"
+    ],
+    "dfg-listing-906563910": [
+      "dfg-gentebra-3XWB",
+      "dfg-gentebra-AZ3L",
+      "dfg-gentebra-rp193-PPNB"
+    ],
+    "dfg-listing-953559644": [
+      "dfg-gladera-SSVX"
+    ],
+    "dfg-listing-966830394": [
+      "dfg-belobra-2AHL",
+      "dfg-belobra-S50Q"
+    ],
+    "dfg-listing-974104750": [
+      "dfg-yonabra-8LN9",
+      "dfg-yonabra-ek195"
+    ],
+    "dfg-listing-975471397": [
+      "dfg-quintera-VS41"
+    ],
+    "dfg-listing-978242455": [
+      "dfg-retro-pvp-rp535",
+      "dfg-retropvp-BYZ0"
+    ],
+    "drenoxbot-paulistinha-page": [
+      "drenox-client"
+    ],
+    "reddit-author-Adventurous-Size-935": [
+      "reddit-adventurous-xcqycuy"
+    ],
+    "reddit-author-Blakee1": [
+      "reddit-blake-ib60r93",
+      "reddit-blake-m91oix5"
+    ],
+    "reddit-author-Daralion": [
+      "reddit-daralion-0tx21ye"
+    ],
+    "reddit-author-Illustrious_Ad4910": [
+      "reddit-illustrious-mo9lbk5"
+    ],
+    "reddit-author-KoroTheKoro": [
+      "reddit-koro-3brbvbq",
+      "reddit-koro-9rwszeb"
+    ],
+    "reddit-author-Kthrygg": [
+      "reddit-kthrygg-nfiiftq"
+    ],
+    "reddit-author-Nwasmb": [
+      "reddit-nwasmb-8q86ims"
+    ],
+    "reddit-author-StrikeStraight9961": [
+      "reddit-strike-e0qinag"
+    ],
+    "reddit-author-TheKollector_": [
+      "reddit-kollector-awoeqer"
+    ],
+    "reddit-author-Valouran": [
+      "reddit-valouran-pl7tust"
+    ],
+    "reddit-author-Yamalz": [
+      "reddit-yamalz-dfbygh7"
+    ],
+    "reddit-author-chrissykes78": [
+      "reddit-chrissykes-4ppe2dp"
+    ],
+    "reddit-author-deleted-jsop4k8": [
+      "reddit-deleted-09s6sbl"
+    ],
+    "reddit-author-dworc": [
+      "reddit-dworc-o0ap20c"
+    ],
+    "reddit-author-weirdnonamer": [
+      "reddit-weirdnonamer-h8odlbh"
+    ],
+    "tibiabr-patch-4427": [
+      "tibiabr-sidebars-filled"
+    ],
+    "tibiaqa-client-history": [
+      "tibiaqa-flash-v1QxvNN"
+    ],
+    "tibiautils-d35caff": [
+      "tibiautils-d35caff"
+    ]
+  },
+  "entries": [
+    {
+      "id": "dfg-demolidores-4KCJ",
+      "annotation_sha256": "39a219bc7917dc8950d0bf5d67f8db58707d210515e81d021f78ce186f1bb6b9"
+    },
+    {
+      "id": "dfg-belobra-2AHL",
+      "annotation_sha256": "40ed4441aa240f3411c8dcf40db8ba4928d9e8d2c948dd57098506fe07dd0534"
+    },
+    {
+      "id": "dfg-belobra-S50Q",
+      "annotation_sha256": "bc7a246102e095f49d98b6f1d135cc029bc1d382586ec2c202ee7a0ee318855a"
+    },
+    {
+      "id": "drenox-client",
+      "annotation_sha256": "ab1e2271c818ea44e197f1110a0b182680631fb22e7279fd0775383288ae2558"
+    },
+    {
+      "id": "dfg-gentebra-3XWB",
+      "annotation_sha256": "18ece3cb573b4602de36fa725e7116fa40516a930ea3f0ce283acd6d2a2a6860"
+    },
+    {
+      "id": "dfg-gentebra-AZ3L",
+      "annotation_sha256": "911c0568aefab48d4ea59adca7ae6d032e5b8bb87da63d9139d3293cbdecbb08"
+    },
+    {
+      "id": "dfg-gentebra-BJEI",
+      "annotation_sha256": "58054344d665df6fe1ee38adb598a48ca6449a43e9dfb39c5b1b22f7e67cf10b"
+    },
+    {
+      "id": "dfg-yonabra-8LN9",
+      "annotation_sha256": "84f5bd8c5fdffacc549c92d07c43a3efddde443684443f0f9c7e265e68aaf33d"
+    },
+    {
+      "id": "dfg-quintera-VS41",
+      "annotation_sha256": "62e7bfaeac29f65fa9326622645a807ea9d4ee3b6f3471425bdac7f15c260fb7"
+    },
+    {
+      "id": "dfg-retropvp-BYZ0",
+      "annotation_sha256": "fdb0f511b119b9388e1d99dc279c9f2281b45589589aed056c8595a36c0835be"
+    },
+    {
+      "id": "tibiautils-d35caff",
+      "annotation_sha256": "7a0cfbe0d2d335f1f9d152ee894f878e5cbcf78d8f3147fafb6edf7a60b92138"
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "annotation_sha256": "c0eebcd997c27b54b57dc39cda5f940a4c31b6648500c79dcb718bf97695f516"
+    },
+    {
+      "id": "dfg-gladera-SSVX",
+      "annotation_sha256": "527de0a90bd548825815ce0df61239fc38c4959c2c5cf64ea0b2e7f92b069015"
+    },
+    {
+      "id": "tibiaqa-flash-v1QxvNN",
+      "annotation_sha256": "215aca842cb074a134fbee83338d16d8ed8676a0899c6d3ed405e22f0c715493"
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "annotation_sha256": "af45a6cd539a3ded8814fbdcb882e4fde0e09fc4eb07d65e00627871173355ad"
+    },
+    {
+      "id": "reddit-koro-3brbvbq",
+      "annotation_sha256": "b655e4aef73e6f278d16316b12d32d081c9a5b1757b04626a9a62c13bd85a062"
+    },
+    {
+      "id": "reddit-koro-9rwszeb",
+      "annotation_sha256": "7e71dd15999107e9b8838d26bcf888c61827ff18a0c8f24087bf8df0f10d08f1"
+    },
+    {
+      "id": "reddit-kollector-awoeqer",
+      "annotation_sha256": "b422a1ef216ce363e9b8c4fd4183ae8f3fb26e512aa992a378502abd82a2dd2f"
+    },
+    {
+      "id": "reddit-strike-e0qinag",
+      "annotation_sha256": "5920c3089ffbade178c0e680edc4e4f10f73aa08d9ced19535b4ef18e2c9b739"
+    },
+    {
+      "id": "reddit-nwasmb-8q86ims",
+      "annotation_sha256": "4b46011268f6f999d47a380f8e0dfe5d8a70bdc5cf75f91d6b2bcf1fc7b02a57"
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "annotation_sha256": "b7091f4e55bc9de3d89670d1455497bcc328c0a9e69e26358500bafde57b8a53"
+    },
+    {
+      "id": "reddit-deleted-09s6sbl",
+      "annotation_sha256": "a310b6505cf5d2190d524060f05f91587ee1fc38d6fb4d54fff9452080f7c5a0"
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "annotation_sha256": "18a7e168e5d5e2fcf91c275581290f9dbf5361611b2cba279a149eaf238c93c6"
+    },
+    {
+      "id": "reddit-illustrious-mo9lbk5",
+      "annotation_sha256": "d65facc2204e1f3fefae22ebe944aaeeb292539c27076ad1281755a5ec5536a9"
+    },
+    {
+      "id": "reddit-blake-m91oix5",
+      "annotation_sha256": "d79397db149e0cda84d86544fe3bfff62820e9ec186a225c8ed6f8afa064f06f"
+    },
+    {
+      "id": "reddit-kthrygg-nfiiftq",
+      "annotation_sha256": "07f2f0c8667b68a78a21e487f9ebb22cf89409916ca588d2b5495b97281119eb"
+    },
+    {
+      "id": "reddit-yamalz-dfbygh7",
+      "annotation_sha256": "e9fc9b9d39ea4958f278a84b3b22175d7258bddbea15f67704e73807b61aeb4d"
+    },
+    {
+      "id": "reddit-blake-ib60r93",
+      "annotation_sha256": "f0cb5c190dc403610a310636a126752de855779f590cb2296f3b0f0e293b9171"
+    },
+    {
+      "id": "reddit-daralion-0tx21ye",
+      "annotation_sha256": "52d1b7d8ffae8c87936edf3c9c044fc546008b4eb8d0742ae6948bf0abf5d928"
+    },
+    {
+      "id": "reddit-dworc-o0ap20c",
+      "annotation_sha256": "d7165c3778db9999702ab0cdf23fd957aa5983b13a514b6c66b34184fa24b0a6"
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "annotation_sha256": "8d229c83e8b04eabaf14cbbb5303bdb602ff69b37b2e26a034a3226ded9e2ebb"
+    },
+    {
+      "id": "reddit-chrissykes-4ppe2dp",
+      "annotation_sha256": "e0f7cd55fa308a40183632002e4d2d7e26ff34c5426c46879d7ac1e798a52787"
+    }
+  ],
+  "screening": {
+    "download_records": 156,
+    "large_candidates_reviewed": 81,
+    "retained_large_candidates": 32,
+    "excluded_large_candidates": [
+      {
+        "filename": "921354137-elite-knight-skills-100-MRNF.webp",
+        "sha256": "82e114c63089f8fb42715f5f9273d0e0e5acd7eeb690e8f3c189f519eed48589",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "912175559-knight-tibia-global-level-246-skill-106-mundo-calmera-FDZF.webp",
+        "sha256": "8de675c91e300c956a99a08b4a84505dc11141975e8bdb2dbe4cc77b0819c478",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "956431015-conta-tobia-3VRN.webp",
+        "sha256": "74b836236353a5885907f20ea9f0db25721fcf5b85cace858ec6ed5fedae8017",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "956431015-conta-tobia-8PMJ.webp",
+        "sha256": "67ed3b8a514ad20faa493f9b0bf6160aee0518a0d2b5aac131b71f8ceda845ef",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "956431015-conta-tobia-GKE3.webp",
+        "sha256": "ef7d87475f199b133f4d17f163d3d59dba2c24ff215511ab899d4568213f0f91",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "928755429-vendo-ek-yubra-lvl-219-com-todo-itens-juntos-SP7T-1911058.webp",
+        "sha256": "6ded44c5694277d253c2ef6ccaa32cf2bf29aaf0122545cd3fe6b59c8ba62738",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-1W8M.webp",
+        "sha256": "e74de2f966acb26a6cfb256e8601598276615603284f608b7d1d2880096d472c",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-D6GM.webp",
+        "sha256": "bf0aaa64a8b2db278207e601bb67848d8cce86c2bbe6dc6079985158e4cb5178",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-F60D.webp",
+        "sha256": "a4008d8bc44d0495d08821341e786641f771d29e82e1ed92d9f02f38299f9d6a",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "933846791-chars-em-serdebra-rp-270-ek-183-ed-104-ms-152-1GY1.webp",
+        "sha256": "d245d55928bbac7e024d85645759a99b5836abeb063ce6b4b554a666267c7c91",
+        "reason": "publisher_composite"
+      },
+      {
+        "filename": "933846791-chars-em-serdebra-rp-270-ek-183-ed-104-ms-152-J06X.webp",
+        "sha256": "993a3c0975a01b6e4c4dc58c992929d90100b6889f1de083c8d86a411c0b26b3",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "933846791-chars-em-serdebra-rp-270-ek-183-ed-104-ms-152-JIJ2.webp",
+        "sha256": "61aa9afa414b977f2d0262412aa41782f875afdcb475d10898aef338b8f16e4a",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-4UDX.webp",
+        "sha256": "b3d6a25787031d291a9160bd030dd61a832506dd944898bb6ee5aa4b8601e07f",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-CYV0.webp",
+        "sha256": "d87d72c4385b629e048148e10e22ff417513fa671a20ce3856b9a98cbeedaf38",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-FHTT.webp",
+        "sha256": "d012f5a1333a4c11e77f5b3fec0187608856e8b0d99d1b62792997d97e4dfdb6",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-O6ER.webp",
+        "sha256": "76c5648ac1cece8fc61213b6ec193f5f0f5d89e93bf5a2e30fdea84854223664",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "966830394-master-sorcerer-323-belobra-leia-a-descricao-YBLM.webp",
+        "sha256": "c5b29a20fa1ade9590a50f74dd6fedd9a59d73a313930d5c134111a3829a00fa",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "917867645-ek-362-kalibra-2-dummy-de-treino-TDR2.webp",
+        "sha256": "e6956b2c23c9ace6b2cac6436bab5d5fb110d3f169b04b6539b8da31c795c201",
+        "reason": "exact_existing_duplicate",
+        "existing_id": "dfg-kalibra-ek362"
+      },
+      {
+        "filename": "906746479-knight-low-level-high-skill-VTBF.webp",
+        "sha256": "f80158819a68a8939b07382d98a901103aaada9001dc6ab2533437974e51680f",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "926900792-tibia-ms-master-sorcerer-567-retro-warrior-EHCM.webp",
+        "sha256": "ad1ff7aedb21de045cd235794aefb999ce802e6dbbc1abae31fa96897939a3ab",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "936736140-elder-druid-level-162-kalibra-100-seguro-8095.webp",
+        "sha256": "a73e51b35802f622d14a95ab0959d0cf1b41c982e7fb1fd29aeec08e3100d734",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "936736140-elder-druid-level-162-kalibra-100-seguro-BPJQ.webp",
+        "sha256": "ef6ec57ab459b70330a4fbcf088101ee0a101ae71908d6dbd39a7b638cbbf2ff",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "936736140-elder-druid-level-162-kalibra-100-seguro-VJFU.webp",
+        "sha256": "ecc7d7d3dd539829486d984f544e41b5e268659cf011b3c2cc204229457ff148",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "922505801-ms-master-sorcerer-362-celebra-HASN.webp",
+        "sha256": "629620a83c0e6a51319250f72321630df31fb251a7b3c866ed5b6f756fb2a918",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-ORK4.webp",
+        "sha256": "e27ada218a7f7a2433dcdbb449a4394c7ad8b8667f9989c6e4f47a9d9a1e0498",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp",
+        "sha256": "0393813276aa22d994a7de0c27a183f34fb69bef7a0540b9992de61b7f6fcf42",
+        "reason": "exact_existing_duplicate",
+        "existing_id": "dfg-gentebra-rp193-PPNB"
+      },
+      {
+        "filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-T7FP.webp",
+        "sha256": "54ab02d415b7fb2ca1ee2b2b614723d89204dd219c35b338411fa49fcfc907eb",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-YFYR.webp",
+        "sha256": "6b4f29fded4ef21b2941805dfe8ca4051465b2814270439921aeaaea73184ecd",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-IO9X.webp",
+        "sha256": "7366860070d1c7344b737936016c2c86925dfa15912739c0689df3a38538d1c3",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-LN5V.webp",
+        "sha256": "33e0ae10234382ccf98b93e7c7a5df5a2211a85055512356224b3598e46c2c99",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "948084623-vendo-rp-bolado-lvl-151-ml-22-skills-98-78-com-itens-MPUE.webp",
+        "sha256": "037fabf1ee814cba2dd81d551418335e4e7188f8206d73fcdcc2425aa1992303",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-FQ2C.webp",
+        "sha256": "cb48bade572118b9885f529644b04f676d61575e4b50a8523a2925d29a7dcbbf",
+        "reason": "exact_existing_duplicate",
+        "existing_id": "dfg-yonabra-ek195"
+      },
+      {
+        "filename": "902333372-tibia-paladin-lvl-84-M02J.webp",
+        "sha256": "0450d0f95b051e4b17c0d975967a341f6bd1268be59bb1ced3eb07c2560baba2",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "974873094-knight-105-um-amante-de-quests-vale-a-pena-dar-uma-olhada-3TSL.webp",
+        "sha256": "8b9ad720d0041edc48c54e4f7dbb009385574c3cc5194d82a6cc583247c64014",
+        "reason": "publisher_composite"
+      },
+      {
+        "filename": "974873094-knight-105-um-amante-de-quests-vale-a-pena-dar-uma-olhada-8CKV.webp",
+        "sha256": "e43d202fd39ed325b1241d737350847df4e5589942a83d611cee502e4e160567",
+        "reason": "publisher_composite"
+      },
+      {
+        "filename": "974873094-knight-105-um-amante-de-quests-vale-a-pena-dar-uma-olhada-B0I3.webp",
+        "sha256": "3dbbcbf1ece034ca3dfee7a829b39e9944490bead6f88d4c89353192e8d8ce10",
+        "reason": "publisher_composite"
+      },
+      {
+        "filename": "974873094-knight-105-um-amante-de-quests-vale-a-pena-dar-uma-olhada-KLTV.webp",
+        "sha256": "b55a2728b377da1cad8dc581355d9e78cc73b9c1fff2b9c79690696eadc74737",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "998237216-vendo-ek-133-mundo-pvp-disponivel-para-transferencia-4DOS.webp",
+        "sha256": "c951ee1f1175900804f916a4f7372545234ebd4a07202eb572828ff66a60bb18",
+        "reason": "exact_existing_duplicate",
+        "existing_id": "dfg-pvp-ek133"
+      },
+      {
+        "filename": "978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-B03E-1924049.webp",
+        "sha256": "f45f0622dc352ad5daaec7cda7671e0cd1f8a4424924aa17925da2cc363ff771",
+        "reason": "exact_existing_duplicate",
+        "existing_id": "dfg-retro-pvp-rp535"
+      },
+      {
+        "filename": "978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-D1W1-1924053.webp",
+        "sha256": "7aff4b935829e1765cd70ac7baa1e93a17084b27fdfda33e83590b2906958263",
+        "reason": "account_webpage_not_client"
+      },
+      {
+        "filename": "978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-I406-1924050.webp",
+        "sha256": "3afd06c99593efcd8d99d1405ea26a6659f7ab5fd4bf60043b03fd5912961e9f",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-ZJY0-1924052.webp",
+        "sha256": "17872d438f59e517a9332119cd4d39c4d9d31869ea54b95df52f41b8c7eaae5a",
+        "reason": "account_webpage_not_client"
+      },
+      {
+        "filename": "912175559-knight-tibia-global-level-246-skill-106-mundo-calmera-JJWZ.webp",
+        "sha256": "a2a1c52b6b24c347263d16294681048e987a888d83e537148e1592496c89a835",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "912175559-knight-tibia-global-level-246-skill-106-mundo-calmera-UJYU.webp",
+        "sha256": "00d11650288a112f5e1f40a89a3d398ca28702fe10ce914e2c7725fd557f7623",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "914537301-o-melhor-knight-do-tibia-skill-alta-C7XJ.webp",
+        "sha256": "f1e13d9abad20ee3afa2f89e84516891183b2ae979431e6a792bec9103850402",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "tibia_3.jpg",
+        "sha256": "cc1412d6feeef44b4d7fe8c5ecd1ab6bc9722981d762a00019c56e714763d0f5",
+        "reason": "redundant_related_capture"
+      },
+      {
+        "filename": "jgo2pbrw0e6d1.png",
+        "sha256": "ddc552302e36405837bd041260fea763e29a928ef0875120a5ff1aa86151f5d1",
+        "reason": "partial_or_uncertain_capture_extent"
+      },
+      {
+        "filename": "jyr7t3rrfawb1.png",
+        "sha256": "00ae6821615ec1048c326f21e2e0a85c363ed19646e1fd8d9aa69478d81693cb",
+        "reason": "monitor_photo"
+      },
+      {
+        "filename": "613grqnd28wb1.jpeg",
+        "sha256": "6adbb3106f642005d2369aa10b7f7512f4f526c203e05ac879c14db42e05758a",
+        "reason": "monitor_photo"
+      }
+    ],
+    "small_images": "Source panel/dialog crops below 750x500 were not candidates for full-client retention.",
+    "access_limits": "DFG returned HTTP 429 after initial gallery collection; further DFG fetching was stopped. Reddit HTML/API access failed in the shell, so public rendered Reddit pages were inspected in Edge and their original i.redd.it attachments downloaded. Some external landing pages were unavailable; those provenance limits are recorded per entry."
+  },
+  "limits": [
+    "Public screenshots may contain publisher resizing/compression/redaction; bytes and existing names/marks are preserved.",
+    "No authoritative exact build, native resolution, DPI, capture timestamps or independent-session count is established.",
+    "Existing 19 sources are regression evidence; four additions share three existing source lineages.",
+    "The new set is first-evaluation evidence only until its baseline is inspected; no reader tuning is performed in this collection.",
+    "No real tooltip covering resource values or simultaneous multiple-client capture was found; those remain coverage gaps.",
+    "Capacity 104966.56 is readable in the different Demolidores reference but outside the integer scoring schema; its exact text is recorded without rounding."
+  ]
+}
