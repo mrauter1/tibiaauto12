@@ -209,7 +209,10 @@ def _fit_number(mask, bank, max_digits, allow_grouping):
             continue
         for top in range(max(0, ymin - max(1, round(ratio))), min(ymin + 2, mask.shape[0])):
             for start in range(max(0, xmin - max(2, round(4 * ratio))), xmin + 1):
-                cursor = float(start)
+                # Round advances relative to the string origin. Rounding the
+                # absolute ROI coordinate makes half-pixel ties depend on the
+                # integer origin's parity and changes readings after padding.
+                cursor = 0.0
                 text = []
                 scores = []
                 margins = []
@@ -218,7 +221,7 @@ def _fit_number(mask, bank, max_digits, allow_grouping):
                 intersection = 0.
                 viable = True
                 for token in pattern:
-                    left = round(cursor)
+                    left = start + round(cursor)
                     references, masses, intersections_map, score_map = maps[token]
                     advance = digit_advance if token == "d" else comma_advance
                     width, height = references.shape[2], references.shape[1]

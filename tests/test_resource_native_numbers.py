@@ -147,3 +147,28 @@ def test_provenance_identifies_installed_font_without_bundling_it():
     assert len(details["source_sha256"]) == 64
     assert details["pixel_size"] == "11"
     assert "no font redistribution" in details["asset_policy"]
+
+
+@native
+@pytest.mark.parametrize("padding", [1, 2, 3])
+def test_fractional_advances_are_invariant_to_roi_translation(padding):
+    image = rendered("938")
+    reader = NativeNumberReader()
+    original = reader.read(image, scale=.775)
+    translated = reader.read(np.pad(image, ((0, 0), (padding, 0), (0, 0)),
+                                    constant_values=64), scale=.775)
+    assert original.quality is Quality.KNOWN
+    assert original.value == translated.value == 938
+    assert original.quality is translated.quality
+    for key in ("text", "unexplained_pixels"):
+        assert translated.diagnostics[key] == original.diagnostics[key]
+    # OpenCV correlation accumulates float32 products in slightly different
+    # orders for different image widths. Its sub-micro rounding is not a
+    # different pixel alignment or recognition hypothesis.
+    for key in ("score", "minimum_glyph_score", "digit_margin"):
+        assert translated.diagnostics[key] == pytest.approx(original.diagnostics[key], abs=1e-6)
+    original_alternatives = original.diagnostics["alternatives"]
+    moved_alternatives = translated.diagnostics["alternatives"]
+    assert [a["text"] for a in moved_alternatives] == [a["text"] for a in original_alternatives]
+    assert [a["score"] for a in moved_alternatives] == pytest.approx(
+        [a["score"] for a in original_alternatives], abs=1e-6)
