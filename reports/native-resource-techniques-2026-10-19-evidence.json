@@ -1,0 +1,1812 @@
+{
+  "schema": "tibiaauto.native-resource-evidence",
+  "version": 1,
+  "summary_analysis_revision": "2a34856b51a8b58ac48709fde53816a8324a1812",
+  "selected_measured_candidate": "rows_cache",
+  "production_default_changed": false,
+  "runs": [
+    {
+      "label": "initial",
+      "revision": "8d1dc642de7bc2f8eb9afc57023238b4246829ca",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39302705271",
+      "local_directory": "D:\\Sistemas.new\\tibiaauto12\\.work\\reader-native-20261019\\initial",
+      "artifacts": [
+        {
+          "id": 12212660274,
+          "name": "native-resource-guards-base",
+          "size_in_bytes": 2114,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212660274",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212660274/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:04Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:04Z",
+          "digest": "sha256:69b4fa89c4162e72359183e4645cbce9b127194c0f794d73e2acdf004d5bde1d",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212590332,
+          "name": "native-resource-guards-rows_cache",
+          "size_in_bytes": 3028,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212590332",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212590332/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:18Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:18Z",
+          "digest": "sha256:3dcb2477da8a99496254e3f6922caadefdc08fe6c4bc06b0d6792e6e71f66c6c",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212318479,
+          "name": "native-resource-guards-rows_numbers",
+          "size_in_bytes": 3016,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212318479",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212318479/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:28:45Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:28:45Z",
+          "digest": "sha256:cdfb6c65ec0db43572200f22eaea78ec3ba5d3df664eb328e3816c0c21e25339",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212049808,
+          "name": "native-resource-guards-all",
+          "size_in_bytes": 3018,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212049808",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212049808/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:06Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:06Z",
+          "digest": "sha256:6380a2063729f8e95a431b6d87d9c089d5d86269ac5853a758cfe42ea6c1d379",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211793751,
+          "name": "native-resource-guards-cache",
+          "size_in_bytes": 2108,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211793751",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211793751/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:14Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:14Z",
+          "digest": "sha256:a7ae4a74e5d561dcf3a73677ad4d40703ca744d8c8f62d3b5497ed99611e6688",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211183579,
+          "name": "native-resource-guards-numbers",
+          "size_in_bytes": 2144,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211183579",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211183579/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:14Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:14Z",
+          "digest": "sha256:8a36bad1081d1df7184fc823c5b792d45afa86d9621a3fdda8ea95f2b31e7ce7",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211003497,
+          "name": "native-resource-guards-numbers_cache",
+          "size_in_bytes": 2148,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211003497",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211003497/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:29:04Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:29:04Z",
+          "digest": "sha256:505c217aa4b0ab7f47f1cd2365e739dd71555134e7a36310dd540902de7ef532",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212835726,
+          "name": "native-resource-shard-11",
+          "size_in_bytes": 136710,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212835726",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212835726/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:33:16Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:33:16Z",
+          "digest": "sha256:a2339d0f6fd1060348039a010a32b8cbb8dd30379c9adc40841a89a41825dc6e",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211998790,
+          "name": "native-resource-guards-rows",
+          "size_in_bytes": 3025,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211998790",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211998790/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:31:25Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:31:25Z",
+          "digest": "sha256:07d485d46a7940d94a5bbc2824b0a43ab909ba59e5c1d897a28af186f5a97e10",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12210928843,
+          "name": "native-resource-shard-3",
+          "size_in_bytes": 162340,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210928843",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210928843/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:31:50Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:31:50Z",
+          "digest": "sha256:cf143766021e85a66f5e9425e4b1d5804f576d764d445a0dfba2a4ea65132c84",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12213075477,
+          "name": "native-resource-shard-2",
+          "size_in_bytes": 155013,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213075477",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213075477/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:36:51Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:36:51Z",
+          "digest": "sha256:9436813d4d5aea320a0c1db4d2af602a27d99b951202cf8f46644a3f72994ad0",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12213011337,
+          "name": "native-resource-shard-13",
+          "size_in_bytes": 131273,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213011337",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213011337/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:38:59Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:38:59Z",
+          "digest": "sha256:9d18c7be7684c44a257a45576231ed9b32c6c247f45a51e8bc88c069f35a6fe8",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212950754,
+          "name": "native-resource-shard-8",
+          "size_in_bytes": 106460,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212950754",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212950754/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:34:34Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:34:34Z",
+          "digest": "sha256:5279073a17dc3c01a71e968faf6345934e820ba333d87ace3cec2110aa3c03e5",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212721412,
+          "name": "native-resource-shard-1",
+          "size_in_bytes": 135483,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212721412",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212721412/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:35:46Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:35:46Z",
+          "digest": "sha256:345f7b6a07f93896688f98aa8d5f9f4853ada3c35f286adab1d9502958bdb6c8",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212716152,
+          "name": "native-resource-shard-4",
+          "size_in_bytes": 174439,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212716152",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212716152/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:34:57Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:34:57Z",
+          "digest": "sha256:0b9451887a49a6c1490422006fc1f337a3d80cf7119b78c9f6c1517e602ce959",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212439093,
+          "name": "native-resource-shard-0",
+          "size_in_bytes": 156752,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212439093",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212439093/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:35:43Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:35:43Z",
+          "digest": "sha256:f8e4a419f06d6ebb02d10a9f9979ce715c529b750b44c393f3114833e2e3621d",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212319480,
+          "name": "native-resource-shard-9",
+          "size_in_bytes": 147022,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212319480",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212319480/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:34:48Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:34:48Z",
+          "digest": "sha256:9d14745fdfe8fa96c4bda51947cca4707ae7ae0b19b3a6ca53302aee8d089e4b",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211964243,
+          "name": "native-resource-shard-10",
+          "size_in_bytes": 146214,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211964243",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211964243/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:33:56Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:33:56Z",
+          "digest": "sha256:37ea510780236bcf689c78f72fb958faed6e046119beb66bbfb6a6ee8bcd9bfd",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211634708,
+          "name": "native-resource-shard-14",
+          "size_in_bytes": 130559,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211634708",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211634708/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:38:32Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:38:32Z",
+          "digest": "sha256:aa85ff83caba1d3b7113211e28d85d6caadad0d5f9484b403a87440cb5e43d6a",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211474537,
+          "name": "native-resource-shard-5",
+          "size_in_bytes": 129910,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211474537",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211474537/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:36:46Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:36:46Z",
+          "digest": "sha256:3484737e89fc4a4daa2acf5b7b15f0c4e53756843f1b26f8ee74191760771e37",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12211364304,
+          "name": "native-resource-shard-12",
+          "size_in_bytes": 114671,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211364304",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211364304/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:36:42Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:36:42Z",
+          "digest": "sha256:8b2644df188c3088ba6f0d19faa4b35943b02fd65548d6fb99655dcc41a51e43",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12210879195,
+          "name": "native-resource-shard-6",
+          "size_in_bytes": 153771,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210879195",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210879195/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:35:01Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:35:01Z",
+          "digest": "sha256:3591df423ff7a02684c02d3537c698334989ae47eac0ed6a7efc85e451dd6e50",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12210769141,
+          "name": "native-resource-shard-7",
+          "size_in_bytes": 136571,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210769141",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12210769141/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:34:23Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:34:23Z",
+          "digest": "sha256:85cc8ecd5f94005a45e049ab9aa020427e799ab7ad1adfe641c5c728b505ea1f",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12213281353,
+          "name": "native-resource-shard-17",
+          "size_in_bytes": 103071,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213281353",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213281353/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:43:59Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:43:59Z",
+          "digest": "sha256:9f837173827f4578912726db87b52bf29fca7f936943273a8ea60e644efefb08",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12213280552,
+          "name": "native-resource-shard-16",
+          "size_in_bytes": 125162,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213280552",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213280552/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:39:18Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:39:18Z",
+          "digest": "sha256:fb9bbb86d755f5945e0fc983073f6e8338615011080a7350f3d7c5089d8cea6c",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        },
+        {
+          "id": 12212657299,
+          "name": "native-resource-shard-15",
+          "size_in_bytes": 102183,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212657299",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212657299/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:43Z",
+          "expires_at": "2027-01-17T18:27:53Z",
+          "updated_at": "2026-10-19T18:40:43Z",
+          "digest": "sha256:0bddc3acb0392d142b4f5059ca370e8f5fe5586b492fce5e96c276d095294636",
+          "workflow_run": {
+            "id": 39302705271,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "8d1dc642de7bc2f8eb9afc57023238b4246829ca"
+          }
+        }
+      ]
+    },
+    {
+      "label": "rowfix",
+      "revision": "f183031e9e1685e7867b1a9af08dfe9c36257ee0",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39304255210",
+      "local_directory": "D:\\Sistemas.new\\tibiaauto12\\.work\\reader-native-20261019\\final",
+      "artifacts": [
+        {
+          "id": 12214200684,
+          "name": "native-resource-shard-2",
+          "size_in_bytes": 154615,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214200684",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214200684/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:47:40Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:47:40Z",
+          "digest": "sha256:99b8e20997c11defdc07f65953b51bff6d409dd323894c5a0f47917362fabcbd",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12214000886,
+          "name": "native-resource-shard-4",
+          "size_in_bytes": 174283,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214000886",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214000886/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:47:46Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:47:46Z",
+          "digest": "sha256:b84334834311c3d6ac6435a754c5515a5e862efa3314c92f1f015b066c2c7f97",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213801571,
+          "name": "native-resource-shard-1",
+          "size_in_bytes": 126339,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213801571",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213801571/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:46:41Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:46:41Z",
+          "digest": "sha256:36d90d27a7a86a93a7059371d35321873c1d8d57e1bb3cfdfd94ddc19d5b4b81",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213715304,
+          "name": "native-resource-guards-numbers_cache",
+          "size_in_bytes": 2140,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213715304",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213715304/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:10Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:10Z",
+          "digest": "sha256:daee1300965f8e2f439d730dcf0f61a23486be0908e3a68324321b4fcb7fb4d5",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213590922,
+          "name": "native-resource-shard-0",
+          "size_in_bytes": 155764,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213590922",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213590922/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:46:47Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:46:47Z",
+          "digest": "sha256:73845a3d0ccb58479edb22749ba8de297eab3049fcaf2894de5b7311ecbfd89b",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213515520,
+          "name": "native-resource-guards-numbers",
+          "size_in_bytes": 2139,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213515520",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213515520/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:09Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:09Z",
+          "digest": "sha256:2c406d4b0413a3b30f05f60adf61cae00e363c0e14f4ce0645e8f7b7b9459f1b",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213421169,
+          "name": "native-resource-shard-10",
+          "size_in_bytes": 145133,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213421169",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213421169/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:47:08Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:47:08Z",
+          "digest": "sha256:680a90dbec0f43ef5afcc89e92f91b1f250b369152948db120dbeb8b57316bdc",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213365724,
+          "name": "native-resource-guards-cache",
+          "size_in_bytes": 2120,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213365724",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213365724/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:11Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:11Z",
+          "digest": "sha256:a82f0a078d24052b7c5fb88916271ce1593b384724d40046358238a64bdb0d3e",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213351956,
+          "name": "native-resource-shard-3",
+          "size_in_bytes": 155358,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213351956",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213351956/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:47:29Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:47:29Z",
+          "digest": "sha256:8bae22854643f617dc59cd51d0090f329604000e9e989e79c86eb2debd04acee",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213251758,
+          "name": "native-resource-shard-11",
+          "size_in_bytes": 127791,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213251758",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213251758/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:45:01Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:45:01Z",
+          "digest": "sha256:6238cea0eb994880d914e70a03d80fbac67b807d56332b444e1641b2e0222b8b",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213107585,
+          "name": "native-resource-shard-7",
+          "size_in_bytes": 135701,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213107585",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213107585/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:48:30Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:48:30Z",
+          "digest": "sha256:39216f5ebe78784d046acdbb70e6b6732e48205ae79432f0bcc967396f0e7693",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213096595,
+          "name": "native-resource-guards-base",
+          "size_in_bytes": 2125,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213096595",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213096595/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:43:34Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:43:34Z",
+          "digest": "sha256:3252387cc1f1ce21172a0b50d0784aa5bbf7aa5312e4066e520ca74aa1d78a8e",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212917944,
+          "name": "native-resource-shard-6",
+          "size_in_bytes": 151644,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212917944",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212917944/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:46:28Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:46:28Z",
+          "digest": "sha256:39cdbae9fd8654f25c28070bdbecb57bdf673f7e362b3f84a8ae237e329dce62",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212913023,
+          "name": "native-resource-shard-8",
+          "size_in_bytes": 106599,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212913023",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212913023/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:46:31Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:46:31Z",
+          "digest": "sha256:99b886e053e233f79f6f1f3975c81c5d767da400002777292931efe491206527",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212793093,
+          "name": "native-resource-shard-9",
+          "size_in_bytes": 147355,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212793093",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212793093/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:44:43Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:44:43Z",
+          "digest": "sha256:0f2200558729c659106d06319f4fe903341ff9286006867dbbad890a5f0a9d05",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212782076,
+          "name": "native-resource-guards-rows",
+          "size_in_bytes": 2110,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212782076",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212782076/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:06Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:06Z",
+          "digest": "sha256:a5bae5d788c1b8008d9d03206a77549f06650919cd61081b39633ecfb50a33f9",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212627121,
+          "name": "native-resource-guards-rows_numbers",
+          "size_in_bytes": 2151,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212627121",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212627121/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:12Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:12Z",
+          "digest": "sha256:eed902276cee2ece9b782e6759ecfcbec6fefb909d22b28c7b5ee412863b9a6f",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212602299,
+          "name": "native-resource-guards-all",
+          "size_in_bytes": 2132,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212602299",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212602299/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:05Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:05Z",
+          "digest": "sha256:9a424593347feb7c107bf720e448e6a44aa16760af28a598b84c9195a05ee407",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12211774736,
+          "name": "native-resource-guards-rows_cache",
+          "size_in_bytes": 2133,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211774736",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12211774736/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:40:12Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:40:12Z",
+          "digest": "sha256:d40226f6c5d8042898d5eca8daaf409b7a18aff0b3a1fbbf61c6b0632ce77684",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213327577,
+          "name": "native-resource-shard-12",
+          "size_in_bytes": 104491,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213327577",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213327577/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:50:33Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:50:33Z",
+          "digest": "sha256:9b3d488d6d5955da179711d13ceba3d404478c0851b1d3b1d41becbf3b086e3e",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213068065,
+          "name": "native-resource-shard-14",
+          "size_in_bytes": 128811,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213068065",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213068065/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:50:57Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:50:57Z",
+          "digest": "sha256:a5ec11d7914f0bfa9f82208c2a892519b4be101de8ea08e38007f5d3899c81b1",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212968383,
+          "name": "native-resource-shard-5",
+          "size_in_bytes": 129234,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212968383",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212968383/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:49:16Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:49:16Z",
+          "digest": "sha256:7dbce6f42398ba05cc2f4724fffdde67f7ae98a40a4ed11ac1d533f3ff2fb455",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12212674255,
+          "name": "native-resource-shard-13",
+          "size_in_bytes": 131119,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212674255",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12212674255/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:50:24Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:50:24Z",
+          "digest": "sha256:1d0c729d51ad300fb9c8349f30dfff10ae38835e6bac9cc6912a3798d43b4516",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12214232247,
+          "name": "native-resource-shard-17",
+          "size_in_bytes": 102797,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214232247",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214232247/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:52:59Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:52:59Z",
+          "digest": "sha256:0fc7508c75163e0d919997acdfe26ac93d6373304ecce006cfe47b20d8f8262b",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213911451,
+          "name": "native-resource-shard-16",
+          "size_in_bytes": 123903,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213911451",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213911451/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:52:11Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:52:11Z",
+          "digest": "sha256:c64be03fdba495ba85bb60cde0d21a1d98dad61ac991d1fdaebe8ef269ad4baf",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        },
+        {
+          "id": 12213003976,
+          "name": "native-resource-shard-15",
+          "size_in_bytes": 102915,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213003976",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213003976/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:53:05Z",
+          "expires_at": "2027-01-17T18:38:54Z",
+          "updated_at": "2026-10-19T18:53:05Z",
+          "digest": "sha256:8eeaa7f505c9b7c33249940ab2e03f95d7eabe9388466b803fd0e6eaff74f77d",
+          "workflow_run": {
+            "id": 39304255210,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "f183031e9e1685e7867b1a9af08dfe9c36257ee0"
+          }
+        }
+      ]
+    },
+    {
+      "label": "final factorial",
+      "revision": "2a34856b51a8b58ac48709fde53816a8324a1812",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39306601454",
+      "local_directory": "D:\\Sistemas.new\\tibiaauto12\\.work\\reader-native-20261019\\refined",
+      "artifacts": [
+        {
+          "id": 12214393367,
+          "name": "native-resource-guards-cache",
+          "size_in_bytes": 2114,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214393367",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214393367/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:00:37Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:00:37Z",
+          "digest": "sha256:209de308e9bbf204b6f3f8b21442124b470b3c46d64b23a5e30508f11cb43728",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214268422,
+          "name": "native-resource-guards-base",
+          "size_in_bytes": 2114,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214268422",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214268422/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:00:23Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:00:23Z",
+          "digest": "sha256:cb4db7c51cdaec04e7c368c30fe6e750f4e9068dd146f9aa38281ab6b19b4167",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214032496,
+          "name": "native-resource-guards-all",
+          "size_in_bytes": 2132,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214032496",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214032496/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:00:39Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:00:39Z",
+          "digest": "sha256:6535cfb3d7261d3c1a26f9774e765a71a6d751d8c928ca726fdd467146a622ae",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213514002,
+          "name": "native-resource-guards-numbers_cache",
+          "size_in_bytes": 2147,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213514002",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213514002/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:18Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:18Z",
+          "digest": "sha256:25152327d39899dfe67168edaa56de5f9a889c265398403f651456a597365f96",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213479137,
+          "name": "native-resource-guards-rows_numbers",
+          "size_in_bytes": 2121,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213479137",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213479137/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:00:48Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:00:48Z",
+          "digest": "sha256:fb2bbc3d95147f3e27ae1d56149fad8c16f913cb67511109580e4688c1ee3a7c",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213442789,
+          "name": "native-resource-guards-rows_cache",
+          "size_in_bytes": 2134,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213442789",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213442789/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:58Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:58Z",
+          "digest": "sha256:ff4c48998a53313eca33e210f56f12e7191520add4faef0caf00ddfb225df7cd",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213408950,
+          "name": "native-resource-guards-rows",
+          "size_in_bytes": 2122,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213408950",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213408950/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:15Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:15Z",
+          "digest": "sha256:81b0dd17b21393a448d366f2481289900e287550b907f3f330d308601fac3828",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213689360,
+          "name": "native-resource-guards-numbers",
+          "size_in_bytes": 2123,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213689360",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213689360/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:01:31Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:01:31Z",
+          "digest": "sha256:fa3ba79ac0312d1ccd763c86c06995c7ddd8819c7e69fe492aec445b635c4e8e",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215050288,
+          "name": "native-resource-shard-9",
+          "size_in_bytes": 147374,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215050288",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215050288/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:03:58Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:03:58Z",
+          "digest": "sha256:51ef59733dea39af6e02254e56f38caea133727fdb82ea792a5b4354f6cd7d4d",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215015565,
+          "name": "native-resource-shard-3",
+          "size_in_bytes": 154966,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215015565",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215015565/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:03:55Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:03:55Z",
+          "digest": "sha256:9369ab8329fc539b2988f357f3ed674b1769807667eaf9a3a061c4fc1e2be0ee",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214861114,
+          "name": "native-resource-shard-1",
+          "size_in_bytes": 126660,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214861114",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214861114/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:04:18Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:04:18Z",
+          "digest": "sha256:bb998977138983b514ba3775175ab9c2868c2bb91c7c014818c685641d356f38",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214841701,
+          "name": "native-resource-shard-8",
+          "size_in_bytes": 107207,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214841701",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214841701/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:07:04Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:07:04Z",
+          "digest": "sha256:5f0103ef878638fff0869efd5eb6e594fceb22535a743561b99e38118b3f131d",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214399325,
+          "name": "native-resource-shard-10",
+          "size_in_bytes": 145811,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214399325",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214399325/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:06:17Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:06:17Z",
+          "digest": "sha256:1b560a2f42e3e13eb59e27e3fde3c531e3e3338f53c5ddff6f13a16c14a59d88",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214347960,
+          "name": "native-resource-shard-5",
+          "size_in_bytes": 129610,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214347960",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214347960/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:06:16Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:06:16Z",
+          "digest": "sha256:2e6d561b5511fe26c43b528cc4204783b4b51932c579bde82ecf9c505c4d98b1",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213933429,
+          "name": "native-resource-shard-4",
+          "size_in_bytes": 174238,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213933429",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213933429/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:06:16Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:06:16Z",
+          "digest": "sha256:7e3ce661e90a960c0ee13605a2b23ec2c8ff1be439b7e98ae090f89b640c6ffb",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213929447,
+          "name": "native-resource-shard-11",
+          "size_in_bytes": 127656,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213929447",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213929447/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:05:02Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:05:02Z",
+          "digest": "sha256:8de6a88f5e569234d76105d1678e546289b51e80c1a82c5a5e7ee144bc79e355",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213808373,
+          "name": "native-resource-shard-2",
+          "size_in_bytes": 155642,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213808373",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213808373/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:06:46Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:06:46Z",
+          "digest": "sha256:0c4f102a849fd2d6fda973e8ae6541a1de2477200510ddce2e1555c84ff29cfc",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213619785,
+          "name": "native-resource-shard-0",
+          "size_in_bytes": 157430,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213619785",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213619785/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:04:39Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:04:39Z",
+          "digest": "sha256:661c2c9e417cf11d8dc175399027daf8f90c9a88bcb97011972aa2982402fb54",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213488624,
+          "name": "native-resource-shard-7",
+          "size_in_bytes": 135433,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213488624",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213488624/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:06:12Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:06:12Z",
+          "digest": "sha256:2f0fb5657b015fd493ee31aaceb2a9da4e6331607ed04995fb5be3180fcbd358",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215505373,
+          "name": "native-resource-shard-12",
+          "size_in_bytes": 104750,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215505373",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215505373/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:09:00Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:09:00Z",
+          "digest": "sha256:afe8ffeb02d1f80b4edb70fd4e8c4796ecaf8b1a207d47cc06ceacf0cb9b8274",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215495075,
+          "name": "native-resource-shard-6",
+          "size_in_bytes": 152231,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215495075",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215495075/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:07:27Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:07:27Z",
+          "digest": "sha256:d2c5be2d0279ca8fe8ab4f405c0f69a50f7e13520c30e941f5d5898a54ef4029",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215390520,
+          "name": "native-resource-shard-14",
+          "size_in_bytes": 129849,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215390520",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215390520/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:08:47Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:08:47Z",
+          "digest": "sha256:75fc1465f098b7dbd5f31658bb6a6e3b29de1e42deffba9e536cc1d331d6b2a3",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12215271111,
+          "name": "native-resource-shard-16",
+          "size_in_bytes": 123794,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215271111",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12215271111/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:10:52Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:10:52Z",
+          "digest": "sha256:95d54ffbdbd6eb7a88e82748a8b8b98e3c50244080b2ad36928e47462bb7cf71",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214143584,
+          "name": "native-resource-shard-13",
+          "size_in_bytes": 130243,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214143584",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214143584/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:09:18Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:09:18Z",
+          "digest": "sha256:2d2292c0b9f79bc326cfdd49d25088a0f576e76b77ceb71e5f7967d6ebc0aa5f",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214158977,
+          "name": "native-resource-shard-17",
+          "size_in_bytes": 102628,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214158977",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214158977/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:13:37Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:13:37Z",
+          "digest": "sha256:3748b0b5af2a022b60c7e9274a9a155a29019ad1b1da0c86b0a9d4fb3822ecfe",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213649616,
+          "name": "native-resource-shard-15",
+          "size_in_bytes": 104000,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213649616",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213649616/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:13:43Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:13:43Z",
+          "digest": "sha256:dbfebf3a1ba0a9e4eda443653450ae8f647eae09d1d222b3d9a59997299a74d1",
+          "workflow_run": {
+            "id": 39306601454,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        }
+      ]
+    },
+    {
+      "label": "robust refinement",
+      "revision": "2a34856b51a8b58ac48709fde53816a8324a1812",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39306602008",
+      "local_directory": "D:\\Sistemas.new\\tibiaauto12\\.work\\reader-native-20261019\\robust",
+      "artifacts": [
+        {
+          "id": 12213418944,
+          "name": "row-refinement-shard-3",
+          "size_in_bytes": 96870,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213418944",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213418944/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:58:35Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:58:35Z",
+          "digest": "sha256:0ce506a247853aa2e2e634cde61c87dc69869a6a98a5331ffe85b7bef54f5ce2",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213143967,
+          "name": "row-refinement-guards",
+          "size_in_bytes": 10790,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213143967",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213143967/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:56:48Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:56:48Z",
+          "digest": "sha256:8ac6913a9ca834021736023d8b42d76049b69c16660a6628adf11825de6f3304",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214905130,
+          "name": "row-refinement-shard-0",
+          "size_in_bytes": 87284,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214905130",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214905130/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:16Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:16Z",
+          "digest": "sha256:7cdaa358d8916d3f3caf47093f9fef46407955e477c98dcb79eccfa3ca9bc9ce",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214775382,
+          "name": "row-refinement-shard-5",
+          "size_in_bytes": 82688,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214775382",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214775382/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:18Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:18Z",
+          "digest": "sha256:de16a0ec8bff2231564c0793053fae8e1cd97320685ff9c20011834cc443df9c",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214565932,
+          "name": "row-refinement-shard-4",
+          "size_in_bytes": 92128,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214565932",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214565932/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:51Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:51Z",
+          "digest": "sha256:d34ea599c57e80b320651c6bc43210395f5ceb8de2bb14ed616f6f44eb59a866",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214393135,
+          "name": "row-refinement-shard-7",
+          "size_in_bytes": 83815,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214393135",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214393135/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:23Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:23Z",
+          "digest": "sha256:9b383b5f6df252966f733df3a4973fa901dbb9caaa27413318594534d61c9bba",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214172248,
+          "name": "row-refinement-shard-10",
+          "size_in_bytes": 87359,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214172248",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214172248/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:43Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:43Z",
+          "digest": "sha256:b64ee9132f4797438f79e4a55ad4b00b8e46e4087f7e6746d5f2e4ff1cdfdc20",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214092555,
+          "name": "row-refinement-shard-8",
+          "size_in_bytes": 64189,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214092555",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214092555/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:40Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:40Z",
+          "digest": "sha256:93199378599a1c36398776a73c8c1bb1a1920525256bf8c515ac04c2718691d4",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214057320,
+          "name": "row-refinement-shard-2",
+          "size_in_bytes": 92517,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214057320",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214057320/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:24Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:24Z",
+          "digest": "sha256:4e166dfccd8f4ed18cdf5784e558b8d3c5f84c1c18c3c33824c3bcb0f0427587",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213618847,
+          "name": "row-refinement-shard-1",
+          "size_in_bytes": 74827,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213618847",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213618847/zip",
+          "expired": false,
+          "created_at": "2026-10-19T18:59:18Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T18:59:18Z",
+          "digest": "sha256:df30942f9afd9303806a868f64d1c4307f85b95dd38dd0c6410f1fe039a5c304",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12214990334,
+          "name": "row-refinement-shard-6",
+          "size_in_bytes": 76160,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214990334",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12214990334/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:01:21Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:01:21Z",
+          "digest": "sha256:4faeda92cd87fa490524326aecc2810d329e0918dfb0079144847bff236e230a",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213329521,
+          "name": "row-refinement-shard-11",
+          "size_in_bytes": 63453,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213329521",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213329521/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:01:44Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:01:44Z",
+          "digest": "sha256:4e3f5a75e87b9806a3dd7a8a604c446740993a609c36d91e664aff52b7117320",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        },
+        {
+          "id": 12213144746,
+          "name": "row-refinement-shard-9",
+          "size_in_bytes": 64574,
+          "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213144746",
+          "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12213144746/zip",
+          "expired": false,
+          "created_at": "2026-10-19T19:01:10Z",
+          "expires_at": "2027-01-17T18:55:24Z",
+          "updated_at": "2026-10-19T19:01:10Z",
+          "digest": "sha256:37839d87888d63c164383aace87fc85e034b687a20322f0c4dc307d3b5acd2d6",
+          "workflow_run": {
+            "id": 39306602008,
+            "repository_id": 1416024965,
+            "head_repository_id": 1416024965,
+            "head_branch": "experiments/native-reader-20261019",
+            "head_sha": "2a34856b51a8b58ac48709fde53816a8324a1812"
+          }
+        }
+      ]
+    }
+  ],
+  "report_files": [
+    {
+      "file": "native-number-focused-2026-10-19.json",
+      "sha256_lf": "63c8e9dc7bc52668bf20d616e2f7c525409f7f5f79062fee49b99a32710a4ca5"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-initial.json",
+      "sha256_lf": "d5471119e519ed6335c8caf7f1f3ec792046b5b242417fecb13a463b58a981bc"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-plan.json",
+      "sha256_lf": "00267236cf599ac13817bd2412bef49e49b07765027d168245fbc8fc55b639a6"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-robust.json",
+      "sha256_lf": "c2a4cc9e0ed201d7a164bca0c6bdc5d013a878d400890241a592c4a2ff426882"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-rowfix.json",
+      "sha256_lf": "3195e407a15cb357255e18de7f9679f981d6a3ede587ffb2e52678f0c419f14c"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-summary.json",
+      "sha256_lf": "490e9b11a4a4392eeed42531a3732384a3ca95d87d73d8f8ca6b3460f41133e5"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19-validation.json",
+      "sha256_lf": "aaefc6761c5deb49a15f5f7b2c01a30cb06373c3f0bda17908014feab20ec663"
+    },
+    {
+      "file": "resource-cache-focused-2026-10-19.json",
+      "sha256_lf": "089c2a9aa2a73584823b661744c4b3e7e094202727818f8d50df277023a0745f"
+    },
+    {
+      "file": "resource-row-focused-2026-10-19.json",
+      "sha256_lf": "30176c5059b4baa029918195bbf6678872bbaff67c49f563f7f04b4a2360a307"
+    },
+    {
+      "file": "native-resource-techniques-2026-10-19.txt",
+      "sha256_lf": "28c0ed378186280b232c40f0b9d4fd99e89152ff5c1d3afb0367cc9fafe00ad8"
+    }
+  ]
+}

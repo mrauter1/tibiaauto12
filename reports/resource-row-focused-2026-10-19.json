@@ -1,0 +1,305 @@
+{
+  "schema": "tibiaauto.resource-row-focused-evidence",
+  "version": 1,
+  "recorded_on": "2026-10-19",
+  "technique": "A: structural panel and independent resource-row localization",
+  "baseline": "accelerated_fast",
+  "revisions": {
+    "initial": "8d1dc642de7bc2f8eb9afc57023238b4246829ca",
+    "corrected": "f183031e9e1685e7867b1a9af08dfe9c36257ee0",
+    "local_probe_provenance": "Focused local artifacts did not record exact Git revisions. They are development-stage observations; the two commits identify frozen initial and corrected implementations, not retroactive exact pins for earlier local runs."
+  },
+  "evidence_policy": {
+    "originals": "Original screenshot bytes and frozen annotations/split were unchanged. Autonomous accuracy and assisted component diagnosis are separate.",
+    "generated": "Digit mutation and false-divider tests are safety diagnostics only; never added to original-image accuracy totals.",
+    "historical_test": "The initial full-run gains below include previously inspected historical-test regression evidence. The correction was driven by generated guards, with no historical-test tuning.",
+    "timing": "Local runs overlapped other work and used one warm read in the full-frame probe. Their timings are not latency evidence."
+  },
+  "focused_original_development": {
+    "scope": "Three unchanged full screenshots; autonomous full-frame discovery; OCR off; no annotated boxes supplied to reader.",
+    "artifact": ".work/reader-native-20261019/row/full-frame.json",
+    "images": 3,
+    "readable_integer_fields": 9,
+    "correct": 8,
+    "unknown": 1,
+    "incorrect_accepted": 0,
+    "association_failures": 0,
+    "cases": [
+      {
+        "id": "reddit-daralion-0tx21ye",
+        "partition": "development",
+        "readable": 4,
+        "located": 4,
+        "correct": 4,
+        "unknown": 0
+      },
+      {
+        "id": "dfg-laudera-knight64-PD1G",
+        "partition": "development",
+        "readable": 4,
+        "located": 4,
+        "correct": 4,
+        "unknown": 0
+      },
+      {
+        "id": "reddit-musquitu96-wzgn2qg",
+        "partition": "development",
+        "readable": 1,
+        "located": 1,
+        "correct": 0,
+        "unknown": 1
+      }
+    ],
+    "note": "Daralion is development under the authoritative current split; its raw historical manifest split says heldout."
+  },
+  "assisted_development_diagnosis": {
+    "scope": "Seven original development images. Annotated Skills-panel bounds constrained discovery in focused.json; final replay reused previously reader-detected anchors. Neither is an autonomous full benchmark.",
+    "before_artifact": ".work/reader-native-20261019/row/focused.json",
+    "after_artifact": ".work/reader-native-20261019/row/development-replay-after-row-divider.json",
+    "retained_recoveries": [
+      {
+        "id": "reddit-daralion-0tx21ye",
+        "field": "resource_capacity",
+        "value": 1433
+      },
+      {
+        "id": "dfg-laudera-knight64-PD1G",
+        "field": "resource_soul",
+        "value": 100
+      }
+    ],
+    "remaining_numeric_unknown": {
+      "id": "dfg-quintera-VS41",
+      "field": "resource_mana",
+      "expected": 4123
+    },
+    "clipped_panel_tradeoff": {
+      "ids": [
+        "reddit-musquitu96-wzgn2qg",
+        "reddit-musquitu96-uuhie47",
+        "reddit-musquitu96-zw6jbqg",
+        "reddit-musquitu96-9sol5rg"
+      ],
+      "before": "One HP row localized; numeric value remained UNKNOWN.",
+      "after": "No eligible partial layout because row-margin border evidence is incomplete; all values remain UNKNOWN.",
+      "accepted_value_regressions": 0
+    }
+  },
+  "initial_all_originals": {
+    "revision": "8d1dc642de7bc2f8eb9afc57023238b4246829ca",
+    "source_report": "reports/native-resource-techniques-2026-10-19-initial.json",
+    "images": 81,
+    "scope": "81 originals: 71 full screenshots and 10 supplemental crops.",
+    "readable_integer_fields": 239,
+    "baseline_correct": 211,
+    "rows_correct": 217,
+    "unknown": 22,
+    "incorrect_accepted": 0,
+    "unsafe_na_accepts": 0,
+    "unsafe_ambiguity_accepts": 0,
+    "correct_regressions": 0,
+    "gains": [
+      {
+        "id": "dfg-laudera-knight64-PD1G",
+        "field": "resource_soul",
+        "value": 100,
+        "partition": "development",
+        "previous_stage": "value_region"
+      },
+      {
+        "id": "dfg-demolidores-4KCJ",
+        "field": "resource_soul",
+        "value": 48,
+        "partition": "development",
+        "previous_stage": "panel_discovery"
+      },
+      {
+        "id": "reddit-blake-ib60r93",
+        "field": "resource_capacity",
+        "value": 1039,
+        "partition": "reference",
+        "previous_stage": "value_region"
+      },
+      {
+        "id": "reddit-daralion-0tx21ye",
+        "field": "resource_capacity",
+        "value": 1433,
+        "partition": "development",
+        "previous_stage": "value_region"
+      },
+      {
+        "id": "reddit-keasol-2yqk8uk",
+        "field": "resource_mana",
+        "value": 4112,
+        "partition": "test",
+        "previous_stage": "value_region"
+      },
+      {
+        "id": "reddit-fearless-drawing5310-z6oqvmc",
+        "field": "resource_health",
+        "value": 2116,
+        "partition": "test",
+        "previous_stage": "value_region"
+      }
+    ],
+    "remaining_example": {
+      "id": "reddit-cowboyisaac-dhlws3d",
+      "field": "resource_capacity",
+      "value": null,
+      "outcome": "UNKNOWN"
+    },
+    "promotion_status": "Rejected initial implementation: real-original accuracy did not expose the generated false-divider safety failure."
+  },
+  "generated_false_divider_failure": {
+    "test": "tests/test_adaptive_resources.py::test_dissenting_value_column_cannot_be_partially_read",
+    "generated_input": ".work/reader-native-20261019/row/dissenting-frame.png",
+    "injected_visible_text": "1111111",
+    "required_outcome": "UNKNOWN",
+    "initial_unsafe_value": 1111,
+    "proposed_divider_x": 195,
+    "initial_numeric_roi": [
+      52,
+      22,
+      192,
+      40
+    ],
+    "edge_support_fraction": {
+      "whole_constellation": 0.9076923076923077,
+      "affected_row": 0.625
+    },
+    "cause": "Other rows supported an old divider that was absent through the changed Mana row. A cropped away the continuation and passed a plausible four-digit prefix to the decoder.",
+    "before_artifact": ".work/reader-native-20261019/row/dissenting-before.json",
+    "after_artifact": ".work/reader-native-20261019/row/dissenting-after.json",
+    "before": {
+      "rows": "unsafe acceptance",
+      "rows_numbers": "unsafe acceptance",
+      "rows_cache": "unsafe acceptance",
+      "all": "unsafe acceptance"
+    },
+    "after_row_continuity_fix": {
+      "rows": "UNKNOWN; no repaired Mana ROI",
+      "rows_numbers": "UNKNOWN; no repaired Mana ROI",
+      "rows_cache": "UNKNOWN; no repaired Mana ROI",
+      "all": "UNKNOWN; no repaired Mana ROI"
+    },
+    "hosted_initial_guard_evidence": [
+      {
+        "variant": "rows",
+        "artifact": ".work/reader-native-20261019/initial/rows.xml",
+        "sha256": "03da5711de28997a771b6db01223659f3aa5e2db18230cfb474b798bac1698c8",
+        "outcome": "failed"
+      },
+      {
+        "variant": "rows_numbers",
+        "artifact": ".work/reader-native-20261019/initial/rows_numbers.xml",
+        "sha256": "4a56cc9372b5d895ff1a7be141dda03c4eac4689e53f28a359773f2fae491b29",
+        "outcome": "failed"
+      },
+      {
+        "variant": "rows_cache",
+        "artifact": ".work/reader-native-20261019/initial/rows_cache.xml",
+        "sha256": "dd77e3116a09da212d7f2d730ef62fdb5b6e513c7a234e06653c1851b0ad911f",
+        "outcome": "failed"
+      },
+      {
+        "variant": "all",
+        "artifact": ".work/reader-native-20261019/initial/all.xml",
+        "sha256": "c52be8db73c14c2ef636455f42d0edcb66a98f8aea6d10a5ef513671599dba67",
+        "outcome": "failed"
+      }
+    ]
+  },
+  "correction": {
+    "revision": "f183031e9e1685e7867b1a9af08dfe9c36257ee0",
+    "rule": "Require the same divider transition through the specific row and both dark margins before repairing its ROI. Whole-panel majority support alone is insufficient.",
+    "additional_guard": "A tall glyph-like stroke with 87.5% local edge support but no margin continuity cannot authorize a crop.",
+    "modified_files": [
+      "tools/resource_row_geometry.py",
+      "tests/test_resource_row_geometry.py"
+    ],
+    "local_verification": [
+      {
+        "command": ".venv\\Scripts\\python.exe -m pytest tests/test_resource_row_geometry.py -q -p no:cacheprovider",
+        "stage": "row-continuity fix before final margin-hardening addition",
+        "passed": 14,
+        "failed": 0,
+        "seconds": 261.89
+      },
+      {
+        "command": ".venv\\Scripts\\python.exe -m pytest tests/test_resource_row_geometry.py -q -p no:cacheprovider -k 'dissenting_row or margin_continuity'",
+        "stage": "final margin-hardened implementation",
+        "passed": 5,
+        "failed": 0,
+        "deselected": 10,
+        "seconds": 34.86
+      }
+    ],
+    "verification_note": "Counts above are retained from tool execution transcripts, not a single 15-test run. Four final targeted cases exercise cached reading and rediscovery for A, AB, AC, ABC and require other rows to stay correct.",
+    "full_corrected_benchmark": {
+      "revision": "f183031e9e1685e7867b1a9af08dfe9c36257ee0",
+      "status": "complete and verified",
+      "source_report": "reports/native-resource-techniques-2026-10-19-rowfix.json",
+      "source_report_sha256": "e86609d072fe670bb03481c46550801c9866ca3795e1c38f0b8bf8d417f99c64",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39304255210",
+      "originals": 81,
+      "image_variant_cases": 648,
+      "hosted_guards": {
+        "variants": 8,
+        "passed_per_variant": 60,
+        "failed": 0
+      },
+      "results": {
+        "rows": {
+          "readable_integer_fields": 239,
+          "correct": 217,
+          "unknown": 22,
+          "incorrect_accepted": 0,
+          "unsafe_na_accepts": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "gained_fields": 6,
+          "correct_regressions": 0,
+          "all_reported_promotion_gates_pass": true,
+          "each_image_static_and_new_frame_p95_within_50ms": true
+        },
+        "rows_cache": {
+          "readable_integer_fields": 239,
+          "correct": 217,
+          "unknown": 22,
+          "incorrect_accepted": 0,
+          "unsafe_na_accepts": 0,
+          "unsafe_ambiguity_accepts": 0,
+          "gained_fields": 6,
+          "correct_regressions": 0,
+          "all_reported_promotion_gates_pass": true,
+          "each_image_static_and_new_frame_p95_within_50ms": true
+        }
+      }
+    }
+  },
+  "local_artifact_integrity": [
+    {
+      "file": ".work/reader-native-20261019/row/full-frame.json",
+      "sha256": "7a8f453df9501af4924cec9df40f4253d6fe7651e8559f112197f624db9d9b25"
+    },
+    {
+      "file": ".work/reader-native-20261019/row/focused.json",
+      "sha256": "a7042cf2670f0779b03e6ff058f7f580fae2ac93f4c7bb3f701b7e0ced8e016c"
+    },
+    {
+      "file": ".work/reader-native-20261019/row/dissenting-before.json",
+      "sha256": "0bc7e14b434aa03ee5e9aaba7e560092c9509219010e6b8312bbe63dd5aad538"
+    },
+    {
+      "file": ".work/reader-native-20261019/row/dissenting-after.json",
+      "sha256": "3043d993c9b5c11de225982ab56820a4d83a85f147eaf30d85e6fa114aebb0ea"
+    },
+    {
+      "file": ".work/reader-native-20261019/row/development-replay-after-row-divider.json",
+      "sha256": "302ce56bdf802b86f9d6bd2d2f153f270a005c120437bb567c0337770ddfccd6"
+    },
+    {
+      "file": ".work/reader-native-20261019/row/dissenting-frame.png",
+      "sha256": "2519571c8d9bc5b9bb13cacbc3216110aa5c3710d0ba62db9ee9589f0539af7c"
+    }
+  ]
+}
