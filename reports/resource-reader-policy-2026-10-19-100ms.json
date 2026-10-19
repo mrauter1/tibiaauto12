@@ -1,0 +1,1020 @@
+{
+  "schema": "tibiaauto.resource-reader-current-policy",
+  "version": 1,
+  "date": "2026-10-19",
+  "authorization": "User explicitly increased the reading budget from 50 ms to 100 ms.",
+  "current_budget_ms": 100,
+  "criterion": "p95 for every detected image, for four-field static and fresh-frame reads; changing-background timing diagnostics also checked",
+  "scope": "Reading after layout discovery. Capture, frame copying, action latency and live freshness remain outside this measured budget.",
+  "method": "Policy reassessment of the same recorded samples, not a new benchmark or a reader modification. Historical 50 ms results remain unchanged.",
+  "recommended_variant": "rows_cache_robust",
+  "reader_factory": "tools.benchmark_row_refinement.make_reader('rows_cache_robust')",
+  "production_default_changed": false,
+  "sources": [
+    {
+      "comparison": "factorial",
+      "summary": "reports/native-resource-techniques-2026-10-19-summary.json",
+      "summary_sha256_lf": "490e9b11a4a4392eeed42531a3732384a3ca95d87d73d8f8ca6b3460f41133e5",
+      "evaluated_revision": "2a34856b51a8b58ac48709fde53816a8324a1812",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39306601454",
+      "original_recorded_budget_ms": 50,
+      "raw_files": [
+        {
+          "file": "shard-0.json",
+          "sha256": "55407acb8cd622ccc536130f7c6cbeebe67be7537c65152f00f8a4a0385ccea7"
+        },
+        {
+          "file": "shard-1.json",
+          "sha256": "b53936b1c7e35f35a4b24f33d954b6519094f40c8bd19ceefb3d0452b1313516"
+        },
+        {
+          "file": "shard-10.json",
+          "sha256": "5b1ac24c02dda631c051155324913b7b5e275543ab16ebbf5524e7606dbd9e9e"
+        },
+        {
+          "file": "shard-11.json",
+          "sha256": "424c7923fb3834339aa3d9d226a76fa7066169025d725af7f372ed334272e737"
+        },
+        {
+          "file": "shard-12.json",
+          "sha256": "9c7500e724632c843d3a0cf0ab523dd0ba2b35d8a2d34f434320960267c42b8a"
+        },
+        {
+          "file": "shard-13.json",
+          "sha256": "75cbb0ebe1b55e869390bcaadaf462e7548fc968b25780462bc825742dab8eec"
+        },
+        {
+          "file": "shard-14.json",
+          "sha256": "864dbfab783998e7d86296e042208dc6c95a98ac5a7daffef9f768e60f69968f"
+        },
+        {
+          "file": "shard-15.json",
+          "sha256": "c179d8f43a3a89ad4a03902586dd4d8c8daca53bfb581b0025b33826e751a015"
+        },
+        {
+          "file": "shard-16.json",
+          "sha256": "ac81a819fd3fd831d4ebf769f9c54502e92a844cce043bd14edeca8e370512f3"
+        },
+        {
+          "file": "shard-17.json",
+          "sha256": "2a954f5e6b4c9e0b2de56281ff8af7d629b91987314d91b44b71016648f01346"
+        },
+        {
+          "file": "shard-2.json",
+          "sha256": "931f19f411d5400316aaa02a172293182784d9711d3e2272d937a35331485e0f"
+        },
+        {
+          "file": "shard-3.json",
+          "sha256": "6b16cc53f38700d297382b88a9991172afa91516bf2e0f6a9b965718ce372285"
+        },
+        {
+          "file": "shard-4.json",
+          "sha256": "00dd309cb7750cc4e4390644de2120c7a97799ac2d908f149ccd4c435c3b1731"
+        },
+        {
+          "file": "shard-5.json",
+          "sha256": "f52f9e0489f093a31eb840d4c1b90a06be8106959262ac10a28d34734822b4ad"
+        },
+        {
+          "file": "shard-6.json",
+          "sha256": "393541f35395240933841d275c1bc59d9336cda57d8bff20f737a67b2f98c9e7"
+        },
+        {
+          "file": "shard-7.json",
+          "sha256": "2ee110f2395a0c01312c566024ef68953292bf94e8fcfa8c2489e7932b953d97"
+        },
+        {
+          "file": "shard-8.json",
+          "sha256": "795624cc21ebb647155d6b05d54bc6a030cf5aabdbf85dba3581955fdfe74d51"
+        },
+        {
+          "file": "shard-9.json",
+          "sha256": "addc4139a842d860df6f144910eb01b316a6e259429d98c5479ff132b4be9a83"
+        }
+      ]
+    },
+    {
+      "comparison": "robust_comparison",
+      "summary": "reports/native-resource-techniques-2026-10-19-robust.json",
+      "summary_sha256_lf": "c2a4cc9e0ed201d7a164bca0c6bdc5d013a878d400890241a592c4a2ff426882",
+      "evaluated_revision": "2a34856b51a8b58ac48709fde53816a8324a1812",
+      "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39306602008",
+      "original_recorded_budget_ms": 50,
+      "raw_files": [
+        {
+          "file": "shard-0.json",
+          "sha256": "6a4e913c7e41025a3fe98bf556632daf610192b41d3878b72dc141f7415191c5"
+        },
+        {
+          "file": "shard-1.json",
+          "sha256": "175ece64cc69b6dac1bca36c12ef97a391744b391803fbc106d7c04744832578"
+        },
+        {
+          "file": "shard-10.json",
+          "sha256": "93c0d2a8e7bf924487d473e74b9b192d2c0b7208254d33b6fc6950a4f9a8c028"
+        },
+        {
+          "file": "shard-11.json",
+          "sha256": "4fe74a3859e2f773625ed7c088c897c1f689eda40b61927d10a7e2e501b71bb0"
+        },
+        {
+          "file": "shard-2.json",
+          "sha256": "4e0d872e6909da3fbfa6b04d92d6d80f28b4bdf5f527179bc35e7b31017bb06d"
+        },
+        {
+          "file": "shard-3.json",
+          "sha256": "f4b6453faa14033669241becfb619243697b3f12f59d16a7ca9899dae088e3cf"
+        },
+        {
+          "file": "shard-4.json",
+          "sha256": "3a82f2c0a477e19546622b9cdd87da26f1714d16a41dbbac872988f595e2aeeb"
+        },
+        {
+          "file": "shard-5.json",
+          "sha256": "0a6fa48c743cfd93e3db9c68c19bc1bdbd70484570f991675f42e0026ab7350d"
+        },
+        {
+          "file": "shard-6.json",
+          "sha256": "a576841b545cd682e9e3c395afb346b4941fcf6562d738920abf67cec529b122"
+        },
+        {
+          "file": "shard-7.json",
+          "sha256": "65ad4646e2330c9a322e3659ae4c82133083f17242227beda8f7d9d5aadc0dee"
+        },
+        {
+          "file": "shard-8.json",
+          "sha256": "79310d7b56e7f07460058b6aad9d7a53119b80e10e73e395a41817f6934dfb30"
+        },
+        {
+          "file": "shard-9.json",
+          "sha256": "081b55d90ec373aef1e2f6ab20257b5b29dbc24d2ef791c60ae4c8454879bc27"
+        }
+      ]
+    }
+  ],
+  "comparisons": {
+    "factorial": {
+      "base": {
+        "readable_integer_fields": 239,
+        "correct": 211,
+        "unknown": 28,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 173,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 132,
+            "readable": 155
+          },
+          "test": {
+            "correct": 41,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 38,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 8.476814999986003,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 17.381765000024526,
+            "maximum_single_read_ms": 26.119100000016715,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 8.389565000015862,
+            "worst_image": "reddit-chrissykes-4ppe2dp",
+            "worst_image_p95_ms": 16.844169999995984,
+            "maximum_single_read_ms": 19.640100000003713,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 57,
+            "samples": 1140,
+            "pooled_p95_ms": 8.508490000005509,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 15.596340000016085,
+            "maximum_single_read_ms": 16.461199999980636,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": false,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "rows": {
+        "readable_integer_fields": 239,
+        "correct": 217,
+        "unknown": 22,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 178,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 135,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 8.35718000001009,
+            "worst_image": "reddit-chrissykes-4ppe2dp",
+            "worst_image_p95_ms": 16.936545000007186,
+            "maximum_single_read_ms": 18.615099999976792,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 8.446205000015539,
+            "worst_image": "reddit-daralion-0tx21ye",
+            "worst_image_p95_ms": 23.1854999999711,
+            "maximum_single_read_ms": 47.7298999999789,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 10.40428000003714,
+            "worst_image": "reddit-daralion-0tx21ye",
+            "worst_image_p95_ms": 24.4583449999823,
+            "maximum_single_read_ms": 62.96839999998838,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": true
+      },
+      "numbers": {
+        "readable_integer_fields": 239,
+        "correct": 210,
+        "unknown": 29,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 172,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 131,
+            "readable": 155
+          },
+          "test": {
+            "correct": 41,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 38,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 13.708949999980286,
+            "worst_image": "reddit-openfee445-05f7xpk",
+            "worst_image_p95_ms": 19.93976999999347,
+            "maximum_single_read_ms": 24.26980000001322,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 14.528950000030232,
+            "worst_image": "reddit-openfee445-05f7xpk",
+            "worst_image_p95_ms": 23.066105000003738,
+            "maximum_single_read_ms": 30.65249999997377,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 57,
+            "samples": 1140,
+            "pooled_p95_ms": 14.018045000014466,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 19.549125000011713,
+            "maximum_single_read_ms": 19.92390000003752,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": false,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": false,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "cache": {
+        "readable_integer_fields": 239,
+        "correct": 211,
+        "unknown": 28,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 173,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 132,
+            "readable": 155
+          },
+          "test": {
+            "correct": 41,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 38,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 6.777660000025775,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 13.817914999989965,
+            "maximum_single_read_ms": 15.860099999997601,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 7.387485000018042,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 14.748110000019206,
+            "maximum_single_read_ms": 17.994400000020505,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 57,
+            "samples": 1140,
+            "pooled_p95_ms": 26.72610499996892,
+            "worst_image": "reddit-frosty-economics-557-89mlozz",
+            "worst_image_p95_ms": 32.83927999998184,
+            "maximum_single_read_ms": 36.71489999999267,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": false,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "rows_numbers": {
+        "readable_integer_fields": 239,
+        "correct": 216,
+        "unknown": 23,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 177,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 134,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 13.621019999985133,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 24.122845000036364,
+            "maximum_single_read_ms": 26.733299999989413,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 13.677860000029785,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 22.368254999986444,
+            "maximum_single_read_ms": 24.762600000030943,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 14.36272000002815,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 25.88475500006098,
+            "maximum_single_read_ms": 31.635199999982433,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": false,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "rows_cache": {
+        "readable_integer_fields": 239,
+        "correct": 217,
+        "unknown": 22,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 178,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 135,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 6.732335000020838,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 14.35422000000699,
+            "maximum_single_read_ms": 16.342199999996865,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 7.193000000029312,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 15.047184999997395,
+            "maximum_single_read_ms": 24.073299999997744,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 26.46021000001042,
+            "worst_image": "reddit-nwasmb-8q86ims",
+            "worst_image_p95_ms": 39.71171000001448,
+            "maximum_single_read_ms": 44.446700000037254,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": true
+      },
+      "numbers_cache": {
+        "readable_integer_fields": 239,
+        "correct": 210,
+        "unknown": 29,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 172,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 131,
+            "readable": 155
+          },
+          "test": {
+            "correct": 41,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 38,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 13.55364500004157,
+            "worst_image": "reddit-eurbina14-9vscc20",
+            "worst_image_p95_ms": 31.81260000002338,
+            "maximum_single_read_ms": 55.75550000003204,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 14.350754999986748,
+            "worst_image": "reddit-eurbina14-9vscc20",
+            "worst_image_p95_ms": 22.839785000007826,
+            "maximum_single_read_ms": 54.20750000001817,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 57,
+            "samples": 1140,
+            "pooled_p95_ms": 32.17599500000289,
+            "worst_image": "reddit-frosty-economics-557-89mlozz",
+            "worst_image_p95_ms": 37.15821000000972,
+            "maximum_single_read_ms": 47.52979999994977,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": false,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": false,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "all": {
+        "readable_integer_fields": 239,
+        "correct": 216,
+        "unknown": 23,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 177,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 134,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 13.37982999996825,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 17.707319999985316,
+            "maximum_single_read_ms": 21.92339999999149,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 14.401150000054484,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 19.427339999978695,
+            "maximum_single_read_ms": 23.175799999989977,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 32.192244999993136,
+            "worst_image": "reddit-horyang-r2nnr1a",
+            "worst_image_p95_ms": 39.46099000003471,
+            "maximum_single_read_ms": 43.99460000001909,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "existing_diagnostic_guards_pass": true,
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "no_correct_regressions": false,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      }
+    },
+    "robust_comparison": {
+      "robust": {
+        "readable_integer_fields": 239,
+        "correct": 215,
+        "unknown": 24,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 177,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 136,
+            "readable": 155
+          },
+          "test": {
+            "correct": 41,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 38,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 22.387900000001082,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 59.08792500002277,
+            "maximum_single_read_ms": 68.39209999998275,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 57,
+            "samples": 2850,
+            "pooled_p95_ms": 22.27141999997002,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 58.85584999997774,
+            "maximum_single_read_ms": 66.9078999999897,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 57,
+            "samples": 1140,
+            "pooled_p95_ms": 22.602470000015273,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 57.34533500003636,
+            "maximum_single_read_ms": 59.38469999995277,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "retains_robust_correct_fields": true,
+          "retains_rows_cache_correct_fields": false,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "rows_cache": {
+        "readable_integer_fields": 239,
+        "correct": 217,
+        "unknown": 22,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 178,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 135,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 5.928499999976109,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 13.56391500000882,
+            "maximum_single_read_ms": 17.859999999984666,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 6.933149999991881,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 14.412089999979115,
+            "maximum_single_read_ms": 28.06509999999207,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 27.22056500000889,
+            "worst_image": "reddit-nwasmb-8q86ims",
+            "worst_image_p95_ms": 34.8199749999651,
+            "maximum_single_read_ms": 36.7366000000402,
+            "images_above_original_50ms_p95": [],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "retains_robust_correct_fields": false,
+          "retains_rows_cache_correct_fields": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": false
+      },
+      "rows_cache_robust": {
+        "readable_integer_fields": 239,
+        "correct": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_na_accepts": 0,
+        "unsafe_ambiguity_accepts": 0,
+        "full_screenshot_correct": 182,
+        "full_screenshot_readable": 199,
+        "partitions": {
+          "development": {
+            "correct": 139,
+            "readable": 155
+          },
+          "test": {
+            "correct": 43,
+            "readable": 44
+          },
+          "reference": {
+            "correct": 39,
+            "readable": 40
+          }
+        },
+        "timings": {
+          "static": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 20.443364999988486,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 58.23377499997946,
+            "maximum_single_read_ms": 60.1545000000101,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          },
+          "fresh_frame": {
+            "measured_images": 58,
+            "samples": 2900,
+            "pooled_p95_ms": 21.164959999907747,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 58.72876000000531,
+            "maximum_single_read_ms": 64.17439999995622,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          },
+          "changing_background_diagnostic": {
+            "measured_images": 58,
+            "samples": 1160,
+            "pooled_p95_ms": 37.210950000059015,
+            "worst_image": "dfg-gladera-SSVX",
+            "worst_image_p95_ms": 63.49052499996902,
+            "maximum_single_read_ms": 72.06759999996848,
+            "images_above_original_50ms_p95": [
+              "dfg-gladera-SSVX"
+            ],
+            "images_above_current_100ms_p95": []
+          }
+        },
+        "gates_at_current_budget": {
+          "no_incorrect_accepts": true,
+          "no_na_or_ambiguity_accepts": true,
+          "no_unscored_accepts": true,
+          "no_wrong_or_unbound_rows": true,
+          "controls_abstain": true,
+          "retains_robust_correct_fields": true,
+          "retains_rows_cache_correct_fields": true,
+          "consistent_repeats": true,
+          "changing_background_diagnostic_preserves_values": true,
+          "new_composition_diagnostic_guards_pass": true,
+          "each_image_static_p95_within_current_budget": true,
+          "each_image_fresh_frame_p95_within_current_budget": true,
+          "each_image_changing_background_diagnostic_p95_within_current_budget": true
+        },
+        "all_gates_pass": true
+      }
+    }
+  },
+  "reference_sources": [
+    {
+      "title": "Tibia official interface manual",
+      "url": "https://www.tibia.com/gameguides/?section=interface&subtopic=manual",
+      "supports": "Health/mana status bars and configurable HUD; index excerpt accessible, direct page returned403."
+    },
+    {
+      "title": "OpenCV template matching documentation",
+      "url": "https://docs.opencv.org/4.13.0/d4/dc6/tutorial_py_template_matching.html",
+      "supports": "Template comparison against image regions; no claim of measured improvements in this application."
+    }
+  ],
+  "decision": {
+    "recommended": "Adopt the already-implemented row/cache plus robust numeric composition as the application integration baseline.",
+    "reason": "Retains all correct values from both comparators, recovers four more values than row/cache fast, and now passes every recorded gate.",
+    "new_algorithm_implemented": false,
+    "new_benchmark_run": false,
+    "future_reading_evaluations_budget_ms": 100,
+    "historical_runner_contract": "The existing frozen experiment scripts/reports record their original 50 ms protocol. Current selection uses this superseding 100 ms policy; do not relabel historical measurements."
+  },
+  "next_techniques_to_test": [
+    {
+      "priority": 1,
+      "technique": "Read redundant numeric displays in the same captured frame when visible",
+      "purpose": "Add independent pixel evidence for an exact value; verify character/resource identity and expose disagreement.",
+      "status": "Proposed, not benchmarked; shared font errors may remain correlated."
+    },
+    {
+      "priority": 2,
+      "technique": "Use own-character HP/Mana bar fill as a value interval",
+      "purpose": "Reject candidates inconsistent with a verified current maximum and calibrated bar geometry.",
+      "limits": "Bar quantization, endpoint error, identity, occlusion and update timing must be measured. Multiple compatible integers remain UNKNOWN; agreement is not independent exact verification.",
+      "example": "5000 maximum HP across a 100-pixel fill span gives roughly 50 HP per pixel, before endpoint uncertainty.",
+      "status": "Proposed, not benchmarked."
+    },
+    {
+      "priority": 3,
+      "technique": "Calibrate static HUD/background templates and local anchor tracking",
+      "purpose": "Reduce cold/global reacquisition and stabilize value-cell geometry; revalidate visibility against the current frame.",
+      "limits": "Background subtraction cannot recover missing text. Rendered numeric candidates need capture-matched scale/antialiasing; the native whole-number experiment already covers part of this approach.",
+      "status": "Proposed extension to implemented font/geometry caches, not benchmarked."
+    },
+    {
+      "priority": 4,
+      "technique": "Short timestamped temporal evidence for demonstrably unchanged text",
+      "purpose": "Resolve transient pixel noise while tracking rapid changes.",
+      "limits": "Do not average HP values or report a previous readable value as current. Establish a separate freshness limit with real capture sequences.",
+      "status": "Proposed, requires real sequence evaluation."
+    }
+  ],
+  "limits": [
+    "Passing a per-image p95 threshold is not a guaranteed maximum latency.",
+    "Cold discovery still takes seconds and must remain distinct from steady reading cost.",
+    "The historical test partition was previously inspected and remains regression evidence.",
+    "Generated background changes and safety tests are separate from original-image accuracy.",
+    "New evidence-fusion proposals have no measured accuracy gain yet."
+  ]
+}
