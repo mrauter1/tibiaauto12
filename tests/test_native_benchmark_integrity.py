@@ -4,7 +4,7 @@ from copy import deepcopy
 import pytest
 
 from tools.resource_native_experiments import FACTORS
-from tools.summarize_native_resources import combine
+from tools.summarize_native_resources import combine, guard_result
 
 
 def fixture_reports():
@@ -72,3 +72,13 @@ def test_incomplete_or_incompatible_runs_are_rejected(problem):
             row["fields"]["resource_health"]["exact"] = True
     with pytest.raises(ValueError):
         combine(reports, entries, membership, "revision")
+
+
+def test_diagnostic_failure_cannot_be_hidden_by_original_accuracy(tmp_path):
+    report = tmp_path / "all.xml"
+    report.write_text('<testsuites><testsuite tests="60" failures="1" errors="0" skipped="0">'
+                      '<testcase name="partial_number"><failure>Unsafe suffix</failure></testcase>'
+                      '</testsuite></testsuites>')
+    result = guard_result(report)
+    assert result["passed"] is False
+    assert result["failed_tests"] == ["partial_number"]

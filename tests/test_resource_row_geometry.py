@@ -7,10 +7,11 @@ from PIL import Image
 import pytest
 
 from core.perception import Frame
-from tibia_client.adaptive import FIELDS
+from tibia_client.adaptive import Anchor, FIELDS
 from tibia_client.models import Quality
 from tools.resource_reader_experiments import ExperimentalResourceReader, VARIANTS
 from tools.resource_row_geometry import StructuralRowMixin
+from tools.resource_native_experiments import make_reader
 
 
 class RowReader(StructuralRowMixin, ExperimentalResourceReader):
@@ -139,3 +140,53 @@ def test_single_row_geometry_does_not_depend_on_digit_side_bearing(reader):
     reading = reader.read(Frame(pixels), discovery.layout)[FIELDS[0]]
     assert reading.quality is Quality.KNOWN
     assert reading.value['count'] == 710
+
+
+@pytest.mark.parametrize('variant', ['rows', 'rows_numbers', 'rows_cache', 'all'])
+def test_dissenting_row_cannot_borrow_other_rows_divider(variant):
+    """Seven visible ones crossing old chrome must never become four ones."""
+    reader = make_reader(variant)
+    cv2.setNumThreads(1)
+    root = Path(__file__).parents[1]
+    with Image.open(root / 'tests/fixtures/resources/paulistinha-skills.png') as source:
+        original = np.asarray(source.convert('RGB'))
+    pixels = np.full((original.shape[0], 260, 3), 42, dtype=np.uint8)
+    pixels[:, :original.shape[1]] = original
+    initial = reader.discover(Frame(pixels))
+    assert initial.layout is not None, initial.detail
+    anchor = next(a for a in initial.layout.anchors if a.field == FIELDS[1])
+    top, bottom = max(0, anchor.box[1] - 3), min(pixels.shape[0], anchor.box[3] + 3)
+    pixels[top:bottom, anchor.box[2] + 1:] = 72
+    with Image.open(root / 'profiles/paulistinha-skills-v1/digits/1.png') as source:
+        glyph = np.asarray(source.convert('RGB'))
+    x = 158
+    for _ in range(7):
+        height, width = glyph.shape[:2]
+        pixels[top + 2:top + 2 + height, x:x + width] = glyph
+        x += width + 2
+    altered = Frame(pixels)
+    cached = reader.read(altered, initial.layout)
+    assert cached[FIELDS[1]].quality is Quality.UNKNOWN
+    assert cached[FIELDS[1]].value is None
+    discovered = reader.discover(altered)
+    if discovered.layout is not None:
+        readings = reader.read(altered, discovered.layout)
+        assert FIELDS[1] not in discovered.layout.regions
+        assert readings[FIELDS[1]].quality is Quality.UNKNOWN
+        assert readings[FIELDS[1]].value is None
+        for field, value in ((FIELDS[0], 710), (FIELDS[2], 4), (FIELDS[3], 192)):
+            assert readings[field].quality is Quality.KNOWN
+            assert readings[field].value['count'] == value
+
+
+def test_digit_stroke_cannot_supply_divider_without_margin_continuity(reader):
+    with Image.open(Path(__file__).parent / 'fixtures/resources/paulistinha-skills.png') as source:
+        original = np.asarray(source.convert('RGB'))
+    pixels = np.full((original.shape[0], 260, 3), 42, dtype=np.uint8)
+    pixels[:, :original.shape[1]] = original
+    # This local edge has87.5% support, but only a tall glyph-like stroke:
+    # neither the top nor bottom margin contains the alleged panel divider.
+    pixels[23:39, 195:197] = 42
+    pixels[24:38, 195] = 180
+    anchor = Anchor(FIELDS[1], (8, 26, 49, 36), 1., 1.)
+    assert reader._whole_row(Frame(pixels), anchor, 189, 195, 1.) is None

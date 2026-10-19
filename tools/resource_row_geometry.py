@@ -108,6 +108,19 @@ class StructuralRowMixin:
         left = anchor.box[2] + pad
         top = max(0, anchor.box[1] - pad)
         bottom = min(frame.height, anchor.box[3] + pad)
+        # A divider supported by the OTHER rows cannot authorize this row's
+        # crop.  An obscuring overlay or a longer dissenting value may erase
+        # chrome here while most of the panel still supports that old edge.
+        # Require the same transition through this entire row, including its
+        # dark top/bottom margin so a digit stroke cannot masquerade as chrome.
+        if not 0 <= divider < frame.width - 1:
+            return None
+        stripe = frame.pixels[top:bottom, divider:divider + 2].mean(axis=2)
+        difference = np.abs(stripe[:, 1] - stripe[:, 0])
+        if (not len(difference) or difference[0] < 15 or difference[-1] < 15
+                or float(np.median(difference)) < 20
+                or float(np.mean(difference >= 15)) < .8):
+            return None
         # Include all foreground up to chrome, not just a convenient suffix at
         # the inferred value edge.  A foreign column stays in the decoder ROI.
         edge = divider

@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -108,6 +109,21 @@ def card(rows, entries, groups):
     return result
 
 
+def guard_result(path):
+    """Generated diagnostics remain separate, but unsafe accepts block selection."""
+    require(path.is_file(), "Missing guard artifact: " + path.name)
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
+    counts = {key: sum(int(s.get(key, 0)) for s in suites)
+              for key in ("tests", "failures", "errors", "skipped")}
+    require(counts["tests"] >= 60, "Incomplete legacy guard suite")
+    return {**counts, "passed": counts["failures"] == counts["errors"] == counts["skipped"] == 0,
+            "failed_tests": [case.get("name") for case in root.iter("testcase")
+                             if case.find("failure") is not None or case.find("error") is not None],
+            "sha256": sha256(path.read_bytes()).hexdigest(),
+            "scope": "Generated safety diagnostics, excluded from real accuracy"}
+
+
 def summarize(directory, revision, run_url):
     entries = {e["id"]: e for e in json.loads((CORPUS / "manifest.json").read_text())["screenshots"]}
     split, membership = load_split(CORPUS / "split-2026-10-17-latest.json", list(entries.values()))
@@ -115,6 +131,7 @@ def summarize(directory, revision, run_url):
     paths = sorted(directory.glob("shard-*.json"))
     reports = [json.loads(p.read_text()) for p in paths]
     indexed = combine(reports, entries, membership, revision)
+    guards = {v: guard_result(directory / (v + ".xml")) for v in FACTORS}
     fingerprints = reports[0]["fingerprints"]
     for name, digest in fingerprints.items():
         blob = subprocess.check_output(["git", "show", f"{revision}:{name}"], cwd=ROOT)
@@ -139,6 +156,7 @@ def summarize(directory, revision, run_url):
             total["correct_value_and_region"] == base_correct and bool(common)
             and paired["candidate"]["p95_ms"] <= .9 * paired["base"]["p95_ms"]))
         gates = {
+            "existing_diagnostic_guards_pass": guards[variant]["passed"],
             "no_incorrect_accepts": total["incorrect_accepted"] == 0,
             "no_na_or_ambiguity_accepts": total["unsafe_na_accepts"] == total["unsafe_ambiguity_accepts"] == 0,
             "no_unscored_accepts": total["unscored_accepted"] == 0,
@@ -157,7 +175,7 @@ def summarize(directory, revision, run_url):
             "all_full_screenshots": card(full, entries, groups),
             "partitions": {part: card([r for r in rows if membership[r["case_id"]] == part], entries, groups)
                            for part in ("development", "test", "reference")},
-            "changes_from_baseline": change, "gates": gates,
+            "changes_from_baseline": change, "gates": gates, "diagnostic_guards": guards[variant],
             "paired_new_frame_latency": paired,
             "misses": [{"case_id": r["case_id"], "file": str(CORPUS.relative_to(ROOT) / entries[r["case_id"]]["file"]),
                         "partition": membership[r["case_id"]], "field": name,
