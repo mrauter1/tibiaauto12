@@ -1,0 +1,2108 @@
+{
+  "schema": "tibiaauto.resource-fusion-evaluation",
+  "version": 1,
+  "evaluated_revision": "2a8cab925a88da7f34002e96b0080b43274a9b53",
+  "benchmark_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39318924460",
+  "reading_budget_ms": 100,
+  "production_default_changed": false,
+  "corpus": {
+    "unchanged_originals": 81,
+    "full_screenshots": 71,
+    "reference_crops": 10,
+    "development_full": 57,
+    "historical_test_full": 14,
+    "readable_full_fields": 199,
+    "readable_crop_fields": 40,
+    "historical_test_policy": "Previously inspected regression partition; no untouched-holdout generalization claim."
+  },
+  "original_score_scope": "First read only, fresh autonomous discovery and reader per original/variant. Bar/caption metadata never replace exact counts or N/A.",
+  "timing_scope": "50 fresh Frame containers with identical original pixels and increasing synthetic timestamps;20 outside-evidence background-pixel changes separately. Reading only; acquisition/copy/discovery excluded. Not native sequence evidence.",
+  "variants": {
+    "robust": {
+      "metrics": {
+        "cases": 81,
+        "eligible_fields": 239,
+        "numeric_exact": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "accepted_location_mismatch": 0,
+        "false_panel_acceptances": 1
+      },
+      "control_scope": {
+        "images": 17,
+        "accepted_values": 0,
+        "false_panels": 0,
+        "reference_diagnostic_panel_flags": [
+          "dfg-demolidores-4KCJ"
+        ]
+      },
+      "pooled_reading_p95_ms": 19.37459999997202,
+      "worst_image_reading_p95_ms": 59.441829999985885,
+      "worst_image_background_p95_ms": 62.85076000006029,
+      "max_observed_read_ms": 65.87920000004033,
+      "regressions": [],
+      "budget_breaches": [],
+      "gates": {
+        "no_incorrect_or_unsafe_accepts": true,
+        "preserves_baseline_correct_fields": true,
+        "per_image_p95_within_100ms": true,
+        "repeat_outputs_consistent": true,
+        "focused_guards_pass": true
+      },
+      "by_split": {
+        "development": {
+          "cases": 57,
+          "eligible_fields": 155,
+          "numeric_exact": 139,
+          "unknown": 16,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "test": {
+          "cases": 14,
+          "eligible_fields": 44,
+          "numeric_exact": 43,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "reference": {
+          "cases": 10,
+          "eligible_fields": 40,
+          "numeric_exact": 39,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        }
+      },
+      "bar_availability": {},
+      "bar_unavailability_reasons": {},
+      "measured_bar_evidence": []
+    },
+    "bar": {
+      "metrics": {
+        "cases": 81,
+        "eligible_fields": 239,
+        "numeric_exact": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "accepted_location_mismatch": 0,
+        "false_panel_acceptances": 1
+      },
+      "control_scope": {
+        "images": 17,
+        "accepted_values": 0,
+        "false_panels": 0,
+        "reference_diagnostic_panel_flags": [
+          "dfg-demolidores-4KCJ"
+        ]
+      },
+      "pooled_reading_p95_ms": 35.60849000004963,
+      "worst_image_reading_p95_ms": 65.42855999999233,
+      "worst_image_background_p95_ms": 154.82388500009282,
+      "max_observed_read_ms": 207.24840000002587,
+      "regressions": [],
+      "budget_breaches": [
+        {
+          "case_id": "dfg-gladera-SSVX",
+          "mode": "background_timings",
+          "p95_ms": 154.82388500009282
+        }
+      ],
+      "gates": {
+        "no_incorrect_or_unsafe_accepts": true,
+        "preserves_baseline_correct_fields": true,
+        "per_image_p95_within_100ms": false,
+        "repeat_outputs_consistent": true,
+        "focused_guards_pass": true
+      },
+      "by_split": {
+        "development": {
+          "cases": 57,
+          "eligible_fields": 155,
+          "numeric_exact": 139,
+          "unknown": 16,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "test": {
+          "cases": 14,
+          "eligible_fields": 44,
+          "numeric_exact": 43,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "reference": {
+          "cases": 10,
+          "eligible_fields": 40,
+          "numeric_exact": 39,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        }
+      },
+      "bar_availability": {
+        "fields_considered": 116,
+        "bar_intervals_available": 35,
+        "independent_maxima_available": 5,
+        "numeric_vetoes": 0
+      },
+      "bar_unavailability_reasons": {
+        "horizontal status-bar pair absent or ambiguous": 56,
+        "no verified current resource-panel identity": 18,
+        "missing or off-center complete resource caption": 1,
+        "status-bar pair is not linked to the current resource sidebar": 6
+      },
+      "measured_bar_evidence": [
+        {
+          "case_id": "dfg-ustebra-ek177",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9960988296488946,
+            1.0
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": 2720,
+          "caption_current": 2720,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "dfg-ustebra-ek177",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.57421875,
+            0.5833333333333334
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "drenox-client",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9960988296488946,
+            1.0
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "drenox-client",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.12630208333333334,
+            0.13541666666666666
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "dfg-gentebra-AZ3L",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.5,
+            0.5175
+          ],
+          "bounds": [
+            595,
+            4,
+            997,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9516666666666667,
+            0.965
+          ],
+          "bounds": [
+            11,
+            25,
+            613,
+            40
+          ],
+          "maximum": 3125,
+          "caption_current": 2992,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.8043478260869565,
+            0.81438127090301
+          ],
+          "bounds": [
+            618,
+            26,
+            1218,
+            40
+          ],
+          "maximum": 4500,
+          "caption_current": 3628,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "tibiautils-d35caff",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9841269841269841,
+            0.9977324263038548
+          ],
+          "bounds": [
+            187,
+            4,
+            630,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "tibiautils-d35caff",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9477272727272728,
+            0.9613636363636363
+          ],
+          "bounds": [
+            635,
+            4,
+            1077,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9954819277108434,
+            1.0
+          ],
+          "bounds": [
+            186,
+            5,
+            852,
+            19
+          ],
+          "maximum": 4799,
+          "caption_current": 4799,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.4434389140271493,
+            0.46304675716440424
+          ],
+          "bounds": [
+            857,
+            5,
+            1522,
+            19
+          ],
+          "maximum": 7200,
+          "caption_current": 3216,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "reddit-daralion-0tx21ye",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9460370994940978,
+            0.9578414839797639
+          ],
+          "bounds": [
+            187,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-daralion-0tx21ye",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6300675675675675,
+            0.6402027027027027
+          ],
+          "bounds": [
+            787,
+            4,
+            1381,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9949409780775716,
+            1.0
+          ],
+          "bounds": [
+            363,
+            4,
+            958,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9949324324324325,
+            1.0
+          ],
+          "bounds": [
+            963,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-openfee445-05f7xpk",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-openfee445-05f7xpk",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9955882352941177,
+            1.0
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-prolanninja-8n7qyhc",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9037711313394018,
+            0.9115734720416124
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-prolanninja-8n7qyhc",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.56640625,
+            0.57421875
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-r2nnr1a",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.8278787878787879,
+            0.8351515151515152
+          ],
+          "bounds": [
+            363,
+            4,
+            1190,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-r2nnr1a",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.35315533980582525,
+            0.3604368932038835
+          ],
+          "bounds": [
+            1195,
+            4,
+            2021,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-w1iymdg",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9368575624082232,
+            0.9456681350954479
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-w1iymdg",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.8691176470588236,
+            0.8779411764705882
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-to5lkdg",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-to5lkdg",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6191176470588236,
+            0.6279411764705882
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-eurbina14-9vscc20",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.943683409436834,
+            0.9528158295281582
+          ],
+          "bounds": [
+            363,
+            4,
+            1022,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-eurbina14-9vscc20",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9070121951219512,
+            0.9161585365853658
+          ],
+          "bounds": [
+            1027,
+            4,
+            1685,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9704271631982475,
+            0.976998904709748
+          ],
+          "bounds": [
+            363,
+            4,
+            1278,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9967105263157895,
+            1.0
+          ],
+          "bounds": [
+            1283,
+            4,
+            2197,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-wyfqffl",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9835706462212487,
+            0.9901423877327492
+          ],
+          "bounds": [
+            363,
+            4,
+            1278,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-wyfqffl",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9967105263157895,
+            1.0
+          ],
+          "bounds": [
+            1283,
+            4,
+            2197,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-x5vg5mp",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9963636363636363,
+            1.0
+          ],
+          "bounds": [
+            363,
+            4,
+            1190,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-x5vg5mp",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6371359223300971,
+            0.6444174757281553
+          ],
+          "bounds": [
+            1195,
+            4,
+            2021,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-flashsfw-du2dnj0",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-flashsfw-du2dnj0",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9808823529411764,
+            0.9897058823529412
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        }
+      ]
+    },
+    "temporal": {
+      "metrics": {
+        "cases": 81,
+        "eligible_fields": 239,
+        "numeric_exact": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "accepted_location_mismatch": 0,
+        "false_panel_acceptances": 1
+      },
+      "control_scope": {
+        "images": 17,
+        "accepted_values": 0,
+        "false_panels": 0,
+        "reference_diagnostic_panel_flags": [
+          "dfg-demolidores-4KCJ"
+        ]
+      },
+      "pooled_reading_p95_ms": 19.815984999993926,
+      "worst_image_reading_p95_ms": 60.88573999999198,
+      "worst_image_background_p95_ms": 62.69696500005466,
+      "max_observed_read_ms": 66.10299999999825,
+      "regressions": [],
+      "budget_breaches": [],
+      "gates": {
+        "no_incorrect_or_unsafe_accepts": true,
+        "preserves_baseline_correct_fields": true,
+        "per_image_p95_within_100ms": true,
+        "repeat_outputs_consistent": true,
+        "focused_guards_pass": true
+      },
+      "by_split": {
+        "development": {
+          "cases": 57,
+          "eligible_fields": 155,
+          "numeric_exact": 139,
+          "unknown": 16,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "test": {
+          "cases": 14,
+          "eligible_fields": 44,
+          "numeric_exact": 43,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "reference": {
+          "cases": 10,
+          "eligible_fields": 40,
+          "numeric_exact": 39,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        }
+      },
+      "bar_availability": {},
+      "bar_unavailability_reasons": {},
+      "measured_bar_evidence": []
+    },
+    "combined": {
+      "metrics": {
+        "cases": 81,
+        "eligible_fields": 239,
+        "numeric_exact": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "accepted_location_mismatch": 0,
+        "false_panel_acceptances": 1
+      },
+      "control_scope": {
+        "images": 17,
+        "accepted_values": 0,
+        "false_panels": 0,
+        "reference_diagnostic_panel_flags": [
+          "dfg-demolidores-4KCJ"
+        ]
+      },
+      "pooled_reading_p95_ms": 36.77679500004273,
+      "worst_image_reading_p95_ms": 75.3148299999566,
+      "worst_image_background_p95_ms": 70.64619999999312,
+      "max_observed_read_ms": 111.84009999999489,
+      "regressions": [],
+      "budget_breaches": [],
+      "gates": {
+        "no_incorrect_or_unsafe_accepts": true,
+        "preserves_baseline_correct_fields": true,
+        "per_image_p95_within_100ms": true,
+        "repeat_outputs_consistent": true,
+        "focused_guards_pass": true
+      },
+      "by_split": {
+        "development": {
+          "cases": 57,
+          "eligible_fields": 155,
+          "numeric_exact": 139,
+          "unknown": 16,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "test": {
+          "cases": 14,
+          "eligible_fields": 44,
+          "numeric_exact": 43,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        },
+        "reference": {
+          "cases": 10,
+          "eligible_fields": 40,
+          "numeric_exact": 39,
+          "unknown": 1,
+          "incorrect_accepted": 0,
+          "unsafe_intentional_unknown_acceptances": 0
+        }
+      },
+      "bar_availability": {
+        "fields_considered": 116,
+        "bar_intervals_available": 35,
+        "independent_maxima_available": 5,
+        "numeric_vetoes": 0
+      },
+      "bar_unavailability_reasons": {
+        "horizontal status-bar pair absent or ambiguous": 56,
+        "no verified current resource-panel identity": 18,
+        "missing or off-center complete resource caption": 1,
+        "status-bar pair is not linked to the current resource sidebar": 6
+      },
+      "measured_bar_evidence": [
+        {
+          "case_id": "dfg-ustebra-ek177",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9960988296488946,
+            1.0
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": 2720,
+          "caption_current": 2720,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "dfg-ustebra-ek177",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.57421875,
+            0.5833333333333334
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "drenox-client",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9960988296488946,
+            1.0
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "drenox-client",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.12630208333333334,
+            0.13541666666666666
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "dfg-gentebra-AZ3L",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.5,
+            0.5175
+          ],
+          "bounds": [
+            595,
+            4,
+            997,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9516666666666667,
+            0.965
+          ],
+          "bounds": [
+            11,
+            25,
+            613,
+            40
+          ],
+          "maximum": 3125,
+          "caption_current": 2992,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.8043478260869565,
+            0.81438127090301
+          ],
+          "bounds": [
+            618,
+            26,
+            1218,
+            40
+          ],
+          "maximum": 4500,
+          "caption_current": 3628,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "tibiautils-d35caff",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9841269841269841,
+            0.9977324263038548
+          ],
+          "bounds": [
+            187,
+            4,
+            630,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "tibiautils-d35caff",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9477272727272728,
+            0.9613636363636363
+          ],
+          "bounds": [
+            635,
+            4,
+            1077,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9954819277108434,
+            1.0
+          ],
+          "bounds": [
+            186,
+            5,
+            852,
+            19
+          ],
+          "maximum": 4799,
+          "caption_current": 4799,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.4434389140271493,
+            0.46304675716440424
+          ],
+          "bounds": [
+            857,
+            5,
+            1522,
+            19
+          ],
+          "maximum": 7200,
+          "caption_current": 3216,
+          "caption_detail": "complete current-frame current/max caption"
+        },
+        {
+          "case_id": "reddit-daralion-0tx21ye",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9460370994940978,
+            0.9578414839797639
+          ],
+          "bounds": [
+            187,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-daralion-0tx21ye",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6300675675675675,
+            0.6402027027027027
+          ],
+          "bounds": [
+            787,
+            4,
+            1381,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9949409780775716,
+            1.0
+          ],
+          "bounds": [
+            363,
+            4,
+            958,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9949324324324325,
+            1.0
+          ],
+          "bounds": [
+            963,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-openfee445-05f7xpk",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-openfee445-05f7xpk",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9955882352941177,
+            1.0
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-prolanninja-8n7qyhc",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9037711313394018,
+            0.9115734720416124
+          ],
+          "bounds": [
+            11,
+            4,
+            782,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-prolanninja-8n7qyhc",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.56640625,
+            0.57421875
+          ],
+          "bounds": [
+            787,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-r2nnr1a",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.8278787878787879,
+            0.8351515151515152
+          ],
+          "bounds": [
+            363,
+            4,
+            1190,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-r2nnr1a",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.35315533980582525,
+            0.3604368932038835
+          ],
+          "bounds": [
+            1195,
+            4,
+            2021,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-w1iymdg",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9368575624082232,
+            0.9456681350954479
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-w1iymdg",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.8691176470588236,
+            0.8779411764705882
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-to5lkdg",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-local-ad3036-to5lkdg",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6191176470588236,
+            0.6279411764705882
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-eurbina14-9vscc20",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.943683409436834,
+            0.9528158295281582
+          ],
+          "bounds": [
+            363,
+            4,
+            1022,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-eurbina14-9vscc20",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9070121951219512,
+            0.9161585365853658
+          ],
+          "bounds": [
+            1027,
+            4,
+            1685,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9704271631982475,
+            0.976998904709748
+          ],
+          "bounds": [
+            363,
+            4,
+            1278,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-z6oqvmc",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9967105263157895,
+            1.0
+          ],
+          "bounds": [
+            1283,
+            4,
+            2197,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-wyfqffl",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9835706462212487,
+            0.9901423877327492
+          ],
+          "bounds": [
+            363,
+            4,
+            1278,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-fearless-drawing5310-wyfqffl",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9967105263157895,
+            1.0
+          ],
+          "bounds": [
+            1283,
+            4,
+            2197,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-x5vg5mp",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9963636363636363,
+            1.0
+          ],
+          "bounds": [
+            363,
+            4,
+            1190,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-horyang-x5vg5mp",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.6371359223300971,
+            0.6444174757281553
+          ],
+          "bounds": [
+            1195,
+            4,
+            2021,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-flashsfw-du2dnj0",
+          "field": "resource_health",
+          "fraction_interval": [
+            0.9955947136563876,
+            1.0
+          ],
+          "bounds": [
+            187,
+            4,
+            870,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        },
+        {
+          "case_id": "reddit-flashsfw-du2dnj0",
+          "field": "resource_mana",
+          "fraction_interval": [
+            0.9808823529411764,
+            0.9897058823529412
+          ],
+          "bounds": [
+            875,
+            4,
+            1557,
+            18
+          ],
+          "maximum": null,
+          "caption_current": null,
+          "caption_detail": "caption foreground touches its boundary"
+        }
+      ]
+    }
+  },
+  "focused_guard_tests": 213,
+  "generated_policy_traces": {
+    "origin": "generated_decision_inputs",
+    "native_sequence_count": 0,
+    "frames_per_variant": 48,
+    "scenario_count": 15,
+    "capture_interval_ms": 50,
+    "confirmation_window_ms": 250,
+    "scope": "Hand-constructed current decoder outputs and independently supplied bar/max evidence. Exercises actual guard policy, not visual detection, OCR, capture, live error frequency or native recovery.",
+    "summaries": {
+      "robust": {
+        "frames": 48,
+        "incorrect_known": 5,
+        "unsafe_unknown_promotions": 0,
+        "accepted_nonadvancing_timestamps": 2,
+        "unknown": 1,
+        "max_guard_ms": 0.0009000000034120603,
+        "confirmations_ms": []
+      },
+      "bar": {
+        "frames": 48,
+        "incorrect_known": 0,
+        "unsafe_unknown_promotions": 0,
+        "accepted_nonadvancing_timestamps": 2,
+        "unknown": 6,
+        "max_guard_ms": 0.04889999999591055,
+        "confirmations_ms": []
+      },
+      "temporal": {
+        "frames": 48,
+        "incorrect_known": 3,
+        "unsafe_unknown_promotions": 0,
+        "accepted_nonadvancing_timestamps": 0,
+        "unknown": 17,
+        "max_guard_ms": 0.06680000001324515,
+        "confirmations_ms": [
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004
+        ]
+      },
+      "combined": {
+        "frames": 48,
+        "incorrect_known": 0,
+        "unsafe_unknown_promotions": 0,
+        "accepted_nonadvancing_timestamps": 0,
+        "unknown": 14,
+        "max_guard_ms": 0.15430000001970257,
+        "confirmations_ms": [
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004,
+          50.00000000000004
+        ]
+      }
+    }
+  },
+  "native_sequence_evidence": {
+    "reviewed_sequences": 0,
+    "client_running_at_inspection": false,
+    "installation_event_screenshots": 21,
+    "closest_event_gap_ms": 4896,
+    "event_screenshot_scope": "Viewport crops without Skills/resource captions; unsuitable for this temporal benchmark."
+  },
+  "limitations": [
+    "Static originals test regression and latency, not temporal benefit or live freshness.",
+    "Previously inspected test split is regression evidence.",
+    "Generated policy diagnostics and native sequence acceptance must remain separate.",
+    "Bar availability across the full corpus is not a new manually annotated percentage-accuracy benchmark. Focused visual checks validate six intervals on three development originals.",
+    "Generated policy traces inject deliberately chosen decoder errors; their error reductions are mechanism tests, not measured live error rates.",
+    "Numeric-only confirmation delays legitimate changes by one incoming frame and may stay N/A during continuous changes. Combined mode bypasses only with independently verified same-maximum bar movement.",
+    "Repeated identical wrong digits can pass temporal confirmation. Bar width cannot uniquely recover exact counts; obscured values remain N/A.",
+    "Only the supported horizontal status-bar family is measured; side/parallel/mana-shield layouts are unavailable."
+  ],
+  "recommendation": "Keep the robust decoder as the exact-value source. Use optional current-frame bar checks; evaluate combined short confirmation on reviewed native gameplay before enabling it in the normal runtime. No default changed.",
+  "fingerprints": {
+    ".github/workflows/resource-fusion.yml": "1a899ce852434773caff5f0ee2fbe959f2c93e5a38a2e53f7c4e4e9995bc5c57",
+    ".github/workflows/row-refinement.yml": "a3dd3977ed06c1ecf4ce0e111c669cdeec951974bc953c75e5aa4754abef0d3e",
+    "core/perception.py": "d900756c4d5eb6e2ff0a50142da1422366caea0899b04e2ba8693334c858cf07",
+    "profiles/paulistinha-skills-v1/README.md": "c167a49c0d4a579c216882da67e5761bee8e165554eb185a00d74ee47bffd95e",
+    "profiles/paulistinha-skills-v1/comma-yonabra.png": "8f5a5035febd93992aa9a10d07f27ae131e62b8662d7f4243f5a0ca5a3d80a70",
+    "profiles/paulistinha-skills-v1/comma.png": "d0e4927163365d6fb7e5430f562a9b1590c66378a566adb4fd2e9deb86ded79b",
+    "profiles/paulistinha-skills-v1/digits/0-1.png": "3d5b664a04edeed0d0344720d1abec5029cf29c1ffca36f10d12230ef7abe649",
+    "profiles/paulistinha-skills-v1/digits/0-yonabra-soul.png": "5138955d60ac4dc4caae588f4bdb7d1b73d205e45935fb1ea498ce9b0cb4683a",
+    "profiles/paulistinha-skills-v1/digits/0-yonabra.png": "5f2016c2cde16a2406f4f243416d7a361625147dc06ebc3d20a7a8a43b12e314",
+    "profiles/paulistinha-skills-v1/digits/0.png": "eebf4b449c21d6b076efd83d797adcef876ffc64c210634e50274972e0a29f59",
+    "profiles/paulistinha-skills-v1/digits/1-1.png": "35982ec84f42d254ec315f66b60c4370095efc837febc30273adc7d1088efc12",
+    "profiles/paulistinha-skills-v1/digits/1-2.png": "f30355c4866675698cc5254cabae2ca2159a6a53a4aa5cec0e73daeaf4241dde",
+    "profiles/paulistinha-skills-v1/digits/1-yonabra.png": "636641c078958776dc672d13f2f2daeafb0bfbcfeec4caf989917efda1cfb9d5",
+    "profiles/paulistinha-skills-v1/digits/1.png": "049dfdc40e8abf57272d906ad3971d786824cef9cda9c61ef19df8a3e37a26f1",
+    "profiles/paulistinha-skills-v1/digits/2-yonabra-health.png": "a515dd6b772086ee89b2a63c773867169642500f6454c804ec4c850d0bc1197a",
+    "profiles/paulistinha-skills-v1/digits/2-yonabra.png": "c8232eb38a3d027ff7b91cb7d75763585c9d0af5f5e9eeab51daaeea6b15e301",
+    "profiles/paulistinha-skills-v1/digits/2.png": "dcbe6c1fa2469bc1a65607beff2b297b5487f10dc37fdcd14be3d747ec8bd2bf",
+    "profiles/paulistinha-skills-v1/digits/3.png": "fbb2531e25f05d4cd34cc2911185a7304e56fc69cdf0d57d5b467a5db484f134",
+    "profiles/paulistinha-skills-v1/digits/4.png": "44cc2f2d1c82ced6f8c51c90d2a79272bd83559c6c4707c17e8b712904a15351",
+    "profiles/paulistinha-skills-v1/digits/5-yonabra.png": "cd1764bac6292602dd27de6dd2e273bd7f7d8c096b9e4106a50fc6d719044e73",
+    "profiles/paulistinha-skills-v1/digits/5.png": "9f871fc70590dce06dca0c344c41c676442ebefec58a69ed28639ebe027fb367",
+    "profiles/paulistinha-skills-v1/digits/6-yonabra-capacity-leading.png": "020f7ff36ab4ffaec38388c54dbde4eaaffc124ea143b17238bb501774176d58",
+    "profiles/paulistinha-skills-v1/digits/6-yonabra-capacity.png": "1087dc09d2e5a79cf2ec64f897a5810d74362886855e34babf0832b304887fde",
+    "profiles/paulistinha-skills-v1/digits/6-yonabra.png": "cedb819df3a44dca8802baeab3e4293f31791fa7305ea6081a13e9f77ac6be22",
+    "profiles/paulistinha-skills-v1/digits/6.png": "fd0457eb4ca16ed5be965f4ee85cfca181a66fd793f8f6ea0738836f268ece95",
+    "profiles/paulistinha-skills-v1/digits/7-yonabra.png": "d3cd26db790d5afcdc7fa1f92f35331a552beb1b1e842137733ae55640e3802e",
+    "profiles/paulistinha-skills-v1/digits/7.png": "934f0a556537e99b051764ac012beb7262333e00dd6fc09bf27e193b41675637",
+    "profiles/paulistinha-skills-v1/digits/8.png": "e8b8cf5e31dfd38b377488d4e61ca4690968078f7ae113ee2258d83dd9716a92",
+    "profiles/paulistinha-skills-v1/digits/9-yonabra.png": "11af6c76baf41d287d1fe9b43f5c4beb9eba98f58c3a46e78a55c0f3755bbb06",
+    "profiles/paulistinha-skills-v1/digits/9.png": "a4f0515510ed2dbdb2e28bc2bade7eddd61e21264a90001b09648e49e7b67f33",
+    "profiles/paulistinha-skills-v1/labels/alternate/yonabra/capacity.png": "76b9617da949a94e54e70e365e2025bfd9384a806eefe175ee94f43f6f467508",
+    "profiles/paulistinha-skills-v1/labels/alternate/yonabra/health.png": "567f7a93ad4b0d63ac3199a5041a8bcf987e8cd51176fb96f6714f69d232c277",
+    "profiles/paulistinha-skills-v1/labels/alternate/yonabra/mana.png": "1aec9546df323b196c3a3da8a145109a19d655cd14cb43b202774742dd49271a",
+    "profiles/paulistinha-skills-v1/labels/alternate/yonabra/provenance.json": "513dfbd2ec420aaef30f28cd66bd08f0549887a98f6b31feb30e832974978836",
+    "profiles/paulistinha-skills-v1/labels/alternate/yonabra/soul.png": "f7d17b57a8348ba164de24bfc7ec1363ced3bdb901142b00cf1a7f65fd11a27c",
+    "profiles/paulistinha-skills-v1/labels/capacity.png": "cb0ac52689a27855df9ac67f02ed1a4b233b66c34b2b837c543f401a502b6f59",
+    "profiles/paulistinha-skills-v1/labels/health.png": "bae692423fd03ec78267c9483ddaf2f8eededc66f5be84328f4aff931a088afa",
+    "profiles/paulistinha-skills-v1/labels/mana.png": "9360113928bc6fe15878ac78390cdd2cad47c334f1e58c37d61d1b1ac4b5a9d0",
+    "profiles/paulistinha-skills-v1/labels/native/capacity.png": "b28ddbfce118ad315d79427d2194885e28b5adea1fc9f25339b92291be7e2869",
+    "profiles/paulistinha-skills-v1/labels/native/health.png": "02ac87b631dc4be4b8ff833e73243c0d278d9572151be23bf758a9954bde7285",
+    "profiles/paulistinha-skills-v1/labels/native/mana.png": "170d71e50067127b5f3002fd5170d17ab954ae4011032b95f0992de6cce67417",
+    "profiles/paulistinha-skills-v1/labels/native/provenance.json": "323cf3d90c148f46dc4f5af90aaa3770ae0ec9687720aa4d3deff7d4ea52aa1f",
+    "profiles/paulistinha-skills-v1/labels/native/soul.png": "3a2ef6da827890c27503a86d553c266078eb720b773f1a53fcecf0b3cc0b50cf",
+    "profiles/paulistinha-skills-v1/labels/soul.png": "a617b00797794a2359ad3e23a53197fb5e6e1594041611ce4d25dc4cae0dca3c",
+    "profiles/paulistinha-skills-v1/profile.json": "3b9d6ed6207adcaf0efc5421dc34407d22afa6917a386d9725c295476caea7e7",
+    "profiles/paulistinha-skills-v1/provenance.json": "a6cec82501fa44ac3ac52e596227ce8ac11cb7952a632f77af570788fa79e598",
+    "reports/native-resource-techniques-2026-10-19-plan.json": "00267236cf599ac13817bd2412bef49e49b07765027d168245fbc8fc55b639a6",
+    "reports/resource-fusion-plan-2026-10-19.json": "901a69cb6a2c7349bf738621af87c8f56136087509884d176043f24c64bbcbf5",
+    "requirements-dev.txt": "b5581762c2587bac4be4f3e124765127858693e7242c8de694010fce3a70a422",
+    "requirements.txt": "4b25ff0b7311e503f9e33f77c750e6e98cfe26b6217fc9f0e92a8ec81906c4d2",
+    "tests/fixtures/screenshots/manifest.json": "24bf6b8f77b205d7bcdb19195fd110379f701f69e325138df5fba86b30d49a89",
+    "tests/fixtures/screenshots/originals/09s6sbltm1db1.png": "3e6531ebb59ca350e802a5c344203986346b1c89fd93f5e76fef8e9c2ed87867",
+    "tests/fixtures/screenshots/originals/0tx21yeyn6wb1.png": "346dc778d7e224e6361ca9f7221e1665b5c42d736c6e7c5f70f72a780affa699",
+    "tests/fixtures/screenshots/originals/3brbvbqv0e6d1.png": "256776d48d410894cde874fe9353fb587f98914c7ff0d92381bd03c1bbc932c7",
+    "tests/fixtures/screenshots/originals/4ppe2dpqiawb1.jpeg": "f7f185f29c17fa2f11a63979b60ec94252195ff68349667ed2e64dfde0292355",
+    "tests/fixtures/screenshots/originals/8q86ims5v1db1.png": "7237a97d02c5e356f1c6687ed84b88c75c545939d05c9739feecbceb9ab93ae9",
+    "tests/fixtures/screenshots/originals/904190487-char-tibia-lvl-302-em-gentebra-royal-palladin-BJEI.webp": "299f3f42dcc5bb76de8c4ce0baef7153c1a62fd04d97b69243c8349f7c1b366d",
+    "tests/fixtures/screenshots/originals/905898076-vendo-char-tibia-ot-demolidores-mage-full-set-4KCJ.webp": "f6ddda5d53bbcf447e57548224d4c869a28736005c5e7d344230220d4f9e9853",
+    "tests/fixtures/screenshots/originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-3XWB.webp": "b0e968b2a63b67076ffe1a5bdbd7ca9533acf5e7c15a9768e4dae592b60515e9",
+    "tests/fixtures/screenshots/originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-AZ3L.webp": "8fab23b14e0fb1c3b02d1cac806f7090052c3a76ba38f77fd7fc397d6789a88c",
+    "tests/fixtures/screenshots/originals/906563910-conta-tibia-paladin-lvl-193-skills-101-na-barra-gentebra-PPNB.webp": "0393813276aa22d994a7de0c27a183f34fb69bef7a0540b9992de61b7f6fcf42",
+    "tests/fixtures/screenshots/originals/917674539-conta-tibia-ed-lvl-312-ml-102-rp-116-skills-113-lutabra-IBIV.webp": "77123450db0c79e2e4c1585947c69b0c3870c1de509e0d712df92c651c376ccd",
+    "tests/fixtures/screenshots/originals/940604669-tibia-account-35-loyalt-ek-277-skill-120-115-OL5J.webp": "c8d5dae68539510bfbe3050347079d2db7ed19a1a8f81987332c582b35e3ef15",
+    "tests/fixtures/screenshots/originals/951064454-knight-tibia-global-level-246-skill-106-mundo-calmera-D9BJ.webp": "aae80a066c5a28958a593d7ad3c56df59334936026825d7b2226b7c6b1e6b660",
+    "tests/fixtures/screenshots/originals/953559644-vendo-royal-paladin-383-tibia-global-gladera-SSVX.webp": "176c21eeb420068f58781830fb2e3af328510cb65fbbaa43ca880543f2e0e32a",
+    "tests/fixtures/screenshots/originals/957011807-tibia-global-nivel-64-mundo-laudera-knight-PD1G.webp": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+    "tests/fixtures/screenshots/originals/966830394-master-sorcerer-323-belobra-leia-a-descricao-2AHL.webp": "2261c4f9e20573c7e13c3569f9e65a27b9e17e9286e3e87370b9f643202a828e",
+    "tests/fixtures/screenshots/originals/966830394-master-sorcerer-323-belobra-leia-a-descricao-S50Q.webp": "5aac31390581568e445af53a03d4fdbe16e79216a1d243c18573d59679ace65f",
+    "tests/fixtures/screenshots/originals/974104750-tibia-yonabra-vendo-ek-195-swd-95-95-3kk-212-dias-p-a-8LN9.webp": "c841d917dbb77342649bc15c39be8fd074314ea72069d06be2bb60be91d60224",
+    "tests/fixtures/screenshots/originals/975471397-druid-level-167-ml-77-quintera-VS41.webp": "9fdb83bf28ddb596af33ed0f399a9536c08289319da8cd2d7d88da46ee01118a",
+    "tests/fixtures/screenshots/originals/978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-BYZ0-1924051.webp": "3de3616b41135bba5727327f42b1dbefceaa04c0d7ebeffaf8242260cc799708",
+    "tests/fixtures/screenshots/originals/9rwszebw0e6d1.png": "24c7f26e673444ae3df75302c1c42582e728d60f573787ace569f2080338a317",
+    "tests/fixtures/screenshots/originals/TIBIA-350-EK-270-RP-i-noob-chary-KENORA-ANTICA.jpg": "860673a2636f91594775a1ec38dbed4bbeeb15acaec389c664067c88892dbf22",
+    "tests/fixtures/screenshots/originals/awoeqer2he6d1.png": "c90b1bcc94e0c0194a7d680088e24f1ac957edd8619f9750471596a38d6a0b76",
+    "tests/fixtures/screenshots/originals/client.webp": "7e8ca450e491cfedead9423a5c6204490e651ecddb44899dd50212eeb464e026",
+    "tests/fixtures/screenshots/originals/d35caff.png": "4b345f4aa40834b0289d010290dda13cafb2ca4729aef54a0efe1dc1e4161b61",
+    "tests/fixtures/screenshots/originals/dfbygh7z06wb1.png": "149a08fe2fa3d7021e7f18ac1dbf54ee16f98c50ad87dc13088cdd2438bad37e",
+    "tests/fixtures/screenshots/originals/dfg-917013286-ustebra-ek177-DWTG.webp": "c7d3eabd6d7c31309582d48b39bb531739b3c423e1ec9aa34fdab32bba6929cb",
+    "tests/fixtures/screenshots/originals/dfg-974104750-yonabra-ek195-FQ2C.webp": "cb48bade572118b9885f529644b04f676d61575e4b50a8523a2925d29a7dcbbf",
+    "tests/fixtures/screenshots/originals/dfg-kalibra-ek362.webp": "e6956b2c23c9ace6b2cac6436bab5d5fb110d3f169b04b6539b8da31c795c201",
+    "tests/fixtures/screenshots/originals/dfg-list-978242455-conta-50-loyalty-rp-535-com-itens-retro-pvp-B03E-1924049.webp": "f45f0622dc352ad5daaec7cda7671e0cd1f8a4424924aa17925da2cc363ff771",
+    "tests/fixtures/screenshots/originals/dfg-related-998237216-vendo-ek-133-mundo-pvp-disponivel-para-transferencia-4DOS.webp": "c951ee1f1175900804f916a4f7372545234ebd4a07202eb572828ff66a60bb18",
+    "tests/fixtures/screenshots/originals/e0qinagktzcb1.png": "dd71122743d22700a71abb3da0bd16518cfa529a8f36c113e904f78b6d86168e",
+    "tests/fixtures/screenshots/originals/h8odlbhia8wb1.png": "008b9760f61068b80ec1715447a9cdca66ed8a23d0b622ac482756611836a8cf",
+    "tests/fixtures/screenshots/originals/ib60r93w1fwb1.png": "3e0d0bfae1757a2e3cea4519c06cbe5ff04a4174d396e1ee852f3f584ce925df",
+    "tests/fixtures/screenshots/originals/m91oix5olzcb1.png": "e9efcb17585d00d12239343df4e4bc255a7621b3e03841e70f6588939aed5c4b",
+    "tests/fixtures/screenshots/originals/mo9lbk5m52db1.png": "318518ca462a27ed0d11dfb777522ab85fde2cff10e49ac711dcf515b03df805",
+    "tests/fixtures/screenshots/originals/nfiiftqak5wb1.png": "f299a921624e90a6adf4d5de7aa177ba6012b4b91f06ec1b177787127a869d5c",
+    "tests/fixtures/screenshots/originals/o0ap20coqcwb1.png": "1b171fa3b8fb78d0ac118f5fa88dfba100e6b861f33e47d64b83b9e16f90789e",
+    "tests/fixtures/screenshots/originals/pl7tust26zcb1.png": "96b472f9e12b7b82f9da228e0eeb9962025065ae17a61f10bfd7339e3d52635a",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-01-0i483jb.webp": "2b4a2fa0c9861bdc45f0c0df076bfcff4923d15c11c456842d000df9c99e2a30",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-02-VtukRkf.webp": "4170819ed8cc9517e54874d9bca8eb3ade5d542b1feaed6042b4fde39a45289c",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-03-dUqF9aj.webp": "7841fdc845d1ff775294b114f061d7124b6ac1de60a1a4ee8185dfa5b1e768a7",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-04-P9brcLm.webp": "9c21e594ff4314579ef4ea11a73e2398e70a3535b78dc7d514fa56c3096ff1d4",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-08-L1QY5z1.webp": "14d5d6406c03487179ae4306fa72ef470d1a622712b685211ced11d6dee11fd7",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-09-BnumJDC.webp": "2801f9568699cafc4970d9a36031388c858ff6db5956661f9b486e27edc07851",
+    "tests/fixtures/screenshots/originals/portal-tibia-2016-10-Ttu3X5q.webp": "ebab25fd3ba6597df9534645060a0e59e4b31a1b9e683bcbb68aa9c39002be47",
+    "tests/fixtures/screenshots/originals/reddit-aernithrawaxe-leyvjxw.jpeg": "7ff7f3be617579b3b7fb739b0059fcc9f0f330cd9f50f275af440cc25bfe014c",
+    "tests/fixtures/screenshots/originals/reddit-baear-nbqgn5x.png": "f557016a12377cae52b54153a29c56b0d4af36d616bceade5c2c25f712dc44ca",
+    "tests/fixtures/screenshots/originals/reddit-cowboyisaac-0wwagz8.jpg": "5341961af56d09e22d2a762ed7d930853b0d647c560a25d1088933ecd257f985",
+    "tests/fixtures/screenshots/originals/reddit-cowboyisaac-9muurr2.png": "56b9109f31f2ea13276a56a55988552bd09bc4dad07c4fd0a07f26ddae4a48e7",
+    "tests/fixtures/screenshots/originals/reddit-cowboyisaac-dhlws3d.jpeg": "78604e03f217b07806020f8abe559f7d068c26ab5a1ef64e17855743ea8085dd",
+    "tests/fixtures/screenshots/originals/reddit-eurbina14-9vscc20.png": "07fd2ec8814beb5705d08e5aea077434b50c691b99f07721c4432d7d4f8ddd92",
+    "tests/fixtures/screenshots/originals/reddit-fearless-drawing5310-wyfqffl.png": "ef3ba06c05f7f5b950ccf62375df669250ab15ef55d3adb21c468208a60704fe",
+    "tests/fixtures/screenshots/originals/reddit-fearless-drawing5310-z6oqvmc.png": "65ed4884ee2573e3a999b619b566a30f7857ab3c8dc0a674823da0ce3039893e",
+    "tests/fixtures/screenshots/originals/reddit-flashsfw-du2dnj0.png": "148433bae48b48f8b922f90997f011efe7ba1aae5f1c64389e5b07395a0b0da9",
+    "tests/fixtures/screenshots/originals/reddit-frosty-economics-557-89mlozz.png": "63c513ef264148c9ab8b2b3272f251733e225e37416be948e4083ad51d3851d5",
+    "tests/fixtures/screenshots/originals/reddit-horyang-r2nnr1a.png": "15a31cb99f9ed1e6c778eddb7efee366eb1997fafd0e59b45ffa44b22396445b",
+    "tests/fixtures/screenshots/originals/reddit-horyang-x5vg5mp.png": "3bc823915326514a1921296b104761170c83c763f268cbf5a2d2427b5a2586d3",
+    "tests/fixtures/screenshots/originals/reddit-joaocasarin-6tv51oc.png": "8a0c79a066ead65660f3c5030da1a586382a4873f177ce0166b3d37b1779eae8",
+    "tests/fixtures/screenshots/originals/reddit-keasol-2yqk8uk.png": "ead570e0aa93871b25c4f8ac1ba2604f2eb6d70b1afaa150c24844ee48076437",
+    "tests/fixtures/screenshots/originals/reddit-kunggimli-zaxz27g.png": "4385589098088e1e96242d9c2e6cdcd17d974011adce3122e1b468bfe94db7f6",
+    "tests/fixtures/screenshots/originals/reddit-local-ad3036-t7o9dkq.png": "d9946e0e02a1fde20b73f133e340645b538f2ede497600dcf24c8ebb303c65e8",
+    "tests/fixtures/screenshots/originals/reddit-local-ad3036-to5lkdg.png": "c2c5b81daca1b4efdd2732dec5bb038359186035caa424cd3d0edc72bc10a6ca",
+    "tests/fixtures/screenshots/originals/reddit-local-ad3036-w1iymdg.png": "5e1065995c4d49c040d13b6db2b79ab83439d894f3c465dc0d62002e9c6a9c09",
+    "tests/fixtures/screenshots/originals/reddit-mint-odie-7ngyee8.png": "40d93f5ed3f6c0b2a3b60ab0614682807b5172a1856733623d01af5e5cd5abf5",
+    "tests/fixtures/screenshots/originals/reddit-musquitu96-9sol5rg.png": "02703e2436d7aafbdf568b07a0d78f3c41cb3cc7c138fa5dc077c23182689523",
+    "tests/fixtures/screenshots/originals/reddit-musquitu96-uuhie47.png": "e37581e58547f2e70954b95b7c6ed3828fc7d4387b894adab66112b082b4404b",
+    "tests/fixtures/screenshots/originals/reddit-musquitu96-wzgn2qg.png": "6f806452174ec8d8ffea6b415ed4c1d3757636deb267d3cd8e0a9dd2e83f3659",
+    "tests/fixtures/screenshots/originals/reddit-musquitu96-zw6jbqg.png": "e42ca9a9178c47ff305f3affc576e0ebdd6b00d9e2f9bfb699c6010fdea7168a",
+    "tests/fixtures/screenshots/originals/reddit-openfee445-05f7xpk.png": "dcaa40dc1bfb295be50f6c927cce161eaf2fbbf6a3620ae0d684faefb81de3dc",
+    "tests/fixtures/screenshots/originals/reddit-prolanninja-8n7qyhc.png": "91a9a152b0d7f51fc0fad7850092fc0a9a917251048822fc4a9fea6d224de2e7",
+    "tests/fixtures/screenshots/originals/reddit-reverofsipcabej-d7ze1nn.png": "febe8b525e4cb981ac9947981027f51b90979a83781a1dd2f91d66c563dd8de3",
+    "tests/fixtures/screenshots/originals/reddit-rodri418-o5rjfw8.jpeg": "fdf23bfca6ef9254924995d39e3aa80d1fcb891392ca77a8985316135037602c",
+    "tests/fixtures/screenshots/originals/reddit-ryelz02-0p3zcv3.jpeg": "6e70d9f2f4a59398db27af3af8e10b4ac10b938ed389cddf4a3e22a4ec8b77e7",
+    "tests/fixtures/screenshots/originals/reddit-silent-oil-2035-ogl92io.jpeg": "fdfd0f9f94a3734e1f803c4477219d787f5758805e993005d2efda779dfdd484",
+    "tests/fixtures/screenshots/originals/reddit-smithyx17-dqeox2y.jpeg": "bb7b26d019272d66960e16a8f2f84a172fc2d4b74523d2609c2bc6ec12e339e0",
+    "tests/fixtures/screenshots/originals/sidebars-filled.JPG": "c2c73d322b429d4f9e8dd48d30fe9bfb18b33b79007b65bb7650bce535a7f64e",
+    "tests/fixtures/screenshots/originals/tibiadecorations-2024-full-window.png": "a7a0800a9a9ea0943b1e7fa80aa6c104962e399c7fb05e8aaec0112a073ba08b",
+    "tests/fixtures/screenshots/originals/user-paulistinha-20261013.png": "8e0d74453d0d0ad57e104e434dca7941763f1f0d33b1c399b932effd55763176",
+    "tests/fixtures/screenshots/originals/v1QxvNN.png": "8a8ef1fb56903695c4d90103e698ce234120afd2cff337b632de39175138e7ab",
+    "tests/fixtures/screenshots/originals/xcqycuywhzcb1.jpeg": "9b227285eed99ce4f6b223b935a6755a5066b66be6f52f2a18648354350b5c18",
+    "tests/fixtures/screenshots/split-2026-10-17-latest.json": "c115a8335bc17764bee7e5fec85f56ed47a87f070f918c466a340e629c0e6f10",
+    "tests/test_resource_bar_evidence.py": "ccdcd9b400a2ad4780f22d49d7abbddc269947bd6d985bdd912e8bb04a97ee6a",
+    "tests/test_resource_bar_numbers.py": "ae3af96c15aa565c2495653fae3e4399fadcb2a9cdc904364170db525a070107",
+    "tests/test_resource_fusion.py": "b34e19216aafbf8555cdc47dbb3b4595bea3f8360ed30b6ec68a84a7b7ac56c1",
+    "tests/test_resource_fusion_benchmark.py": "9d70d95092f50c751dd15582bcdd57af02092667197c80196158d082946eba59",
+    "tests/test_resource_temporal_checks.py": "7bd3acefdd0a5427066307dda0f0aae1bd70f5231959efaba9e47a765470d070",
+    "tibia_client/adaptive.py": "325eef4c0293b4fbcd086ac83b0c99deb30e8c0ff291da022ab3c7db4d959c68",
+    "tibia_client/adaptive_text.py": "14c549d73bf70f7125513854b77bb70375327b2aac3d372094cc20f940a9cb74",
+    "tibia_client/models.py": "ce7fb0d8aec4bdd47b97ab9dbe668ea7310530d99f0d390c0504252aba35cb5b",
+    "tools/benchmark_native_resources.py": "90ddbfaaa2a1ec5318e52512228e9844dd45cd6d738afc7e9c8d14fd88d64342",
+    "tools/benchmark_resource_fusion.py": "9faab7f299ff460a0c5d3af325663015bf5cb57e1da79d9296b77bd2bd04055b",
+    "tools/benchmark_resource_fusion_sequences.py": "ea58ee8d6f9dbcdd4f44458321c7ec2172095d1ada613c7d1a9ed2164d1a5156",
+    "tools/benchmark_resource_latency.py": "0107531f209bb4e5c34df75566118b1c7b5be20df6c03c664b4855a5dec8b790",
+    "tools/benchmark_resources.py": "9adaa5dc2d1a44eeef9fa99600a76b6808cda299fd999f1747e70187ee1c4e50",
+    "tools/benchmark_row_refinement.py": "83798283f866d7c75632383b9986ec6892797527a25b064650e9a5008ecb295c",
+    "tools/check_native_resource_guards.py": "2d3fe31a2a64d375a88a758890e5dbd82d785d313db9854d5de7d120f421e4d8",
+    "tools/compare_resource_readers.py": "ae50646fc3735075d16636b658a89e19aa164cae2b4e2097a3ea0ae9d4daa538",
+    "tools/resource_bar_evidence.py": "0abce412692dff91ea83164390f4cdb4825aa2d01154c38d8897c8b1f78aae82",
+    "tools/resource_bar_numbers.py": "e203eced53a5789ad047b1df3bcf0255b31f2d40287fcb32b326e8cfda52d525",
+    "tools/resource_calibrated_cache.py": "d89b33a8b51cd7d40619826dcfac070659a9aa5a4c76186bf13b8bceb2cac0b0",
+    "tools/resource_fusion.py": "c862a43b153dcf4d02aaaee0ca08740f34c7b5aed8d54eb928e126f52adb9857",
+    "tools/resource_native_experiments.py": "a4f2408f29f953867933c9228b6c09935fcc64b73d3fc1be90e30c7e867d32ba",
+    "tools/resource_native_font.py": "771f2233b06cf9562b5e5ce38d8a439759f6cc02ea7f5696b15562f17d7d2ae3",
+    "tools/resource_native_numbers.py": "ab42701e5ce6697e41830bda5615c02d7dab45a126c8d1abbe24eb9026cb69d8",
+    "tools/resource_numeric_vector.py": "10715ab63e0e13b0ba3f87f1e76e8eea5558ac97ed7b7804452de095dc5ee697",
+    "tools/resource_reader_experiments.py": "bfa5a676571242c5298ae7acfacdb07582da8331615e81555fca2531a6770f3f",
+    "tools/resource_row_geometry.py": "12885e1478cac646083c51217a0061b8078af8012f0b89a56eedfaa496240b76",
+    "tools/resource_temporal_checks.py": "0472c4c5f9bfc93999c7e8400f4f878cb67bfd1df9f11c404d45e0ae7ae177dd",
+    "tools/screenshot_split.py": "709c4816439a30bd2124737ee14de1ee5abc9e8e3cf0e549f8596beadd8a51ec",
+    "tools/summarize_latest_screenshots.py": "c92f71b08c8576ae9faf9b9e7faf25e73e891c0708e8286584a7abb9c3273f27",
+    "tools/summarize_native_resources.py": "7601ec1167e9d79e5d9d10631839594e2140d549b34d69725f1598cf17ada654",
+    "tools/summarize_resource_techniques.py": "3c65a082f01bdbae4a539b1bdb0b961df054b836d5df7950521fcee0023793a7"
+  },
+  "raw_shards": [
+    {
+      "file": "shard-0.json",
+      "sha256": "b5ffbefb8f18c381b87e040c3f024df158f9f8bbcd0f65e5498f72ddf30fb539"
+    },
+    {
+      "file": "shard-1.json",
+      "sha256": "66e0a6c75e45d97d6343c10e627c026e99a09f559930de08d46e868113ae744d"
+    },
+    {
+      "file": "shard-10.json",
+      "sha256": "fd45277603bd05b4e51d427c47d7732fd1c6ce17a06eeb457d0c79e9e16e7814"
+    },
+    {
+      "file": "shard-11.json",
+      "sha256": "4c820fc1a9599a3068a8369c4034f7c3a880711d384ce00c45adb5c36b1930fd"
+    },
+    {
+      "file": "shard-2.json",
+      "sha256": "ec3ea274aac9c0bcb5e43062ce39b16a8c928edbf1b07c6a63feb116269b3a5a"
+    },
+    {
+      "file": "shard-3.json",
+      "sha256": "a420759a1ff6409ea9bba1ba52814e662abb7ae7277388df21fe9b5d7a63e933"
+    },
+    {
+      "file": "shard-4.json",
+      "sha256": "a03cb831dfee57b4e8a551743b0c45067b1f4136e7fb48829d255f62887e8b4d"
+    },
+    {
+      "file": "shard-5.json",
+      "sha256": "9963f1da54f4bf50f58918328738d72a8eb7a09c29da5c4bcca1ae8b964902a3"
+    },
+    {
+      "file": "shard-6.json",
+      "sha256": "5ebe3f0026c54b1e8b96904940961bb53f51db63b563d3bbbd42b839549240a8"
+    },
+    {
+      "file": "shard-7.json",
+      "sha256": "a51207980fce36e0ea556aaea0bcb53dc7d5eb0f08920f469e066ca498699fb3"
+    },
+    {
+      "file": "shard-8.json",
+      "sha256": "2c657203534045ab6179280bebabdc0b403712ad898eb225eca9983db36c7cb7"
+    },
+    {
+      "file": "shard-9.json",
+      "sha256": "dd834422c15eff03250eb40d36ad164a74f13601e0bd7bb9e1b31c4e4d84c8cc"
+    }
+  ],
+  "guard_xml_sha256": "05a85efcd3695a34f9e2269ce9274e3bec8763734d7b5e8168d061e7ed0119c4",
+  "sequence_diagnostics_sha256": "54a171587b60ca8ec5133809007635f2ecec4a93b50526a34da4c27358ace946",
+  "full_local_summary_sha256": "e2e56164afecce8233adda07326e380057ca1132d35b214999cb079eef36ba2b",
+  "artifacts": [
+    {
+      "id": 12220020433,
+      "name": "resource-fusion-shard-7",
+      "size_in_bytes": 74885,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12220020433",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12220020433/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:28:40Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:28:40Z",
+      "digest": "sha256:6b7ef614bdf6eed33fb4f534d94345e589743b012d6c449e0eec5b10a409d61f",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219945994,
+      "name": "resource-fusion-shard-9",
+      "size_in_bytes": 54505,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219945994",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219945994/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:30:31Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:30:31Z",
+      "digest": "sha256:e9740ba22598a65434042a33b62770f120e06beeda6cd12ecbd39dfa35a45f42",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219821310,
+      "name": "resource-fusion-shard-8",
+      "size_in_bytes": 56715,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219821310",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219821310/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:31:23Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:31:23Z",
+      "digest": "sha256:6775f8aba93056541e3c1b447ee8f07291fb79c771458961484ee64a3891bb20",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219776250,
+      "name": "resource-fusion-shard-0",
+      "size_in_bytes": 80068,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219776250",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219776250/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:29:46Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:29:46Z",
+      "digest": "sha256:31af60a14558ab13e5ba2d9db0fdbc0f9707404e7ab05317aff96eab3c2c817b",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219656565,
+      "name": "resource-fusion-shard-3",
+      "size_in_bytes": 87919,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219656565",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219656565/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:28:05Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:28:05Z",
+      "digest": "sha256:65f6dd526cf9d3fdbdde32661c2fe1352c6c97b11bed9dd5bdcb9004e133a31a",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219616736,
+      "name": "resource-fusion-shard-2",
+      "size_in_bytes": 82226,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219616736",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219616736/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:28:00Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:28:00Z",
+      "digest": "sha256:3eb4a598ca44ee76746aa82e92452c320a0365c332b9d6ac90fdde63777500ac",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219466867,
+      "name": "resource-fusion-shard-5",
+      "size_in_bytes": 72061,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219466867",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219466867/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:28:11Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:28:11Z",
+      "digest": "sha256:2df52d7f260e111c82a97a5b1af9e9fcc50fed9934ce2a9d9e4ac72167e0079c",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219338546,
+      "name": "resource-fusion-shard-6",
+      "size_in_bytes": 66929,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219338546",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219338546/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:27:52Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:27:52Z",
+      "digest": "sha256:d62a8e792dcd762c07d1300fccafafcfd8e825efaa4abf46c1e0f85f9a78aeed",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219069617,
+      "name": "resource-fusion-shard-1",
+      "size_in_bytes": 67185,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219069617",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219069617/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:29:28Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:29:28Z",
+      "digest": "sha256:e9e856eb34115525aaa8c35506756b7f9fd7a3e6264d3345ac1f17ac2d692a11",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12219057886,
+      "name": "resource-fusion-shard-10",
+      "size_in_bytes": 79420,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219057886",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219057886/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:29:11Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:29:11Z",
+      "digest": "sha256:63292f7446845e19aec96b48ce4e8e0b1c8e53de82327e2edb3db5dc4473ce02",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12218993181,
+      "name": "resource-fusion-shard-11",
+      "size_in_bytes": 54801,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218993181",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218993181/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:29:41Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:29:41Z",
+      "digest": "sha256:3ebffbbde230dcd3ea8f2c5694d7a5a0254d1e29dba66fb7e8d6714205cce7fd",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12218942479,
+      "name": "resource-fusion-guards",
+      "size_in_bytes": 17854,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218942479",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218942479/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:24:42Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:24:42Z",
+      "digest": "sha256:8fb1d1aa086c562b649759a8b791189e7f9947c56706382e19059842e4344c14",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    },
+    {
+      "id": 12218889424,
+      "name": "resource-fusion-shard-4",
+      "size_in_bytes": 82156,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218889424",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12218889424/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:27:09Z",
+      "expires_at": "2027-01-17T20:23:39Z",
+      "updated_at": "2026-10-19T20:27:09Z",
+      "digest": "sha256:9debb4a55cf66490d3bc51cbd638d61a6984ce99571b69e81e3a68d11a9bb17a",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    }
+  ],
+  "analysis_only_changes": {
+    "tests/test_resource_fusion_benchmark.py": {
+      "evaluated_sha256": "9d70d95092f50c751dd15582bcdd57af02092667197c80196158d082946eba59",
+      "analysis_sha256": "521c56ac7a21921f8fb8799529c816459ae53ab6cf24f3c97671b6604d830210"
+    },
+    "tools/benchmark_resource_fusion.py": {
+      "evaluated_sha256": "9faab7f299ff460a0c5d3af325663015bf5cb57e1da79d9296b77bd2bd04055b",
+      "analysis_sha256": "05dacd3db07f47eac9a6ebec5153c0fa4c6cf89db3d237092fb6df8e70537a69"
+    }
+  },
+  "report_correction": {
+    "issue": "Aggregate false_panel_acceptances included a pre-existing reference_diagnostic flag for dfg-demolidores-4KCJ. It is not one of the 17 safety controls.",
+    "resolution": "Retain the aggregate flag explicitly, classify safety controls with the existing corpus scorer, and reject forged role changes. No image, annotation, reader, value or timing changed.",
+    "analysis_revision": "4e120a9b3e859ff1dd250cea676bfcfa665a7324",
+    "analysis_integrity_tests_passed": 70
+  },
+  "targeted_repeat": {
+    "scope": "Repeat of shard 7 at identical source and input hashes; all output values, qualities and regions unchanged. Original failed timing retained.",
+    "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39318924460/attempts/2",
+    "job_id": 118292392993,
+    "raw_sha256": "0395edfca7a347e6e65e9e0e589e1d3e129a653bd88b7eee1ace71ce2eb56834",
+    "environment": {
+      "python": "3.12.10",
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    },
+    "gladera": {
+      "robust": {
+        "reading_p95_ms": 20.826939999989236,
+        "background_p95_ms": 24.99188499998013,
+        "background_max_ms": 26.002400000010084
+      },
+      "bar": {
+        "reading_p95_ms": 24.865059999996216,
+        "background_p95_ms": 29.851885000013567,
+        "background_max_ms": 31.07140000000186
+      },
+      "temporal": {
+        "reading_p95_ms": 21.946380000004236,
+        "background_p95_ms": 25.674385000003504,
+        "background_max_ms": 33.97520000001464
+      },
+      "combined": {
+        "reading_p95_ms": 28.69885499999895,
+        "background_p95_ms": 27.638525000000413,
+        "background_max_ms": 27.640899999994417
+      }
+    },
+    "interpretation": "The 154.82 ms bar-only background p95 did not reproduce. No telemetry identifies the cause; this repeat does not erase the initial budget failure.",
+    "artifact": {
+      "id": 12219028915,
+      "name": "resource-fusion-shard-7",
+      "size_in_bytes": 74200,
+      "url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219028915",
+      "archive_download_url": "https://api.github.com/repos/mrauter1/tibiaauto12/actions/artifacts/12219028915/zip",
+      "expired": false,
+      "created_at": "2026-10-19T20:36:54Z",
+      "expires_at": "2027-01-17T20:33:40Z",
+      "updated_at": "2026-10-19T20:36:54Z",
+      "digest": "sha256:3cdcea7a435c72e9b8937b6ad0567a6e170740ba28fc33a2b6ba56cab93662e4",
+      "workflow_run": {
+        "id": 39318924460,
+        "repository_id": 1416024965,
+        "head_repository_id": 1416024965,
+        "head_branch": "experiments/native-reader-20261019",
+        "head_sha": "2a8cab925a88da7f34002e96b0080b43274a9b53"
+      }
+    }
+  }
+}
