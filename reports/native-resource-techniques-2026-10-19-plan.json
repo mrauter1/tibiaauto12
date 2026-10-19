@@ -35,7 +35,7 @@
     "inconsistent_cached_outputs": 0,
     "each_detected_image_cached_p95_ms_max": 50,
     "each_detected_image_new_frame_p95_ms_max": 50,
-    "coverage": "Improve correct readable-field coverage over the contemporaneous baseline, or preserve coverage with a measured latency benefit."
+    "coverage": "Improve correct readable-field coverage over the contemporaneous baseline, or preserve coverage with at least 10% lower paired new-Frame p95 on commonly detected full screenshots."
   },
   "required_comparisons": [
     "Each technique independently against baseline",

@@ -14,7 +14,9 @@ if str(ROOT) not in sys.path:
 
 import cv2  # noqa: E402
 import pytest  # noqa: E402
-from tools.resource_native_experiments import FACTORS, make_number_reader, make_reader  # noqa: E402
+from tools.resource_native_experiments import BASE_FEATURES, FACTORS, make_reader  # noqa: E402
+from tools.resource_native_numbers import NativeNumberReader  # noqa: E402
+from tools.resource_numeric_vector import VectorNumberReader  # noqa: E402
 
 
 def main():
@@ -24,13 +26,22 @@ def main():
     args = parser.parse_args()
     cv2.setNumThreads(1)
 
-    class Numbers:
-        def __new__(cls, **kwargs):
-            return make_number_reader(args.variant, **kwargs)
+    native = "B" in FACTORS[args.variant]
 
-    class Resources:
-        def __new__(cls, **kwargs):
-            return make_reader(args.variant, **kwargs)
+    class Numbers(NativeNumberReader if native else VectorNumberReader):
+        supports_font_family = True
+
+        def __init__(self, **kwargs):
+            if native:
+                super().__init__(fallback=VectorNumberReader(BASE_FEATURES, **kwargs),
+                                 cache="C" in FACTORS[args.variant], ocr=kwargs.get("ocr"))
+            else:
+                super().__init__(BASE_FEATURES, **kwargs)
+
+    class Resources(type(make_reader(args.variant))):
+        def __init__(self, **kwargs):
+            numbers = kwargs.pop("number_reader", None) or Numbers()
+            super().__init__(BASE_FEATURES, number_reader=numbers, **kwargs)
 
     class Plugin:
         def pytest_collection_modifyitems(self, items):

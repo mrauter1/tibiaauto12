@@ -129,6 +129,15 @@ def summarize(directory, revision, run_url):
         change = changes(indexed["base"], lookup)
         common = [r["case_id"] for r in full
                   if r["panel_status"] == indexed["base"][r["case_id"]]["panel_status"] == "found"]
+        paired = {
+            "common_detected_full_images": len(common),
+            "base": timings([t for i in common for t in indexed["base"][i]["new_frame_timings"]["samples_ms"]]),
+            "candidate": timings([t for i in common for t in lookup[i]["new_frame_timings"]["samples_ms"]]),
+        }
+        base_correct = sum(f["exact"] for r in indexed["base"].values() for f in r["fields"].values())
+        benefit = (total["correct_value_and_region"] > base_correct or (
+            total["correct_value_and_region"] == base_correct and bool(common)
+            and paired["candidate"]["p95_ms"] <= .9 * paired["base"]["p95_ms"]))
         gates = {
             "no_incorrect_accepts": total["incorrect_accepted"] == 0,
             "no_na_or_ambiguity_accepts": total["unsafe_na_accepts"] == total["unsafe_ambiguity_accepts"] == 0,
@@ -141,6 +150,7 @@ def summarize(directory, revision, run_url):
             "each_image_new_frame_p95_within_50ms": not total["new_frame_images_above_50ms_p95"],
             "changing_background_diagnostic_p95_within_50ms": not total["changing_background_timing_diagnostic"]["images_above_50ms_p95"],
             "changing_background_diagnostic_preserves_values": not total["changing_background_timing_diagnostic"]["changed_outputs"],
+            "coverage_gain_or_at_least_10_percent_paired_new_frame_p95_gain": benefit,
         }
         variants[variant] = {
             "features": FACTORS[variant], "all_originals": total,
@@ -148,11 +158,7 @@ def summarize(directory, revision, run_url):
             "partitions": {part: card([r for r in rows if membership[r["case_id"]] == part], entries, groups)
                            for part in ("development", "test", "reference")},
             "changes_from_baseline": change, "gates": gates,
-            "paired_new_frame_latency": {
-                "common_detected_full_images": len(common),
-                "base": timings([t for i in common for t in indexed["base"][i]["new_frame_timings"]["samples_ms"]]),
-                "candidate": timings([t for i in common for t in lookup[i]["new_frame_timings"]["samples_ms"]]),
-            },
+            "paired_new_frame_latency": paired,
             "misses": [{"case_id": r["case_id"], "file": str(CORPUS.relative_to(ROOT) / entries[r["case_id"]]["file"]),
                         "partition": membership[r["case_id"]], "field": name,
                         "expected": f["expected"], "actual": f["actual"],

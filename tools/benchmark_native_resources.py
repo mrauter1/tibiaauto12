@@ -66,6 +66,17 @@ def native_environment():
     }
 
 
+def observation_signature(readings):
+    """Catch transient wrong associations as well as changing numeric values."""
+    return tuple((field, None if reading.value is None else reading.value["count"],
+                  reading.quality.value,
+                  tuple(reading.diagnostics["effective_region"])
+                  if reading.diagnostics.get("effective_region") else None,
+                  reading.diagnostics.get("numeric_eligible"),
+                  reading.diagnostics.get("layout_fingerprint"))
+                 for field, reading in readings.items())
+
+
 def changing_background_probe(reader, case, layout, reference):
     """Generated timing diagnostic only; never score these frames as originals."""
     bounds = [layout.bounds]
@@ -86,8 +97,7 @@ def changing_background_probe(reader, case, layout, reference):
             start = perf_counter()
             readings = AdaptiveTechnique._bounded(reader.read(fresh, layout, use_ocr=False))
             samples.append((perf_counter() - start) * 1000)
-            current = tuple((f, None if r.value is None else r.value["count"])
-                            for f, r in readings.items())
+            current = observation_signature(readings)
             consistent &= current == reference
     return {"scope": "Generated one-pixel change outside panel/evidence; timing diagnostic only, excluded from accuracy",
             "changed_pixel": point, "timings": _timings(samples),
@@ -119,18 +129,14 @@ def full_probe(cases, variants, warm_reads, budget, checkpoint, membership, shar
                         first_ms = elapsed
                     else:
                         samples.append(elapsed)
-                    observed.append(tuple(
-                        (f, None if r.value is None else r.value["count"])
-                        for f, r in readings.items()))
+                    observed.append(observation_signature(readings))
                 for _ in range(warm_reads):
                     fresh = Frame(case.frame.pixels, source="benchmark-new-frame")
                     start = perf_counter()
                     readings = AdaptiveTechnique._bounded(
                         reader.read(fresh, discovery.layout, use_ocr=False))
                     fresh_samples.append((perf_counter() - start) * 1000)
-                    observed.append(tuple(
-                        (f, None if r.value is None else r.value["count"])
-                        for f, r in readings.items()))
+                    observed.append(observation_signature(readings))
                 observation = _observation(readings, discovery.layout, discovery.detail)
             else:
                 observation = TechniqueObservation(
@@ -218,7 +224,7 @@ def main():
         requested_case_ids=requested_ids, features={v: FACTORS[v] for v in args.variants},
         reader_receives_annotations=False,
         test_policy="Previously inspected historical test partition; regression evidence only",
-        timing_scope="Shared native base-font preparation separately; fresh reader/autonomous discovery, first read, static cached reads and identical pixels in new Frame objects. Capture/copy and actions excluded; no live freshness claim.",
+        timing_scope="Shared native base-font preparation separately; fresh reader/autonomous discovery and first read with process-global font caches potentially warmed by prior variants. Static cached reads and identical pixels in new Frame objects. Capture/copy and actions excluded; no live freshness claim.",
     )
     args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print("Saved", args.out, flush=True)
