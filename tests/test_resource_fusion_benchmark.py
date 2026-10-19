@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 from hashlib import sha256
 import json
 from pathlib import Path
@@ -34,6 +35,7 @@ def evidence(tmp_path, monkeypatch):
             category="original_full", split="train", classification="confirmed", frame=frame,
             labels=labels, source_coverage="full_screenshot", data_origin="real",
             asset_fidelity="source_original", render_equivalence_status="target_family",
+            render_equivalence_evidence="fixture-reviewed interface",
         )
         membership[identifier] = "development" if index < 64 else "test" if index < 80 else "reference"
         row = score_case(case, TechniqueObservation(
@@ -305,3 +307,52 @@ def test_replay_instability_is_reported_separately_from_first_frame_accuracy(evi
     card = evidence.summarize()["variants"]["combined"]
     assert card["metrics"]["numeric_exact"] == 324
     assert card["gates"]["repeat_outputs_consistent"] is False
+
+
+def test_reference_diagnostic_panel_flag_is_not_a_safety_control_accept(evidence):
+    evidence.cases[0] = replace(evidence.cases[0], render_equivalence_status="visibly_different",
+                                expected_discovery=False)
+    for variant in benchmark.VARIANTS:
+        row = target_row(evidence, variant)
+        row.update(acceptance_role="reference_diagnostic", false_panel_acceptance=True)
+    card = evidence.summarize()["variants"]["combined"]
+    assert card["metrics"]["false_panel_acceptances"] == 1  # legacy aggregate retained
+    assert card["control_scope"]["reference_diagnostic_panel_flags"] == ["original-000"]
+    assert card["control_scope"]["false_panels"] == 0
+    assert card["gates"]["no_incorrect_or_unsafe_accepts"] is True
+
+
+def test_cannot_reclassify_a_control_by_editing_report_role(evidence):
+    target_row(evidence).update(acceptance_role="reference_diagnostic")
+    with pytest.raises(ValueError, match="acceptance role"):
+        evidence.summarize()
+
+
+def test_true_safety_control_panel_and_values_still_fail_gate(evidence):
+    evidence.cases[0] = replace(evidence.cases[0], classification="negative",
+                                expected_discovery=False)
+    for variant in benchmark.VARIANTS:
+        target_row(evidence, variant).update(acceptance_role="negative_safety_control",
+                                            false_panel_acceptance=True)
+    card = evidence.summarize()["variants"]["combined"]
+    assert card["control_scope"]["images"] == 1
+    assert card["control_scope"]["false_panels"] == 1
+    assert card["control_scope"]["accepted_values"] == 4
+    assert card["gates"]["no_incorrect_or_unsafe_accepts"] is False
+
+
+def test_analysis_only_change_is_bound_to_original_git_blob(evidence, monkeypatch):
+    name = "tools/benchmark_resource_fusion.py"
+    old = b"recorded analysis\n"
+    old_hash = sha256(old).hexdigest()
+    for document in evidence.documents:
+        document["fingerprints"][name] = old_hash
+    evidence.guard_metadata["fingerprints"][name] = old_hash
+    evidence.current_hashes[name] = sha256(b"corrected analysis\n").hexdigest()
+    monkeypatch.setattr(benchmark.subprocess, "check_output", lambda *a, **k: old)
+    result = evidence.summarize()
+    assert result["analysis_only_changes"][name]["evaluated_sha256"] == old_hash
+    assert result["fingerprints"][name] == old_hash
+    monkeypatch.setattr(benchmark.subprocess, "check_output", lambda *a, **k: b"wrong blob")
+    with pytest.raises(ValueError, match="evaluated Git revision"):
+        evidence.summarize()

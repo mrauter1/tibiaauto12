@@ -22,7 +22,8 @@ from tools.benchmark_native_resources import observation_signature  # noqa: E402
 from tools.benchmark_resource_latency import _observation, _timings  # noqa: E402
 from tools.benchmark_row_refinement import fingerprints as base_fingerprints  # noqa: E402
 from tools.compare_resource_readers import (  # noqa: E402
-    AdaptiveTechnique, TechniqueObservation, environment, load_cases, score_case, summarize,
+    AdaptiveTechnique, TechniqueObservation, _acceptance_role, environment, load_cases,
+    score_case, summarize,
 )
 from tools.screenshot_split import load_split, text_digest  # noqa: E402
 
@@ -178,6 +179,18 @@ def summarize_shards(paths, guard_path):
     require(len(documents) == first["shards"], "Incomplete shard set")
     require({d["shard"] for d in documents} == set(range(first["shards"])), "Duplicate or missing shard")
     current = fingerprints()
+    evaluated_fingerprints = first["fingerprints"]
+    changed_analysis = {name for name in set(current) | set(evaluated_fingerprints)
+                        if current.get(name) != evaluated_fingerprints.get(name)}
+    # Reanalyzing immutable samples may fix this report code, never the reader,
+    # inference inputs, annotations, scorer or timing protocol of the recording.
+    require(changed_analysis <= {"tools/benchmark_resource_fusion.py",
+                                 "tests/test_resource_fusion_benchmark.py"},
+            "Source/input hashes do not match this evaluation")
+    for name in changed_analysis:
+        blob = subprocess.check_output(["git", "show", f"{first['revision']}:{name}"], cwd=ROOT)
+        require(sha256(blob.replace(b"\r\n", b"\n")).hexdigest() == evaluated_fingerprints[name],
+                "Recorded analysis hash does not match its evaluated Git revision")
     manifest, cases = load_cases(CORPUS / "manifest.json", include_generated=False)
     _, membership = load_split(CORPUS / "split-2026-10-17-latest.json", manifest["screenshots"])
     expected_ids = [case.id for case in cases]
@@ -189,7 +202,7 @@ def summarize_shards(paths, guard_path):
                 "Invalid benchmark document")
         for key in ("revision", "fingerprints", "environment", "shards", "warm_reads", "budget_ms", "requested_case_ids"):
             require(document[key] == first[key], f"Mixed {key}")
-        require(document["fingerprints"] == current, "Source/input hashes do not match this evaluation")
+        require(document["fingerprints"] == evaluated_fingerprints, "Mixed source/input hashes")
         require(document["warm_reads"] >= 50 and document["budget_ms"] == 100, "Wrong repeats or budget")
         require(document.get("reader_receives_annotations") is False and
                 document.get("opencv_threads") == 1, "Wrong inference or threading protocol")
@@ -205,10 +218,12 @@ def summarize_shards(paths, guard_path):
                     "source_id", "source_sha256", "case_sha256", "transform", "data_origin", "category",
                     "source_coverage")),
                     "Row identity or source/pixel hash does not match unchanged original")
+                require(row["acceptance_role"] == _acceptance_role(original)[0],
+                        "Row acceptance role does not match frozen corpus classification")
     guard_metadata = json.loads(guard_path.with_suffix(".json").read_text(encoding="utf-8"))
     require(guard_metadata.get("schema") == SCHEMA + "-guards" and
             guard_metadata.get("revision") == first["revision"] and
-            guard_metadata.get("fingerprints") == current and
+            guard_metadata.get("fingerprints") == evaluated_fingerprints and
             guard_metadata.get("modules") == list(GUARD_MODULES) and
             guard_metadata.get("pytest_exit_code") == 0 and
             guard_metadata.get("xml_sha256") == sha256(guard_path.read_bytes()).hexdigest(),
@@ -232,6 +247,9 @@ def summarize_shards(paths, guard_path):
     for variant, rows in by_variant.items():
         require(all(r["evaluation_split"] == membership[r["case_id"]] for r in rows), "Wrong split")
         metrics = summarize(rows)["aggregate"]
+        controls = [row for row in rows if row["acceptance_role"].endswith("safety_control")]
+        control_values = sum(field["accepted"] for row in controls for field in row["fields"].values())
+        control_panels = sum(row["false_panel_acceptance"] for row in controls)
         all_samples, bg_samples, regressions, breaches, evidence = [], [], [], [], []
         for row in rows:
             if row["panel_status"] == "found":
@@ -257,6 +275,10 @@ def summarize_shards(paths, guard_path):
             "metrics": {k: metrics[k] for k in (
                 "cases", "eligible_fields", "numeric_exact", "unknown", "incorrect_accepted",
                 "unsafe_intentional_unknown_acceptances", "accepted_location_mismatch", "false_panel_acceptances")},
+            "control_scope": {"images": len(controls), "accepted_values": control_values,
+                              "false_panels": control_panels,
+                              "reference_diagnostic_panel_flags": [row["case_id"] for row in rows
+                                  if row["false_panel_acceptance"] and row not in controls]},
             "by_split": {s: summarize([r for r in rows if r["evaluation_split"] == s])["aggregate"]
                          for s in ("development", "test", "reference")},
             "pooled_reading_p95_ms": _timings(all_samples)["p95_ms"],
@@ -267,7 +289,7 @@ def summarize_shards(paths, guard_path):
             "gates": {
                 "no_incorrect_or_unsafe_accepts": not any(metrics[k] for k in (
                     "incorrect_accepted", "unsafe_intentional_unknown_acceptances",
-                    "accepted_location_mismatch", "false_panel_acceptances")),
+                    "accepted_location_mismatch")) and control_values == control_panels == 0,
                 "preserves_baseline_correct_fields": not regressions,
                 "per_image_p95_within_100ms": not breaches,
                 "repeat_outputs_consistent": all(r["repeated_outputs_consistent"] and
@@ -278,7 +300,10 @@ def summarize_shards(paths, guard_path):
         }
     return dict(schema=SCHEMA + "-summary", version=1, valid=True,
                 evaluated_revision=first["revision"], reading_budget_ms=100,
-                fingerprints=current, native_sequence_count=0,
+                fingerprints=evaluated_fingerprints, native_sequence_count=0,
+                analysis_only_changes={name: {"evaluated_sha256": evaluated_fingerprints[name],
+                                               "analysis_sha256": current[name]}
+                                       for name in sorted(changed_analysis)},
                 limitations=["Static originals test regression and latency, not temporal benefit or live freshness.",
                              "Previously inspected test split is regression evidence.",
                              "Generated policy diagnostics and native sequence acceptance must remain separate."],
