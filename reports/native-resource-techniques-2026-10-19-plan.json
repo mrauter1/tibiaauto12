@@ -1,0 +1,47 @@
+{
+  "schema": "tibiaauto.native-resource-experiment-plan",
+  "version": 1,
+  "created": "2026-10-19",
+  "base_revision": "fbc050271e64ae8ec2aa8cafe803485f62eb3f59",
+  "baseline": "accelerated_fast",
+  "factors": {
+    "A": "Panel structure and independently verified resource rows",
+    "B": "Native Windows Verdana complete-number decoding with full-region evidence",
+    "C": "Current-frame geometry/font caching and capture-scale calibration"
+  },
+  "variants": ["base", "rows", "numbers", "cache", "rows_numbers", "rows_cache", "numbers_cache", "all"],
+  "corpus": "tests/fixtures/screenshots/manifest.json",
+  "split": "tests/fixtures/screenshots/split-2026-10-17-latest.json",
+  "evaluation_policy": {
+    "development": "Refinement and candidate selection; retain observations from rejected iterations.",
+    "test": "Previously inspected test partition is regression evidence only. No claim of untouched holdout generalization.",
+    "reference": "Supplemental original crops are reported separately from full screenshots.",
+    "inputs": "Unchanged real originals only for acceptance; annotation boxes only in explicitly labeled component diagnosis, never passed to full-frame readers.",
+    "generated": "Existing and new generated perturbations are guard diagnostics, never pooled with real acceptance data.",
+    "truth": "No annotation, readability or split changes based on outputs; hidden, clipped or ambiguous evidence remains unknown."
+  },
+  "execution": {
+    "platform": "Windows with locally installed Verdana; native font backend required for primary factorial run",
+    "opencv_threads": 1,
+    "warm_reads": 50,
+    "timing": "Native base-font preparation separately; fresh reader and autonomous discovery per original/variant; first read, 50 static cached four-field reads, then 50 new Frame objects containing identical pixels. Separately labeled generated timing diagnostic: 20 one-pixel background changes outside panel/evidence to invalidate whole-frame equality; excluded from real accuracy. Frame copying excluded. Capture, live freshness and action latency remain unmeasured.",
+    "font_distribution": "Render the installed font locally. Do not commit a font file or converted per-glyph font atlas."
+  },
+  "promotion_gates": {
+    "incorrect_accepted_values": 0,
+    "accepted_na_or_ambiguity_controls": 0,
+    "wrong_row_or_unbound_region_accepts": 0,
+    "previously_correct_field_regressions": 0,
+    "inconsistent_cached_outputs": 0,
+    "each_detected_image_cached_p95_ms_max": 50,
+    "each_detected_image_new_frame_p95_ms_max": 50,
+    "coverage": "Improve correct readable-field coverage over the contemporaneous baseline, or preserve coverage with a measured latency benefit."
+  },
+  "required_comparisons": [
+    "Each technique independently against baseline",
+    "All three pairwise combinations",
+    "All three techniques together",
+    "Before/after evidence for any refinement",
+    "Development, historical test regression, full screenshots, supplemental crops and safety controls separately"
+  ]
+}

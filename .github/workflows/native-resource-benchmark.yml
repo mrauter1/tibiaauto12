@@ -1,0 +1,67 @@
+name: Native resource factorial benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'tools/resource_native*.py'
+      - 'tools/resource_row_geometry.py'
+      - 'tools/resource_calibrated_cache.py'
+      - 'tools/benchmark_native_resources.py'
+      - 'tools/check_native_resource_guards.py'
+      - '.github/workflows/native-resource-benchmark.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: All eight variants on original screenshots
+        run: python tools/benchmark_native_resources.py --shard ${{ matrix.shard }} --shards 18 --out .work/native-benchmark/shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: native-resource-shard-${{ matrix.shard }}
+          path: .work/native-benchmark/
+          include-hidden-files: true
+          retention-days: 90
+  guards:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [base, rows, numbers, cache, rows_numbers, rows_cache, numbers_cache, all]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python tools/check_native_resource_guards.py --variant ${{ matrix.variant }} --junit .work/native-guards/${{ matrix.variant }}.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: native-resource-guards-${{ matrix.variant }}
+          path: .work/native-guards/
+          include-hidden-files: true
+          retention-days: 90
