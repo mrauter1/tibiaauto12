@@ -27,9 +27,17 @@ class CurrentNumberReader(VectorNumberReader):
 class CurrentResourceReader(PanelGuardMixin, StructuralRowMixin, ExperimentalResourceReader):
     """Verify complete current rows, reject duplicate panels, then decode."""
 
-    def __init__(self, *, number_reader=None, **kwargs):
+    def __init__(self, *, number_reader=None, ocr=None, **kwargs):
+        if number_reader is None:
+            from tibia_client.adaptive_text import TesseractOCR
+
+            # Share the label OCR backend with the selected numeric reader.
+            # Numeric fallback still requires per-read use_ocr=True.
+            ocr = ocr or TesseractOCR()
+            number_reader = CurrentNumberReader(ocr=ocr)
         super().__init__(
             FEATURES,
-            number_reader=number_reader if number_reader is not None else CurrentNumberReader(),
+            number_reader=number_reader,
+            ocr=ocr,
             **kwargs,
         )

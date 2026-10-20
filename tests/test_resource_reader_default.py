@@ -8,6 +8,7 @@ from core.perception import Frame
 from test_resource_row_geometry import _single_row
 from tibia_client.adaptive import FIELDS
 from tibia_client.adaptive_runtime import AdaptiveResourceTracker, _default_reader_factory
+from tibia_client.adaptive_text import OCRBox
 from tibia_client.models import Quality, Sensor, SensorKind
 from tibia_client.resource_monitor import create_reader
 from tibia_client.resource_profiles import apply_adaptive_resource_preset
@@ -22,9 +23,80 @@ def test_runtime_and_monitor_defaults_are_the_exact_benchmark_classes():
     reader = _default_reader_factory("paulistinha-skills-v1")
     assert type(reader) is ResourceReader
     assert type(reader.number_reader) is NumberReader
+    assert reader.number_reader._ocr is reader.ocr
     assert type(create_reader()) is ResourceReader
     with pytest.raises(ValueError, match="unsupported adaptive reader"):
         _default_reader_factory("not-a-resource-profile")
+
+
+@pytest.mark.parametrize("injected_ocr", [False, True], ids=["default-ocr", "injected-ocr"])
+def test_resource_numeric_ocr_is_wired_opt_in_and_pixel_guarded(monkeypatch, injected_ocr):
+    cv2.setNumThreads(1)
+
+    class NumericOCR:
+        text = "710"
+        calls = 0
+
+        def read_number_boxes(self, image, *, psm=7, timeout=3.0):
+            self.calls += 1
+            return (OCRBox(self.text, (1, 1, image.shape[1] - 1, image.shape[0] - 1), 0.98),)
+
+    ocr = NumericOCR()
+    created = []
+
+    def make_ocr():
+        created.append(ocr)
+        return ocr
+
+    monkeypatch.setattr("tibia_client.adaptive_text.TesseractOCR", make_ocr)
+    reader = ResourceReader(**({"ocr": ocr} if injected_ocr else {}))
+    assert reader.ocr is ocr
+    assert reader.number_reader._ocr is ocr
+    assert created == ([] if injected_ocr else [ocr])
+    assert ocr.calls == 0
+
+    # Require OCR to break a template tie on known fixture pixels. This keeps
+    # the real resource guards and numeric fallback in the regression path.
+    reader.number_reader._ambiguity_margin = 1.0
+    frame = _single_row()
+    discovery = reader.discover(frame, use_ocr=False)
+    assert discovery.layout is not None, discovery.detail
+    layout = discovery.layout
+
+    without_ocr = reader.read(frame, layout)[FIELDS[0]]
+    assert without_ocr.quality is Quality.UNKNOWN
+    assert without_ocr.value is None
+    assert ocr.calls == 0
+
+    recovered = reader.read(frame, layout, use_ocr=True)[FIELDS[0]]
+    assert recovered.quality is Quality.KNOWN, recovered.detail
+    assert recovered.value["count"] == 710
+    assert recovered.diagnostics["reader"] == "tesseract_with_template_evidence"
+    assert ocr.calls == 1
+
+    ocr.text = "718"
+    disagreement = reader.read(frame, layout, use_ocr=True)[FIELDS[0]]
+    assert disagreement.quality is Quality.UNKNOWN
+    assert disagreement.value is None
+    assert ocr.calls == 2
+
+    ocr.text = "710"
+    pixels = frame.pixels.copy()
+    left, top, right, bottom = layout.regions[FIELDS[0]]
+    pixels[top:bottom, left:right] = 42
+    obscured = reader.read(Frame(pixels), layout, use_ocr=True)[FIELDS[0]]
+    assert obscured.quality is Quality.UNKNOWN
+    assert obscured.value is None
+    assert ocr.calls == 2
+
+
+def test_custom_number_reader_keeps_its_own_ocr_backend():
+    numeric_ocr, label_ocr = object(), object()
+    numbers = NumberReader(ocr=numeric_ocr)
+    reader = ResourceReader(number_reader=numbers, ocr=label_ocr)
+    assert reader.number_reader is numbers
+    assert reader.ocr is label_ocr
+    assert numbers._ocr is numeric_ocr
 
 
 def test_profile_setup_and_direct_reads_use_independent_row_recognition():
