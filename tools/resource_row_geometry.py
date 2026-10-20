@@ -29,7 +29,7 @@ class StructuralRowMixin:
     """
 
     def geometry_evidence_boxes(self, frame, anchors):
-        """Conservative dependency envelope for the independent cache mixin."""
+        """Complete pixel envelope used by row checks and timing diagnostics."""
         if not anchors:
             return ()
         scale = max(a.scale for a in anchors)

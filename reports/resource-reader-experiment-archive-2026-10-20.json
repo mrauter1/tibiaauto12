@@ -1,0 +1,95 @@
+{
+  "schema": "tibiaauto.resource-reader-experiment-archive",
+  "archive_revision": "69ee58b852031390c3628aac1f4033af16a39b13",
+  "purpose": "Preserve immutable experiment evidence while removing rejected implementations, dedicated workflows and verbose historical JSON from the active PR tree.",
+  "reproduce": "Check out archive_revision to use the historical code and paths. No annotation or original screenshot is removed.",
+  "decisions": {
+    "row_structure": "Retain: six correct fields recovered in the independent comparison.",
+    "robust_numeric_consensus": "Retain: four further fields recovered with row structure.",
+    "native_whole_number_fitting": "Remove: no added coverage and one regression.",
+    "bar_and_temporal_checks": "Remove: same 221/239 correct and 18 unknown, no measured original-reading improvement; combined worst p95 rose from 40.28 ms to 76.11 ms in the latest paired run.",
+    "native_font_calibration": "Remove: selected robust decoder does not consume the calibration.",
+    "geometry_cache": "Retain only bounded current-pixel layout memoization: two focused development-original comparisons show a material timing benefit. Remove font calibration and experimental switches; preserve duplicate-panel protection. Full hosted validation is reported separately."
+  },
+  "historical_reports_retained": [
+    "reports/native-resource-techniques-2026-10-19.txt",
+    "reports/resource-fusion-2026-10-19.txt"
+  ],
+  "archived_json_reports": [
+    {
+      "path": "reports/native-number-focused-2026-10-19.json",
+      "sha256_lf": "63c8e9dc7bc52668bf20d616e2f7c525409f7f5f79062fee49b99a32710a4ca5",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-number-focused-2026-10-19.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-evidence.json",
+      "sha256_lf": "948aaf9109b7e36ec2c088eda9b181197a3dbf04e54cbb87a780892f7f0e86c4",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-evidence.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-initial.json",
+      "sha256_lf": "d5471119e519ed6335c8caf7f1f3ec792046b5b242417fecb13a463b58a981bc",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-initial.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-plan.json",
+      "sha256_lf": "00267236cf599ac13817bd2412bef49e49b07765027d168245fbc8fc55b639a6",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-plan.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-robust.json",
+      "sha256_lf": "c2a4cc9e0ed201d7a164bca0c6bdc5d013a878d400890241a592c4a2ff426882",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-robust.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-rowfix.json",
+      "sha256_lf": "3195e407a15cb357255e18de7f9679f981d6a3ede587ffb2e52678f0c419f14c",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-rowfix.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-summary.json",
+      "sha256_lf": "490e9b11a4a4392eeed42531a3732384a3ca95d87d73d8f8ca6b3460f41133e5",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-summary.json"
+    },
+    {
+      "path": "reports/native-resource-techniques-2026-10-19-validation.json",
+      "sha256_lf": "aaefc6761c5deb49a15f5f7b2c01a30cb06373c3f0bda17908014feab20ec663",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/native-resource-techniques-2026-10-19-validation.json"
+    },
+    {
+      "path": "reports/resource-cache-focused-2026-10-19.json",
+      "sha256_lf": "089c2a9aa2a73584823b661744c4b3e7e094202727818f8d50df277023a0745f",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-cache-focused-2026-10-19.json"
+    },
+    {
+      "path": "reports/resource-fusion-2026-10-19-initial.json",
+      "sha256_lf": "28a849dff3488399e3379d75137dcc24a12353edc27ab9ee63f58507a6546278",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-fusion-2026-10-19-initial.json"
+    },
+    {
+      "path": "reports/resource-fusion-2026-10-19-summary.json",
+      "sha256_lf": "26b5e2b9ea6afa7fa727ddc9af48cbbed0625b38094c829a751927159e019c5f",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-fusion-2026-10-19-summary.json"
+    },
+    {
+      "path": "reports/resource-fusion-feasibility-2026-10-19.json",
+      "sha256_lf": "5cc27d43dfd38858a3190a9f9e32a682f9a961ec4487ed41706b0db1a5651324",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-fusion-feasibility-2026-10-19.json"
+    },
+    {
+      "path": "reports/resource-fusion-plan-2026-10-19.json",
+      "sha256_lf": "901a69cb6a2c7349bf738621af87c8f56136087509884d176043f24c64bbcbf5",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-fusion-plan-2026-10-19.json"
+    },
+    {
+      "path": "reports/resource-reader-policy-2026-10-19-100ms.json",
+      "sha256_lf": "43fe6efe2e2d138c27d47b2976d46aca5c7a5d6e87f6c28174b09777ead99a49",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-reader-policy-2026-10-19-100ms.json"
+    },
+    {
+      "path": "reports/resource-row-focused-2026-10-19.json",
+      "sha256_lf": "30176c5059b4baa029918195bbf6678872bbaff67c49f563f7f04b4a2360a307",
+      "url": "https://github.com/mrauter1/tibiaauto12/blob/69ee58b852031390c3628aac1f4033af16a39b13/reports/resource-row-focused-2026-10-19.json"
+    }
+  ]
+}

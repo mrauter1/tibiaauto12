@@ -1,6 +1,12 @@
 Tibia resource reader: independent techniques and combinations
 2026-10-19
 
+Historical experiment report. Code, JSON paths and reproduction commands below
+refer to archived revision 69ee58b852031390c3628aac1f4033af16a39b13.
+The 50 ms decision was later reassessed under the user's 100 ms reading budget.
+See resource-reader-experiment-archive-2026-10-20.json for immutable evidence links.
+Current implementation: tools/resource_reader.py (CurrentResourceReader).
+
 Best qualifying measured candidate: rows_cache (opt-in; production default unchanged).
 Correct readable fields: 211/239 -> 217/239.
 Unknown readable fields: 28 -> 22; accepted wrong values: 0.

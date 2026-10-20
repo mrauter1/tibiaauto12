@@ -170,12 +170,14 @@ class ExperimentalNumberReader(NumberReader):
 class ExperimentalResourceReader(ResourceReader):
     def __init__(self, features=(), **kwargs):
         self.features = frozenset(features)
-        if 'vector' in self.features:
-            from tools.resource_numeric_vector import VectorNumberReader
-            numbers=VectorNumberReader(features)
-        else:
-            numbers=ExperimentalNumberReader(features)
-        super().__init__(number_reader=kwargs.pop('number_reader',numbers),**kwargs)
+        numbers = kwargs.pop('number_reader', None)
+        if numbers is None:
+            if 'vector' in self.features:
+                from tools.resource_numeric_vector import VectorNumberReader
+                numbers = VectorNumberReader(features)
+            else:
+                numbers = ExperimentalNumberReader(features)
+        super().__init__(number_reader=numbers, **kwargs)
 
     @property
     def label_scales(self):

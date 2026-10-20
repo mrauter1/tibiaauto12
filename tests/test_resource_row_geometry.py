@@ -1,4 +1,4 @@
-"""Safety and independent-row contracts for the opt-in structural reader."""
+"""Safety and independent-row contracts for the selected resource reader."""
 from pathlib import Path
 
 import cv2
@@ -9,19 +9,13 @@ import pytest
 from core.perception import Frame
 from tibia_client.adaptive import Anchor, FIELDS
 from tibia_client.models import Quality
-from tools.resource_reader_experiments import ExperimentalResourceReader, VARIANTS
-from tools.resource_row_geometry import StructuralRowMixin
-from tools.resource_native_experiments import make_reader
-
-
-class RowReader(StructuralRowMixin, ExperimentalResourceReader):
-    pass
+from tools.resource_reader import CurrentResourceReader
 
 
 @pytest.fixture
 def reader():
     cv2.setNumThreads(1)
-    return RowReader(VARIANTS['accelerated_fast'])
+    return CurrentResourceReader()
 
 
 def _single_row(*, chrome=True, foreign=False):
@@ -142,11 +136,8 @@ def test_single_row_geometry_does_not_depend_on_digit_side_bearing(reader):
     assert reading.value['count'] == 710
 
 
-@pytest.mark.parametrize('variant', ['rows', 'rows_numbers', 'rows_cache', 'all'])
-def test_dissenting_row_cannot_borrow_other_rows_divider(variant):
+def test_dissenting_row_cannot_borrow_other_rows_divider(reader):
     """Seven visible ones crossing old chrome must never become four ones."""
-    reader = make_reader(variant)
-    cv2.setNumThreads(1)
     root = Path(__file__).parents[1]
     with Image.open(root / 'tests/fixtures/resources/paulistinha-skills.png') as source:
         original = np.asarray(source.convert('RGB'))

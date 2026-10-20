@@ -1,5 +1,10 @@
 HP/Mana bar and short temporal checks — evaluation dated 2026-10-19
 
+Historical experiment report. These optional layers were removed during cleanup
+because they added no measured original-reading improvement. Code and JSON paths
+below refer to archived revision 69ee58b852031390c3628aac1f4033af16a39b13.
+See resource-reader-experiment-archive-2026-10-20.json for immutable evidence links.
+
 Both checks are implemented independently and together as optional layers over
 rows_cache_robust. All four variants preserve 221 correct readings out of 239
 readable integer fields, with 18 unknown and zero incorrect accepted values.
