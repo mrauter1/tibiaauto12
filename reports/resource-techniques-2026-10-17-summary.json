@@ -1,0 +1,1240 @@
+{
+  "schema": "tibiaauto.resource-technique-summary",
+  "version": 1,
+  "evaluated_revision": "8fc417c302812cfed5a36a36e37fb3714a56db88",
+  "full_benchmark_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066",
+  "offline_ci_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630056",
+  "original_count": 51,
+  "variant_count": 7,
+  "case_evaluations": 357,
+  "cached_four_field_reads": 13450,
+  "across_both_rounds": {
+    "unique_variants": 14,
+    "case_evaluations": 867,
+    "cached_four_field_reads": 31550
+  },
+  "working_cached_p95_budget_ms": 50,
+  "recommended_variant": "accelerated_robust",
+  "lower_latency_alternative": "accelerated_fast",
+  "recommendation_reason": "Fifteen more correct new primary fields with zero regressions, incorrect accepts or unsafe controls. Every discovered new primary image is below 50 ms cached p95; worst image 27.954 ms. The four optimization comparisons preserve identical values and bound regions on all 51 originals.",
+  "fingerprints": {
+    "tibia_client/adaptive.py": "325eef4c0293b4fbcd086ac83b0c99deb30e8c0ff291da022ab3c7db4d959c68",
+    "tibia_client/adaptive_text.py": "14c549d73bf70f7125513854b77bb70375327b2aac3d372094cc20f940a9cb74",
+    "tools/resource_reader_experiments.py": "bfa5a676571242c5298ae7acfacdb07582da8331615e81555fca2531a6770f3f",
+    "tools/benchmark_resource_techniques.py": "621424d7d994a690171fa21d9adf98eef5fc1539b8343c233933008557763dc4",
+    "tools/resource_numeric_vector.py": "10715ab63e0e13b0ba3f87f1e76e8eea5558ac97ed7b7804452de095dc5ee697",
+    "tests/fixtures/screenshots/manifest.json": "0d3d65527a256d1022cf4ef4d10137cb7be979a60e8cb4a95543ae03b1a4194a"
+  },
+  "environment": {
+    "shard": 0,
+    "python": "3.12.15",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "opencv": "4.11.0",
+    "numpy": "2.2.6",
+    "pillow": "11.3.0",
+    "pytesseract": null,
+    "tesseract": null
+  },
+  "raw_files": [
+    {
+      "file": "shard-0.json",
+      "sha256": "588e3af0c08f8adfaa6df19b8fb221660c89d7d4022313eb96231f57729e821f"
+    },
+    {
+      "file": "shard-1.json",
+      "sha256": "7a266687900cfee34c1f103a0e3466e0941de03b7fb45db463c7610747c7fb8a"
+    },
+    {
+      "file": "shard-2.json",
+      "sha256": "7a3d67a460e95c61907b6bd6bac84f92175d71836700dbf4a458b706a711a51c"
+    },
+    {
+      "file": "shard-3.json",
+      "sha256": "19ddeaa6f4b937a8b8802611537e05c9cf03e73b40a7cbef1c264ea4ab0d2222"
+    },
+    {
+      "file": "shard-4.json",
+      "sha256": "d70a897a0f40832ae23de1a3fcd90c10a584cd39ece38f4336ac716f51e83d86"
+    },
+    {
+      "file": "shard-5.json",
+      "sha256": "f898869413637830c24f2b7392ddea125d0a219a09a0422b2d9b9fe953d0bb0a"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 12109375748,
+      "name": "reader-techniques-shard-3",
+      "size_in_bytes": 141034,
+      "digest": "sha256:2f93a6462c74db405a9f03f00fd17382bcf7e1fe4d8e694379f0ea04c077f95b",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12109375748"
+    },
+    {
+      "id": 12109272082,
+      "name": "reader-techniques-shard-4",
+      "size_in_bytes": 153398,
+      "digest": "sha256:c54dbd6d19a2b0b16cc82c9c800505154067faa2e69b43b017da139a7d569b31",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12109272082"
+    },
+    {
+      "id": 12109241720,
+      "name": "reader-guards-accelerated_robust",
+      "size_in_bytes": 2159,
+      "digest": "sha256:9bfec289bb9e7e8c973ef05ef4f16c551e3fc732cb764bcd879a996206958c62",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12109241720"
+    },
+    {
+      "id": 12109192298,
+      "name": "reader-techniques-shard-2",
+      "size_in_bytes": 124140,
+      "digest": "sha256:d9e15f583343a642a3fb679f0cf08241295a29ca6c4ea4116a43af849155b9de",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12109192298"
+    },
+    {
+      "id": 12108992764,
+      "name": "reader-techniques-shard-1",
+      "size_in_bytes": 159897,
+      "digest": "sha256:91ca339c14b3b25a53713e63d08366e011714f75a52e22d677abffeeefdfa03e",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108992764"
+    },
+    {
+      "id": 12108817603,
+      "name": "reader-techniques-shard-5",
+      "size_in_bytes": 147514,
+      "digest": "sha256:5e2f346d42997411a0a2d5f12cbed483dec24199cea5a04d4df002a64eebba1d",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108817603"
+    },
+    {
+      "id": 12108624178,
+      "name": "reader-guards-combined_pruned_fast",
+      "size_in_bytes": 2153,
+      "digest": "sha256:38344e22f2179927a5a9766759e336ee903ccd9679b0df623c5d75dd75d02e72",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108624178"
+    },
+    {
+      "id": 12108484819,
+      "name": "reader-guards-accelerated_fast",
+      "size_in_bytes": 2149,
+      "digest": "sha256:63b8170f7196242d776f07104286552da6e664a39e635a7dabf483a22570b7d3",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108484819"
+    },
+    {
+      "id": 12108433749,
+      "name": "reader-techniques-shard-0",
+      "size_in_bytes": 153958,
+      "digest": "sha256:359c96ff929e6091e0b6d961bccc1175e33b27b35a29063e45c3920c0e97373a",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108433749"
+    },
+    {
+      "id": 12108213584,
+      "name": "reader-guards-combined_pruned_robust",
+      "size_in_bytes": 2161,
+      "digest": "sha256:3c1af7e96a363b6f645420318446ef9d55dee7ef5fa22666e6dd764823ee8d7d",
+      "expires_at": "2027-01-15T17:38:18Z",
+      "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066/artifacts/12108213584"
+    }
+  ],
+  "variants": {
+    "baseline": {
+      "features": [],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 62,
+        "unknown": 26,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 17,
+          "missing": 5
+        },
+        "cached_four_field_reads": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "cached_images": 17,
+        "cached_images_above_50ms_p95": [],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.762,
+          "p95_ms": 13.429,
+          "max_ms": 13.485
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 4556.786,
+          "p95_ms": 7844.213,
+          "max_ms": 10937.564
+        },
+        "first_read": {
+          "samples": 17,
+          "p50_ms": 10.075,
+          "p95_ms": 17.125,
+          "max_ms": 32.617
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": true
+      },
+      "gains": []
+    },
+    "combined_fast": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 73,
+        "unknown": 15,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 4.928,
+          "p95_ms": 22.357,
+          "max_ms": 24.096
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.721,
+          "p95_ms": 13.42,
+          "max_ms": 13.51
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3969.179,
+          "p95_ms": 8618.552,
+          "max_ms": 12071.374
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.782,
+          "p95_ms": 25.535,
+          "max_ms": 28.509
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.12,
+          "p95_ms": 23.673,
+          "max_ms": 24.096
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": true
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    },
+    "combined_robust": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "consensus"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 77,
+        "unknown": 11,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 5.2,
+          "p95_ms": 94.464,
+          "max_ms": 111.255
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX",
+          "reddit-chrissykes-4ppe2dp"
+        ],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.856,
+          "p95_ms": 13.602,
+          "max_ms": 14.524
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3966.75,
+          "p95_ms": 8609.5,
+          "max_ms": 12036.483
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.977,
+          "p95_ms": 98.862,
+          "max_ms": 115.66
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.154,
+          "p95_ms": 107.854,
+          "max_ms": 111.255
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": false,
+        "every_new_primary_detected_image_cached_p95_within_50ms": false
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_health",
+          "expected": 2992
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_health",
+          "expected": 4799
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_mana",
+          "expected": 3216
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_capacity",
+          "expected": 2755
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    },
+    "combined_pruned_fast": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "prune"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 73,
+        "unknown": 15,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 4.904,
+          "p95_ms": 11.251,
+          "max_ms": 14.422
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.88,
+          "p95_ms": 13.451,
+          "max_ms": 13.594
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3965.935,
+          "p95_ms": 8610.95,
+          "max_ms": 12071.115
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.84,
+          "p95_ms": 15.591,
+          "max_ms": 18.688
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.156,
+          "p95_ms": 14.072,
+          "max_ms": 14.422
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": true
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    },
+    "combined_pruned_robust": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "consensus",
+        "prune"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 77,
+        "unknown": 11,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 5.199,
+          "p95_ms": 44.502,
+          "max_ms": 61.431
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [
+          "dfg-gladera-SSVX"
+        ],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.769,
+          "p95_ms": 13.185,
+          "max_ms": 13.702
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3964.509,
+          "p95_ms": 8602.216,
+          "max_ms": 12025.345
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.777,
+          "p95_ms": 49.756,
+          "max_ms": 67.276
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.156,
+          "p95_ms": 59.655,
+          "max_ms": 61.431
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": false
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_health",
+          "expected": 2992
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_health",
+          "expected": 4799
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_mana",
+          "expected": 3216
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_capacity",
+          "expected": 2755
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    },
+    "accelerated_fast": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "prune",
+        "touching_cache"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 73,
+        "unknown": 15,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 4.925,
+          "p95_ms": 7.7,
+          "max_ms": 8.95
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.727,
+          "p95_ms": 13.339,
+          "max_ms": 13.782
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3965.409,
+          "p95_ms": 8605.848,
+          "max_ms": 11940.733
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.804,
+          "p95_ms": 13.046,
+          "max_ms": 13.29
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.135,
+          "p95_ms": 7.761,
+          "max_ms": 7.934
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": true
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    },
+    "accelerated_robust": {
+      "features": [
+        "cache",
+        "vector",
+        "glyph_cache",
+        "green",
+        "labels",
+        "topology",
+        "partial",
+        "consensus",
+        "prune",
+        "touching_cache"
+      ],
+      "new_primary": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 77,
+        "unknown": 11,
+        "incorrect_accepted": 0,
+        "panel_statuses": {
+          "found": 21,
+          "missing": 1
+        },
+        "cached_four_field_reads": {
+          "samples": 1050,
+          "p50_ms": 5.192,
+          "p95_ms": 20.893,
+          "max_ms": 28.243
+        },
+        "cached_images": 21,
+        "cached_images_above_50ms_p95": [],
+        "initialization": {
+          "samples": 22,
+          "p50_ms": 12.628,
+          "p95_ms": 13.203,
+          "max_ms": 13.296
+        },
+        "discovery": {
+          "samples": 22,
+          "p50_ms": 3964.456,
+          "p95_ms": 8599.595,
+          "max_ms": 11981.164
+        },
+        "first_read": {
+          "samples": 21,
+          "p50_ms": 7.855,
+          "p95_ms": 34.632,
+          "max_ms": 38.943
+        }
+      },
+      "prior_primary_correct": 28,
+      "reference_correct": 41,
+      "reference_fields": 47,
+      "all_original_incorrect_accepts": 0,
+      "all_original_unscored_accepts": 0,
+      "control_images": 9,
+      "control_false_panels": 0,
+      "control_accepted_values": 0,
+      "correct_field_regressions": 0,
+      "paired_common_new_layouts": {
+        "images": 17,
+        "baseline": {
+          "samples": 850,
+          "p50_ms": 9.768,
+          "p95_ms": 32.113,
+          "max_ms": 36.466
+        },
+        "candidate": {
+          "samples": 850,
+          "p50_ms": 5.157,
+          "p95_ms": 27.543,
+          "max_ms": 28.243
+        }
+      },
+      "gates": {
+        "no_incorrect_accepted": true,
+        "no_control_accepts": true,
+        "no_unscored_accepts": true,
+        "no_correct_field_regressions": true,
+        "consistent_static_repeats": true,
+        "new_primary_aggregate_cached_p95_within_50ms": true,
+        "every_new_primary_detected_image_cached_p95_within_50ms": true
+      },
+      "gains": [
+        {
+          "case_id": "reddit-dworc-o0ap20c",
+          "field": "resource_capacity",
+          "expected": 730
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_health",
+          "expected": 2992
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_soul",
+          "expected": 102
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "field": "resource_capacity",
+          "expected": 1264
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "field": "resource_mana",
+          "expected": 18475
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_mana",
+          "expected": 518
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "field": "resource_capacity",
+          "expected": 195
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_health",
+          "expected": 938
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_soul",
+          "expected": 100
+        },
+        {
+          "case_id": "dfg-quintera-VS41",
+          "field": "resource_capacity",
+          "expected": 1686
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_health",
+          "expected": 4799
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_mana",
+          "expected": 3216
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_soul",
+          "expected": 200
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "field": "resource_capacity",
+          "expected": 2755
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "field": "resource_mana",
+          "expected": 1451
+        }
+      ]
+    }
+  },
+  "optimization_equivalence": {
+    "combined_fast -> combined_pruned_fast": {
+      "identical_values_and_regions": true,
+      "differences": []
+    },
+    "combined_robust -> combined_pruned_robust": {
+      "identical_values_and_regions": true,
+      "differences": []
+    },
+    "combined_pruned_fast -> accelerated_fast": {
+      "identical_values_and_regions": true,
+      "differences": []
+    },
+    "combined_pruned_robust -> accelerated_robust": {
+      "identical_values_and_regions": true,
+      "differences": []
+    }
+  },
+  "recommended_remaining_readable_unknowns": [
+    {
+      "case_id": "dfg-gentebra-BJEI",
+      "field": "resource_mana",
+      "expected": 3628,
+      "stage": "numeric_read",
+      "detail": "number contains a weakly matched thousands separator"
+    },
+    {
+      "case_id": "dfg-gladera-SSVX",
+      "field": "resource_health",
+      "expected": 3935,
+      "stage": "numeric_read",
+      "detail": "number contains a weakly matched thousands separator"
+    },
+    {
+      "case_id": "dfg-gladera-SSVX",
+      "field": "resource_soul",
+      "expected": 100,
+      "stage": "numeric_read",
+      "detail": "number contains an ambiguous digit"
+    },
+    {
+      "case_id": "reddit-chrissykes-4ppe2dp",
+      "field": "resource_health",
+      "expected": 2810,
+      "stage": "numeric_read",
+      "detail": "number contains a weakly matched thousands separator"
+    },
+    {
+      "case_id": "reddit-chrissykes-4ppe2dp",
+      "field": "resource_soul",
+      "expected": 200,
+      "stage": "numeric_read",
+      "detail": "number contains an ambiguous digit"
+    },
+    {
+      "case_id": "dfg-quintera-VS41",
+      "field": "resource_mana",
+      "expected": 4123,
+      "stage": "value_region",
+      "detail": "resource row does not have a unique complete value in the verified column"
+    },
+    {
+      "case_id": "allegro-antica-4c39a50f",
+      "field": "resource_health",
+      "expected": 2845,
+      "stage": "panel_discovery",
+      "detail": "no verified resource panel and value column found"
+    },
+    {
+      "case_id": "allegro-antica-4c39a50f",
+      "field": "resource_mana",
+      "expected": 4080,
+      "stage": "panel_discovery",
+      "detail": "no verified resource panel and value column found"
+    },
+    {
+      "case_id": "allegro-antica-4c39a50f",
+      "field": "resource_soul",
+      "expected": 100,
+      "stage": "panel_discovery",
+      "detail": "no verified resource panel and value column found"
+    },
+    {
+      "case_id": "allegro-antica-4c39a50f",
+      "field": "resource_capacity",
+      "expected": 1301,
+      "stage": "panel_discovery",
+      "detail": "no verified resource panel and value column found"
+    },
+    {
+      "case_id": "reddit-daralion-0tx21ye",
+      "field": "resource_capacity",
+      "expected": 1433,
+      "stage": "value_region",
+      "detail": "resource row does not have a unique complete value in the verified column"
+    }
+  ],
+  "validation": {
+    "full_corpus_frozen_inputs_verified": true,
+    "production_defaults_unchanged": true,
+    "no_new_templates": true,
+    "guard_tests": {
+      "combined_pruned_fast": 60,
+      "combined_pruned_robust": 60,
+      "accelerated_fast": 60,
+      "accelerated_robust": 60
+    },
+    "numeric_guard_tests_accelerated_robust": 31,
+    "offline_ci_jobs_passed": 4
+  },
+  "limitations": [
+    "Previously inspected corpus is development/regression evidence, not an unseen holdout.",
+    "Cached timings repeat static originals. All four resource rows are processed each time; glyph rankings, not output values, are memoized. These are not live capture/freshness or changing-frame latency measurements.",
+    "Cases are paired on the same shard host/settings; aggregate quantiles pool several hosted machines and are descriptive, not confidence intervals.",
+    "N/A/unscored fields remain outside integer accuracy; accepted values on those fields are separately checked."
+  ]
+}

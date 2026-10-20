@@ -1,0 +1,150 @@
+name: Selected resource reader benchmark
+
+on:
+  pull_request:
+    paths:
+      - 'tools/*resource*.py'
+      - 'tools/screenshot_split.py'
+      - 'tools/summarize_latest_screenshots.py'
+      - 'tibia_client/adaptive*.py'
+      - 'tibia_client/models.py'
+      - 'core/perception.py'
+      - 'core/paths.py'
+      - 'profiles/paulistinha-skills-v1/**'
+      - 'tests/fixtures/screenshots/**'
+      - 'tests/fixtures/resources/**'
+      - 'tests/test_resource*.py'
+      - 'tests/test_adaptive*.py'
+      - 'requirements*.txt'
+      - '.github/workflows/resource-reader.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.changed.outputs.run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Skip repeated benchmarks for report-only updates
+        id: changed
+        shell: bash
+        run: |
+          python - <<'PY'
+          import fnmatch, json, os, re, subprocess
+          from pathlib import Path
+
+          watched = (
+              "tools/*resource*.py", "tools/screenshot_split.py",
+              "tools/summarize_latest_screenshots.py", "tibia_client/adaptive*.py",
+              "tibia_client/models.py", "core/perception.py", "core/paths.py",
+              "profiles/paulistinha-skills-v1/**", "tests/fixtures/screenshots/**",
+              "tests/fixtures/resources/**", "tests/test_resource*.py",
+              "tests/test_adaptive*.py", "requirements*.txt",
+              ".github/workflows/resource-reader.yml",
+          )
+          should_run = True
+          try:
+              event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text())
+              if os.environ["GITHUB_EVENT_NAME"] == "pull_request" and event.get("action") == "synchronize":
+                  before, head = event.get("before", ""), event["pull_request"]["head"]["sha"]
+                  if not all(re.fullmatch(r"[0-9a-f]{40,64}", s, re.I) for s in (before, head)):
+                      raise ValueError("Missing synchronization revisions")
+                  names = subprocess.check_output(
+                      ["git", "diff", "--name-only", "-z", before, head, "--"]
+                  ).decode("utf-8", "surrogateescape").split("\0")
+                  should_run = any(fnmatch.fnmatchcase(n, p) for n in names if n for p in watched)
+          except Exception as exc:
+              print("Cannot establish synchronization diff; running:", type(exc).__name__)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as stream:
+              stream.write("run=" + str(should_run).lower() + "\n")
+          PY
+
+  benchmark:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Score unchanged originals and measure current-frame readings
+        run: python tools/benchmark_resource_reader.py --shard ${{ matrix.shard }} --shards 12 --warm-reads 50 --out .work/resource-reader/shard-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: resource-reader-shard-${{ matrix.shard }}
+          path: .work/resource-reader/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90
+
+  summary:
+    needs: [benchmark, guards]
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: resource-reader-*
+          merge-multiple: true
+          path: .work/resource-reader-evidence
+      - name: Enforce accuracy, abstention, coverage and per-image latency gates
+        run: python tools/benchmark_resource_reader.py --summarize .work/resource-reader-evidence --guards .work/resource-reader-evidence --out .work/resource-reader-summary.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: resource-reader-summary
+          path: .work/resource-reader-summary.json
+          if-no-files-found: error
+          retention-days: 90
+
+  guards:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python tools/check_resource_reader_guards.py --out-dir .work/resource-reader-guards
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: resource-reader-guards
+          path: .work/resource-reader-guards/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 90

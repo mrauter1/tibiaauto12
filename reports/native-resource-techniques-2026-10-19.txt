@@ -1,0 +1,187 @@
+Tibia resource reader: independent techniques and combinations
+2026-10-19
+
+Historical experiment report. Code, JSON paths and reproduction commands below
+refer to archived revision 69ee58b852031390c3628aac1f4033af16a39b13.
+The 50 ms decision was later reassessed under the user's 100 ms reading budget.
+See resource-reader-experiment-archive-2026-10-20.json for immutable evidence links.
+Current implementation: tools/resource_reader.py (CurrentResourceReader).
+
+Best qualifying measured candidate: rows_cache (opt-in; production default unchanged).
+Correct readable fields: 211/239 -> 217/239.
+Unknown readable fields: 28 -> 22; accepted wrong values: 0.
+Full screenshots alone: 178/199 readable fields.
+
+The frozen corpus contains 81 originals: 71 full screenshots and 10 reference crops.
+Full screenshot split remains 57 development / 14 historical test. The reference crops are separate.
+There are 239 readable integer targets, 76 N/A fields, eight required-UNKNOWN ambiguity fields,
+one visible decimal outside the integer contract, and 17 control images. These categories remain separate.
+Readers receive pixels only; annotations, expected values and case IDs stay in the scoring process.
+No screenshot, annotation, split, production default or user plan.txt was changed.
+
+A: current-frame panel/row identity, complete value-cell geometry and visibility proof.
+B: native Verdana whole-string glyph fitting with measured advances, whole-ROI foreground penalties,
+   competing-string/digit rejection and the existing reader as an explicit conservative fallback.
+C: bounded font/geometry caches, current visible-label scale calibration and duplicate-panel guard.
+   Number values are never cached. Changed row pixels invalidate geometry and are decoded again.
+
+FINAL EIGHT-WAY COMPARISON
+
+Variant             Correct/239  Full/199  Dev/155  Test/44  Crops/40  Fresh p95  Worst fresh p95  Worst changed-background p95
+base                    211          173      132       41        38      8.39ms         16.84ms                    15.60ms
+rows                    217          178      135       43        39      8.45ms         23.19ms                    24.46ms
+numbers                 210          172      131       41        38     14.53ms         23.07ms                    19.55ms
+cache                   211          173      132       41        38      7.39ms         14.75ms                    32.84ms
+rows_numbers            216          177      134       43        39     13.68ms         22.37ms                    25.88ms
+rows_cache              217          178      135       43        39      7.19ms         15.05ms                    39.71ms
+numbers_cache           210          172      131       41        38     14.35ms         22.84ms                    37.16ms
+all                     216          177      134       43        39     14.40ms         19.43ms                    39.46ms
+
+A=rows; B=numbers; C=cache; all=A+B+C. Times cover four-field reads after discovery.
+All rows above must be read alongside their gates in the JSON; an exact count alone does not imply promotion.
+
+REFINEMENT: retain the existing robust numeric consensus with A+C
+
+Variant             Correct/239  Unknown  Wrong  Worst static p95  Worst fresh p95  Worst changed-background p95
+robust                  215        24      0           59.09ms           58.86ms                      57.35ms
+rows_cache              217        22      0           13.56ms           14.41ms                      34.82ms
+rows_cache_robust       221        18      0           58.23ms           58.73ms                      63.49ms
+
+New combination passes every recorded correctness/safety/latency gate: False
+Any failed gates: each_image_static_p95_within_50ms, each_image_new_frame_p95_within_50ms, changing_background_diagnostic_p95_within_50ms
+
+OBSERVATIONS AND REFINEMENTS
+
+1. Row structure recovers six baseline misses without guessing from a previous frame: Laudera Soul 100,
+   Demolidores Soul 48, Blake Capacity 1039, Daralion Capacity 1433, Keasol Mana 4112 and Fearless HP 2116.
+   The generated safety suite caught an initial defect: a false divider allowed a suffix 1111 from
+   seven visible 1s. The fix requires an actual divider transition through each row AND its margins.
+   Initial failures are preserved in the initial JSON; the corrected run retains all six gains.
+2. Native glyph fitting is useful as an independent shape model, but the complete corpus does not
+   justify promoting it for extra recall. Strong model ambiguity vetoes the fallback's correct Quintera
+   HP 938. Pixel inspection found complete strokes with two extra pixels on the 8, no missing strokes, no
+   remote ink and no clipping: this is model ambiguity, not evidence that the screenshot is obscured.
+   A real spacing bug was fixed: round(relative advance)+origin is invariant to one-pixel ROI moves.
+   Three translation tests pass; confidence/margin thresholds were not relaxed for a known answer.
+3. Cache hits reduce repeated identical-image work, but a changing game background triggers C's
+   extra duplicate-panel scan. Its cost is measured separately; static cache speed is not live-video
+   throughput. C alone did not clear the final run's predeclared 10% paired timing-benefit gate and
+   adds no recovered fields. A+C qualifies through A's coverage gains and its current-frame guards.
+   The guard detects translated copies at the established scale/font; arbitrary differently
+   scaled/fonted duplicate panels still require broader discovery.
+4. The existing robust numeric backend keeps conservative threshold-consensus recovery. Focused
+   autonomous development tests recovered BJEI HP 2992 and Deleted HP 4799, Mana 3216 and Capacity 2755
+   with A+C. That result was elevated to the separate complete 81-image three-way comparison above.
+   The fast recommendation retains every fast-baseline correct field, but gives up these four slow
+   numeric recoveries. The robust combination retains both sets of gains and is unsuitable for the
+   strict 50 ms gate on this evidence. Gladera is the case that exceeds the budget.
+   Four brightness retries multiply the existing bounded touching-digit partition search. The
+   glyph cache follows normalization/hole detection, so that preparation still repeats. A future
+   optimization could reuse per-frame masks/intervals and cap retry work, returning N/A if unfinished;
+   this was not implemented or counted as an evaluated improvement.
+
+VALIDATION AND INTERPRETATION
+
+Repository CI passes on Windows/Ubuntu and Python 3.10/3.12. Verified Python 3.12 logs show
+Windows: 914 passed / 3 skipped; Ubuntu: 885 passed / 32 skipped. Lint and compile checks pass.
+The full factorial uses 18 Windows shards; the robust comparison uses 12. All variants on a shard
+share its host, with rotated execution order. Installed native font provenance/rendering is verified.
+Each detected image has 50 static reads, 50 new-Frame reads of identical pixels and 20 generated
+outside-panel one-pixel-change diagnostics. Generated diagnostics are never counted as original accuracy.
+Every-image p95 must be <=50 ms; pooled p95 alone is insufficient. This is an empirical p95 gate,
+not a hard deadline. Raw maximum timings and every per-image sample are retained in artifacts.
+Selected initialization p95: 50.28ms; full discovery p95: 13577.11ms;
+first read after discovery p95: 14.12ms.
+Font preparation is recorded separately; shared font caches may already be warm, so these are not
+fully cold process-start measurements. Discovery remains seconds long and belongs outside the steady
+reading loop. Capture, Frame copying, action latency, live changing numbers over time and gameplay
+freshness are not established here.
+The historical test failures have previously been inspected. Its numbers are regression evidence,
+not an untouched holdout estimate. Further generalization needs new, uninspected capture sequences.
+Readable targets returning UNKNOWN remain misses. They are not relabeled N/A to inflate accuracy.
+
+REMAINING MISSES FOR THE SELECTED CANDIDATE (all return UNKNOWN)
+
+dfg-demolidores-4KCJ
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\905898076-vendo-char-tibia-ot-demolidores-mage-full-set-4KCJ.webp
+  resource_health: expected 2878519, actual None; value_region: resource row does not have a unique complete value in the verified column
+  resource_mana: expected 20139633, actual None; numeric_read: adaptive count exceeds the configured digit limit
+
+dfg-gentebra-BJEI
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\904190487-char-tibia-lvl-302-em-gentebra-royal-palladin-BJEI.webp
+  resource_health: expected 2992, actual None; numeric_read: number contains an ambiguous digit
+  resource_mana: expected 3628, actual None; numeric_read: number contains a weakly matched thousands separator
+
+dfg-quintera-VS41
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\975471397-druid-level-167-ml-77-quintera-VS41.webp
+  resource_mana: expected 4123, actual None; numeric_read: number contains an ambiguous digit
+
+dfg-gladera-SSVX
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\953559644-vendo-royal-paladin-383-tibia-global-gladera-SSVX.webp
+  resource_health: expected 3935, actual None; numeric_read: number contains a weakly matched thousands separator
+  resource_soul: expected 100, actual None; numeric_read: number contains an ambiguous digit
+
+allegro-antica-4c39a50f
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\TIBIA-350-EK-270-RP-i-noob-chary-KENORA-ANTICA.jpg
+  resource_health: expected 2845, actual None; panel_discovery: no verified resource panel and value column found
+  resource_mana: expected 4080, actual None; panel_discovery: no verified resource panel and value column found
+  resource_soul: expected 100, actual None; panel_discovery: no verified resource panel and value column found
+  resource_capacity: expected 1301, actual None; panel_discovery: no verified resource panel and value column found
+
+reddit-deleted-09s6sbl
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\09s6sbltm1db1.png
+  resource_health: expected 4799, actual None; numeric_read: number contains a weakly matched thousands separator
+  resource_mana: expected 3216, actual None; numeric_read: number contains a weakly matched thousands separator
+  resource_capacity: expected 2755, actual None; numeric_read: number contains a weakly matched thousands separator
+
+reddit-blake-ib60r93
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\ib60r93w1fwb1.png
+  resource_health: expected 793, actual None; numeric_read: number contains an ambiguous digit
+
+reddit-chrissykes-4ppe2dp
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\4ppe2dpqiawb1.jpeg
+  resource_health: expected 2810, actual None; numeric_read: number contains a weakly matched thousands separator
+  resource_soul: expected 200, actual None; numeric_read: number contains an ambiguous digit
+
+reddit-musquitu96-wzgn2qg
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\reddit-musquitu96-wzgn2qg.png
+  resource_health: expected 5277, actual None; panel_discovery: no verified resource panel and value column found
+
+reddit-musquitu96-uuhie47
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\reddit-musquitu96-uuhie47.png
+  resource_health: expected 5365, actual None; panel_discovery: no verified resource panel and value column found
+
+reddit-musquitu96-zw6jbqg
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\reddit-musquitu96-zw6jbqg.png
+  resource_health: expected 5369, actual None; panel_discovery: no verified resource panel and value column found
+
+reddit-musquitu96-9sol5rg
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\reddit-musquitu96-9sol5rg.png
+  resource_health: expected 5017, actual None; panel_discovery: no verified resource panel and value column found
+
+reddit-cowboyisaac-dhlws3d
+D:\Sistemas.new\tibiaauto12\tests\fixtures\screenshots\originals\reddit-cowboyisaac-dhlws3d.jpeg
+  resource_capacity: expected 1176, actual None; numeric_read: number contains abnormally separated glyph runs
+
+REPRODUCIBILITY
+
+initial: 8d1dc642de7bc2f8eb9afc57023238b4246829ca
+https://github.com/mrauter1/tibiaauto12/actions/runs/39302705271
+Local raw artifacts: D:\Sistemas.new\tibiaauto12\.work\reader-native-20261019\initial
+
+rowfix: f183031e9e1685e7867b1a9af08dfe9c36257ee0
+https://github.com/mrauter1/tibiaauto12/actions/runs/39304255210
+Local raw artifacts: D:\Sistemas.new\tibiaauto12\.work\reader-native-20261019\final
+
+final factorial: 2a34856b51a8b58ac48709fde53816a8324a1812
+https://github.com/mrauter1/tibiaauto12/actions/runs/39306601454
+Local raw artifacts: D:\Sistemas.new\tibiaauto12\.work\reader-native-20261019\refined
+
+robust refinement: 2a34856b51a8b58ac48709fde53816a8324a1812
+https://github.com/mrauter1/tibiaauto12/actions/runs/39306602008
+Local raw artifacts: D:\Sistemas.new\tibiaauto12\.work\reader-native-20261019\robust
+
+Opt-in factories: tools.resource_native_experiments.make_reader(variant) for the eight variants;
+tools.benchmark_row_refinement.make_reader('rows_cache_robust') for the measured refinement.
+Use discover on an acquired frame, then read on every current frame; expose Quality.UNKNOWN as N/A.
+Code and reports are on draft PR #9: https://github.com/mrauter1/tibiaauto12/pull/9

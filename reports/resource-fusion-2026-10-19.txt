@@ -1,0 +1,167 @@
+HP/Mana bar and short temporal checks — evaluation dated 2026-10-19
+
+Historical experiment report. These optional layers were removed during cleanup
+because they added no measured original-reading improvement. Code and JSON paths
+below refer to archived revision 69ee58b852031390c3628aac1f4033af16a39b13.
+See resource-reader-experiment-archive-2026-10-20.json for immutable evidence links.
+
+Both checks are implemented independently and together as optional layers over
+rows_cache_robust. All four variants preserve 221 correct readings out of 239
+readable integer fields, with 18 unknown and zero incorrect accepted values.
+The latest full run meets the 100 ms per-image p95 reading budget. These results
+support further gameplay evaluation; they do not yet establish a live error
+reduction. Application defaults remain unchanged.
+
+Implementation
+
+tools/resource_fusion.py exposes FusionResourceReader with variants robust,
+bar, temporal and combined. Each worker owns one reader and an explicit
+capture_session identity. Use discover(frame), then read(frame, layout); supply
+actual capture timestamps, and reset with a new capture_session after a capture
+restart. last_diagnostics explains unavailable evidence, vetoes and confirmation.
+This is an experimental adapter, not a runtime configuration toggle.
+
+The bar layer verifies current panel identity, paired horizontal status bars,
+fill direction and unobscured geometry. Mana fills right-to-left in this family.
+It measures an interval, allowing for pixel uncertainty. A complete current/max
+caption provides a maximum only when the caption agrees with the fill interval
+and is tied to the same pixels, timestamp and layout. A reliable contradiction
+changes the exact reader's candidate to UNKNOWN. Missing evidence has no vote.
+Bar width, an apparently full bar, level and vocation never supply an exact
+count or maximum. Caption values never promote an unknown primary reading.
+
+Short temporal checks confirm changed numeric candidates with a second equal
+current-frame reading within 250 ms. They never return a cached value as current.
+Unknown readings clear the field; source/session/geometry changes and long gaps
+reset history. Duplicate or backward timestamps are rejected. Combined mode can
+accept a change immediately when independently verified bar movement supports
+its direction and the maximum is unchanged. Without that evidence, legitimate
+changes cost one confirming frame and continuous changes may remain UNKNOWN.
+Repeated wrong digits can pass confirmation. Capture timestamps must themselves
+be trustworthy; these checks do not prove that unchanged pixels are freshly
+captured gameplay.
+
+Focused work and refinement
+
+Subagents implemented bar geometry, caption decoding and temporal policy; the
+integration and benchmark exercise the components separately and together.
+There are 217 focused passing tests, including 70 benchmark integrity tests.
+They cover obscuration, clipped/ambiguous captions, reversed bars, mismatched
+maxima, stale evidence, timestamps, layout changes and rapid resource changes.
+
+Caption decoding initially spent too much time exploring touching digits.
+A bounded decoder retaining whole-caption pixel accounting and ambiguity checks
+reduced a local paired-caption component p95 from 52.04 ms to 5.64 ms across 50
+interleaved reads. Ambiguous/touching captions abstain. This component measurement
+excludes bar discovery and the full reader. See the feasibility JSON for hashes,
+visual reviews and measured scope.
+
+Six manually reviewed bar intervals on three development originals contain their
+caption ratios. Across the full corpus, the bar layer found 35 usable intervals
+among 116 HP/Mana opportunities in 58 detected images. Only 5 also had a trusted
+complete maximum: Ustebra HP, Gentebra BJEI HP/Mana and Deleted HP/Mana. No original
+value was vetoed because the baseline already had zero wrong accepted values.
+The 35 intervals are an availability result, not 35 independently annotated
+accuracy successes. Unsupported side/parallel/mana-shield layouts, weak identity
+or captions and unexplained pixels produce unavailable evidence.
+
+Full original benchmark
+
+Frozen corpus: 81 originals, comprising 71 full screenshots (57 development and
+14 historical test) plus 10 reference crops. There are 199 readable integer fields
+in full screenshots and 40 in crops. Neither images, annotations nor splits were
+changed. Readers receive pixels and capture metadata, never case IDs or truth.
+The historical test partition has previously been inspected, so it measures
+regression rather than untouched-holdout generalization.
+
+Each variant scores its first read after fresh autonomous discovery per original.
+All four obtain development 139/155, historical test 43/44 and reference 39/40.
+That is 182/199 for full screenshots and 221/239 overall, with 18 UNKNOWN,
+zero wrong accepted numbers, zero unsafe N/A accepts and zero association errors.
+All 17 safety-control images abstain.
+
+The raw legacy aggregate includes one diagnostic panel flag, dfg-demolidores-4KCJ,
+in every arm, including baseline. It is a reference diagnostic, not one of the
+17 safety controls. Its visible Soul value remains correct. The initial summary
+mistakenly included this flag in the safety gate. Commit 4e120a9 corrects only the
+report classifier and integrity tests; no reader, truth, pixels or values changed.
+Both runs retain the diagnostic flag. All 1,296 field outputs, qualities, regions
+and scoring decisions match between the initial and repeated full runs.
+
+Timing, latest full run (milliseconds)
+
+Variant       Worst image p95   Worst background p95   Largest observed sample
+robust                 30.77                  40.28                     44.33
+bar                    57.77                  83.73                     96.55
+temporal               30.80                  39.41                     42.61
+combined               46.26                  76.11                     77.49
+
+Each detected image has 50 fresh Frame containers with original pixels and
+advancing synthetic timestamps, plus 20 changes outside the evidence regions.
+The latter test cache behavior under changing background pixels. Repeated
+originals are latency diagnostics, not additional accuracy or native-sequence
+samples. Acquisition, copying and discovery are excluded; discovery still takes
+seconds. The budget is p95, not a hard 100 ms deadline or total response latency.
+
+The initial full run is also retained. Combined worst p95 was 75.31 ms, with one
+111.84 ms sample. Bar-only Gladera background p95 failed at 154.82 ms; repeating
+that shard at identical source and input hashes gave 29.85 ms. The latest full
+repeat passes in every arm. No telemetry establishes the cause of the initial
+slowdown, and neither the failure nor the slower samples have been discarded.
+Runner variation means these runs do not demonstrate an implementation speedup.
+
+Temporal mechanism tests and remaining evidence
+
+Fifteen generated policy scenarios contain 48 observations per variant at 50 ms
+intervals. They inject current decoder candidates and independently supplied
+bar/max evidence; they are not captured gameplay or an image-pipeline benchmark.
+
+Variant       Wrong known   UNKNOWN   Accepted nonadvancing timestamps
+robust                  5         1                                  2
+bar                     0         6                                  2
+temporal                3        17                                  0
+combined                0        14                                  0
+
+All variants make zero unknown-to-known promotions. Numeric confirmation adds
+50 ms in these generated traces; verified bar movement lets damage/healing pass
+immediately in combined mode. The robust arm here is the injected candidate
+stream, not measured OCR errors. These counts demonstrate policy behavior only.
+
+No reviewed native sequence was available. No Tibia client was running at
+inspection. The installation's 21 event screenshots are viewport crops without
+the needed resource panel, and their nearest gap is 4.896 seconds. They cannot
+validate short temporal confirmation. A reviewed native capture covering damage,
+healing, mana use, overlays and panel movement remains necessary before enabling
+the temporal layer in normal runtime. In particular, measure rejected correct
+changes, time to the next accepted current value, and coverage of trusted maxima.
+
+Validation and reproducibility
+
+Evaluated revision: 4e120a9b3e859ff1dd250cea676bfcfa665a7324.
+Full benchmark: https://github.com/mrauter1/tibiaauto12/actions/runs/39320690800
+Initial run: https://github.com/mrauter1/tibiaauto12/actions/runs/39318924460
+Targeted repeat: https://github.com/mrauter1/tibiaauto12/actions/runs/39318924460/attempts/2
+CI: https://github.com/mrauter1/tibiaauto12/actions/runs/39320690811
+All four Windows/Ubuntu Python 3.10/3.12 CI jobs passed pytest, compile and Ruff.
+Python 3.12: Windows 1,131 passed/3 skipped; Ubuntu 1,102 passed/32 skipped.
+All 13 benchmark artifacts passed exact-member, size and SHA-256 verification;
+strict summarization checked source/input hashes, sample counts and guard results.
+
+Committed evidence:
+  reports/resource-fusion-plan-2026-10-19.json
+  reports/resource-fusion-feasibility-2026-10-19.json
+  reports/resource-fusion-2026-10-19-summary.json
+  reports/resource-fusion-2026-10-19-initial.json
+
+Local downloaded raw artifacts:
+  .work/resource-fusion/corrected/  latest full run, raw samples and guard results
+  .work/resource-fusion/final/      initial full run (historical directory name)
+  .work/resource-fusion/retry/      initial shard-7 repeat
+
+Reproduce a shard with:
+  python tools/benchmark_resource_fusion.py --shard 0 --shards 12 --out .work/resource-fusion/shard-0.json
+Run focused guards and generated diagnostics with:
+  python tools/benchmark_resource_fusion.py --run-guards --out .work/resource-fusion/guards.json
+  python tools/benchmark_resource_fusion_sequences.py --out .work/resource-fusion/sequence-diagnostics.json
+Summarize all 12 shards and matching guard artifacts with:
+  python tools/benchmark_resource_fusion.py --summarize .work/resource-fusion/corrected --guards .work/resource-fusion/corrected/guards.xml --out .work/resource-fusion/corrected/summary-full.json

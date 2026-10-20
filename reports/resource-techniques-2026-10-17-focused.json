@@ -1,0 +1,787 @@
+{
+  "scope": "Focused development trials before full-corpus evaluation",
+  "timing_note": "Local trials overlapped other experiment processes; timings are preliminary. Use the hosted paired full-corpus run for the primary comparison.",
+  "trials": [
+    {
+      "trial": "numeric-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-v1.json",
+      "sha256": "5c3cb6480666f54af8d1c7033b065f2eee29b6a3c75b10686fbe61e82dd8571c",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 48,
+      "variants": {
+        "baseline": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 13.858000005711801,
+          "p95_field_ms": 58.40086499156311
+        },
+        "cache": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 5.847449996508658,
+          "p95_field_ms": 29.241714999079694
+        },
+        "prune": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 14.745750006113667,
+          "p95_field_ms": 77.78690500708757
+        },
+        "fast": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 6.2060999989626,
+          "p95_field_ms": 33.75522000642373
+        },
+        "green": {
+          "correct": 32,
+          "unknown": 16,
+          "incorrect": 0,
+          "p50_field_ms": 6.447849998949096,
+          "p95_field_ms": 27.3822500006645
+        },
+        "consensus": {
+          "correct": 35,
+          "unknown": 13,
+          "incorrect": 0,
+          "p50_field_ms": 6.050750002032146,
+          "p95_field_ms": 120.12707500689422
+        },
+        "topology": {
+          "correct": 32,
+          "unknown": 16,
+          "incorrect": 0,
+          "p50_field_ms": 9.331299996119924,
+          "p95_field_ms": 50.648029988224145
+        }
+      }
+    },
+    {
+      "trial": "numeric-vector-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-vector-v1.json",
+      "sha256": "0aa133abddc7eaae5f3a07c89e770a9ab07df806f2da06aed0dccb44c0e3b6e5",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 48,
+      "variants": {
+        "cache": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 1.3685999947483651,
+          "p95_field_ms": 10.289505001856014
+        },
+        "vector": {
+          "correct": 30,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 1.5030000067781657,
+          "p95_field_ms": 11.645999996835593
+        },
+        "robust_vector": {
+          "correct": 36,
+          "unknown": 12,
+          "incorrect": 0,
+          "p50_field_ms": 1.5792000049259514,
+          "p95_field_ms": 40.682220004237
+        }
+      }
+    },
+    {
+      "trial": "numeric-v2",
+      "raw_path": ".work\\reader-techniques-20261017\\numeric-v2.json",
+      "sha256": "c1392e6164b880d4d897dd60e9ca4b22126b9905559cb1a572edb742daf43ca3",
+      "scope": "Component diagnosis with known numeric crops/scale; not full-frame acceptance",
+      "component_fields": 52,
+      "variants": {
+        "cache": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 3.840550001768861,
+          "p95_field_ms": 16.51692499945056
+        },
+        "vector": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 3.729649994056672,
+          "p95_field_ms": 15.161220002482878
+        },
+        "glyph_cache": {
+          "correct": 34,
+          "unknown": 18,
+          "incorrect": 0,
+          "p50_field_ms": 2.3418999917339534,
+          "p95_field_ms": 9.456220004358304
+        },
+        "consensus_glyph": {
+          "correct": 39,
+          "unknown": 13,
+          "incorrect": 0,
+          "p50_field_ms": 2.7216000016778708,
+          "p95_field_ms": 37.00255500734777
+        },
+        "robust_numeric": {
+          "correct": 40,
+          "unknown": 12,
+          "incorrect": 0,
+          "p50_field_ms": 2.694299997529015,
+          "p95_field_ms": 39.395820000936496
+        }
+      }
+    },
+    {
+      "trial": "labels-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\labels-v1.json",
+      "sha256": "14baaf0a21cc410a312bcb6c2a4505983627b311f6372d8f26a349419ef919c6",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-gentebra-BJEI",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "dfg-quintera-VS41",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-deleted-09s6sbl",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-chrissykes-4ppe2dp",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ],
+        "labels": [
+          {
+            "id": "dfg-gentebra-BJEI",
+            "panel": "found",
+            "correct": 1,
+            "incorrect": 0,
+            "p95_four_field_ms": 76.71196000446798
+          },
+          {
+            "id": "dfg-quintera-VS41",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 32.35901000152808
+          },
+          {
+            "id": "reddit-deleted-09s6sbl",
+            "panel": "found",
+            "correct": 1,
+            "incorrect": 0,
+            "p95_four_field_ms": 20.876060010050423
+          },
+          {
+            "id": "reddit-chrissykes-4ppe2dp",
+            "panel": "found",
+            "correct": 2,
+            "incorrect": 0,
+            "p95_four_field_ms": 44.573559999116696
+          }
+        ]
+      }
+    },
+    {
+      "trial": "small-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\small-v1.json",
+      "sha256": "6676123c99aed88cdffb9022ed3e8c66f01fb7bccd1a5ceffa11367e010c68c1",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "allegro-antica-4c39a50f",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ],
+        "small": [
+          {
+            "id": "allegro-antica-4c39a50f",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          }
+        ]
+      }
+    },
+    {
+      "trial": "partial-v1",
+      "raw_path": ".work\\reader-techniques-20261017\\partial-v1.json",
+      "sha256": "9d9c31bcfb91010d96af1863a59f9e04f09524cdb163da85e9349f6eb8439b19",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-gentebra-3XWB",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 69.43727000034411
+          }
+        ],
+        "partial": [
+          {
+            "id": "dfg-gentebra-3XWB",
+            "panel": "found",
+            "correct": 4,
+            "incorrect": 0,
+            "p95_four_field_ms": 29.375425003672717
+          }
+        ]
+      }
+    },
+    {
+      "trial": "combined-v1",
+      "raw_path": ".work/reader-techniques-20261017/combined-v1.json",
+      "sha256": "b44c444e7f93b2364edd0baac2b101d1d8a34eaf04bc03da285f40a25dbeafa9",
+      "scope": "Original-only autonomous full-frame comparison",
+      "variants": {
+        "baseline": [
+          {
+            "id": "dfg-belobra-2AHL",
+            "panel": "ambiguous",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-illustrious-mo9lbk5",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-daralion-0tx21ye",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 78.11294999992242
+          },
+          {
+            "id": "reddit-dworc-o0ap20c",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 41.718410000612494
+          }
+        ],
+        "combined_robust": [
+          {
+            "id": "dfg-belobra-2AHL",
+            "panel": "ambiguous",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-illustrious-mo9lbk5",
+            "panel": "missing",
+            "correct": 0,
+            "incorrect": 0,
+            "p95_four_field_ms": null
+          },
+          {
+            "id": "reddit-daralion-0tx21ye",
+            "panel": "found",
+            "correct": 3,
+            "incorrect": 0,
+            "p95_four_field_ms": 15.33598000169149
+          },
+          {
+            "id": "reddit-dworc-o0ap20c",
+            "panel": "found",
+            "correct": 4,
+            "incorrect": 0,
+            "p95_four_field_ms": 8.651100008137288
+          }
+        ]
+      },
+      "note": "No false accepts on duplicate/clipped controls; Dworc green capacity recovered. Daralion still has a value-region guard rejection despite its isolated numeric crop being readable."
+    }
+  ],
+  "selection": {
+    "promising": [
+      "cache",
+      "glyph_cache",
+      "green",
+      "labels",
+      "topology",
+      "consensus_glyph",
+      "partial"
+    ],
+    "no_clear_gain": [
+      "prune alone",
+      "vector scoring alone"
+    ],
+    "not_promoted": [
+      "small: no discovered panel or correct values in its target screenshot"
+    ]
+  },
+  "existing_guard_tests": {
+    "topology_numeric": {
+      "passed": 31
+    },
+    "robust_numeric": {
+      "passed": 31,
+      "note": "One initial OCR call-count failure fixed by restricting threshold consensus to the no-OCR path; rerun passed."
+    },
+    "combined_fast_before_partial_added": {
+      "passed": 60,
+      "deselected_full_corpus": 21
+    },
+    "partial": {
+      "passed": 60,
+      "deselected_full_corpus": 21
+    },
+    "latest_combinations": {
+      "combined_fast": 60,
+      "combined_robust": 60,
+      "partial": 60,
+      "failures": 0,
+      "ci_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39053337015"
+    }
+  },
+  "changing_frame_diagnostic": {
+    "scope": "Synthetic current-frame/cache diagnostic, separate from original-corpus accuracy.",
+    "note": "Prebuilt synthetic frames at one known scale; excludes capture, rendering and discovery. Some profile-pasted digit spacing is rejected by the baseline column guard. Keep all frames and compare rejection sets; this is a freshness/equivalence diagnostic, not a claim of complete numeric coverage. Never pooled into original-corpus accuracy/latency.",
+    "raw_path": ".work/reader-techniques-20261017/changing-values-v2.json",
+    "sha256": "13991c4204ec260d47eaf223bf985d4611be6c99ead0a398557570fec0150723",
+    "variants": {
+      "baseline": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.482,
+            "p95_ms": 4.24,
+            "max_ms": 5.037
+          },
+          "rejections_match_baseline": true
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.424,
+            "p95_ms": 4.01,
+            "max_ms": 4.713
+          },
+          "rejections_match_baseline": true
+        }
+      },
+      "glyph_cache": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 2.92,
+            "p95_ms": 4.264,
+            "max_ms": 5.142
+          },
+          "rejections_match_baseline": true
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.609,
+            "p95_ms": 4.526,
+            "max_ms": 5.593
+          },
+          "rejections_match_baseline": true
+        }
+      },
+      "combined_fast": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.291,
+            "p95_ms": 4.375,
+            "max_ms": 5.419
+          },
+          "rejections_match_baseline": true
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 4.003,
+            "p95_ms": 4.791,
+            "max_ms": 6.312
+          },
+          "rejections_match_baseline": true
+        }
+      },
+      "combined_robust": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.185,
+            "p95_ms": 3.871,
+            "max_ms": 5.488
+          },
+          "rejections_match_baseline": true
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 22.545,
+            "p95_ms": 29.852,
+            "max_ms": 35.032
+          },
+          "rejections_match_baseline": true
+        }
+      }
+    },
+    "interpretation": "All variants matched baseline: 282/320 exact fields and 38 value-region abstentions in each 80-frame mode, with zero incorrect or stale accepted values. Baseline rejects some synthetic glyph spacing, so this is an equivalence/freshness diagnostic, not a complete-coverage pass. Clearing inter-frame glyph rankings raises combined_robust cost substantially."
+  },
+  "full_round_one_followups": [
+    {
+      "trial": "pruning-focus",
+      "scope": "All-four-field focused timing using a layout discovered from the same original pixels; discovery is shared because the compared change only prunes impossible numeric splits. No annotated coordinates supplied. Not the independent-discovery full benchmark.",
+      "raw_path": ".work/reader-techniques-20261017/pruning-focus.json",
+      "sha256": "ad8fce25f74c42bb2c3de9111082d0a5f623c415e03017345ba6bdba89b15760",
+      "cases": {
+        "dfg-gladera-SSVX": {
+          "combined_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 41.29120000288822,
+              "p95_ms": 140.02622999832963,
+              "max_ms": 145.91160000418313
+            }
+          },
+          "combined_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 356.84315000253264,
+              "p95_ms": 682.2178099937446,
+              "max_ms": 723.5443000099622
+            }
+          },
+          "combined_pruned_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 48.205550003331155,
+              "p95_ms": 121.91940000266185,
+              "max_ms": 136.5619999996852
+            }
+          },
+          "combined_pruned_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 227.0055000044522,
+              "p95_ms": 380.3347999994003,
+              "max_ms": 392.72930000151973
+            }
+          }
+        },
+        "reddit-chrissykes-4ppe2dp": {
+          "combined_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 105.97050000797026,
+              "p95_ms": 145.56394000901489,
+              "max_ms": 159.16509999078698
+            }
+          },
+          "combined_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 245.88419999781763,
+              "p95_ms": 489.7792549963924,
+              "max_ms": 569.0726999891922
+            }
+          },
+          "combined_pruned_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 81.72415000444744,
+              "p95_ms": 110.24642000047606,
+              "max_ms": 123.8625999976648
+            }
+          },
+          "combined_pruned_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 30,
+              "p50_ms": 140.79554999625543,
+              "p95_ms": 378.6535949977406,
+              "max_ms": 409.2469000024721
+            }
+          }
+        }
+      },
+      "gate": "Every compared output and bound region unchanged. Local p95 varies substantially; retain raw samples and use paired hosted timings for the final decision."
+    },
+    {
+      "trial": "touching-cache-focus",
+      "scope": "All-four-field focused timing using a layout discovered from the same original pixels; discovery is shared because the compared change only prunes impossible numeric splits. No annotated coordinates supplied. Not the independent-discovery full benchmark.",
+      "raw_path": ".work/reader-techniques-20261017/touching-cache-focus.json",
+      "sha256": "2b32727f69318349a251fb6feb1e4cf333236470096eb96e73855f27d104eed4",
+      "cases": {
+        "dfg-gladera-SSVX": {
+          "combined_pruned_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 19.641949998913333,
+              "p95_ms": 34.476834997622056,
+              "max_ms": 36.818499997025356
+            }
+          },
+          "combined_pruned_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 371.1068999982672,
+              "p95_ms": 570.2001349964121,
+              "max_ms": 586.5736999985529
+            }
+          },
+          "accelerated_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 46.47655000007944,
+              "p95_ms": 69.5390250017226,
+              "max_ms": 73.04160000057891
+            }
+          },
+          "accelerated_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 45.17235000093933,
+              "p95_ms": 60.99627999719813,
+              "max_ms": 67.0315000024857
+            }
+          }
+        },
+        "reddit-chrissykes-4ppe2dp": {
+          "combined_pruned_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 26.373650005552918,
+              "p95_ms": 65.28353999819952,
+              "max_ms": 83.7420000025304
+            }
+          },
+          "combined_pruned_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 140.68900000711437,
+              "p95_ms": 267.2918300057062,
+              "max_ms": 317.9765000095358
+            }
+          },
+          "accelerated_fast": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 38.33719999965979,
+              "p95_ms": 101.824550001038,
+              "max_ms": 103.43329999886919
+            }
+          },
+          "accelerated_robust": {
+            "correct": 2,
+            "incorrect": 0,
+            "cached": {
+              "sample_count": 10,
+              "p50_ms": 157.8027499926975,
+              "p95_ms": 200.17174499516835,
+              "max_ms": 217.93949999846518
+            }
+          }
+        }
+      },
+      "gate": "Every compared output and bound region unchanged. Local p95 varies substantially; retain raw samples and use paired hosted timings for the final decision."
+    }
+  ],
+  "full_round_one_followup_selection": "Pruning reduces work in the two slowest cases; extending glyph caching especially helps consensus on Gladera but fast-only local timings are mixed. Promote the combinations and their matching ablations to the second full run to confirm or reject the timing benefit.",
+  "accelerated_changing_frame_diagnostic": {
+    "scope": "Synthetic changing-value and forced glyph-cache-miss diagnostic; not primary corpus evidence. All variants preserve baseline rejects on profile-pasted glyph spacing.",
+    "raw_path": ".work/reader-techniques-20261017/changing-values-accelerated.json",
+    "sha256": "6cef992945284bc8e67b046d2b04eafdf40c21bb4faf8f4112aa3f06182945b3",
+    "variants": {
+      "baseline": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.488,
+            "p95_ms": 4.449,
+            "max_ms": 4.89
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.326,
+            "p95_ms": 4.878,
+            "max_ms": 5.48
+          }
+        }
+      },
+      "accelerated_fast": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.238,
+            "p95_ms": 4.45,
+            "max_ms": 5.358
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 4.191,
+            "p95_ms": 5.583,
+            "max_ms": 6.796
+          }
+        }
+      },
+      "accelerated_robust": {
+        "bounded_glyph_cache": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.223,
+            "p95_ms": 5.117,
+            "max_ms": 8.334
+          }
+        },
+        "clear_glyph_rank_cache_each_frame": {
+          "frames": 80,
+          "fields": 320,
+          "correct": 282,
+          "unknown": 38,
+          "incorrect": 0,
+          "all_four_field_read_ms": {
+            "samples": 80,
+            "p50_ms": 3.921,
+            "p95_ms": 5.081,
+            "max_ms": 7.838
+          }
+        }
+      }
+    },
+    "interpretation": "Every variant has the same 282 correct and 38 unknown fields per 80-frame mode; zero incorrect or stale accepted values. Rank-cache-cleared accelerated_robust p95 is 5.081 ms in this one-font synthetic diagnostic; this is not live full-screen evidence."
+  },
+  "followup_existing_guard_tests": {
+    "combined_pruned_fast": 60,
+    "combined_pruned_robust": 60,
+    "accelerated_fast": 60,
+    "accelerated_robust": 60,
+    "failures": 0,
+    "run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39054630066"
+  }
+}

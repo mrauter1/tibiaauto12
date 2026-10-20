@@ -1,0 +1,48 @@
+{
+  "purpose": "Test individual remedies, then promote safe, useful candidates to an original-only full-corpus comparison.",
+  "baseline_commit": "db7d4fb14ff081c76339c25ec6ab31d0df23645f",
+  "corpus_freeze_commit": "12b52ffb3eac4b4b8d9fe8b346c9e78bd9003440",
+  "working_cached_p95_budget_ms": 50,
+  "timing_scope": "Complete four-resource cached algorithm reads; discovery and first read reported separately. No output-value cache; every read processes current pixels.",
+  "techniques": {
+    "cache": "Bounded memoization of immutable scaled glyph/comma templates; no memoized reading values.",
+    "prune": "Skip impossible touching-digit counts using the minimum per-cell width already required by the baseline.",
+    "green": "Include a bounded green color family in value-region extraction and numeric foreground, keeping label discovery unchanged.",
+    "labels": "Denser small-font scale steps, vertical RGB raster phases, and refinement of existing 0.76+ proposals with unchanged final shape thresholds.",
+    "small": "Extend the small-font scale bank, scale-aware row margins, and internal nearest-neighbor numeric enlargement.",
+    "consensus": "Require at least two agreeing accepted decodes among four bounded brightness thresholds, with no accepted disagreement, only after baseline numeric rejection.",
+    "topology": "Replace exact hole-count exclusion with a shape-score penalty, retaining numeric acceptance and ambiguity thresholds.",
+    "partial": "Allow strong visible label suffixes only after three other resource anchors establish position, scale, row order and spacing. Never infer hidden digits."
+  },
+  "focused_tests": {
+    "numeric": "Identical annotated original RGB numeric crops for component diagnosis; compare values, incorrect accepts, unknowns and repeated timing. This does not establish automatic panel detection.",
+    "full_frame": "Whole original screenshots representing each affected pattern, prior positives, closed/clipped panels and duplicate-panel ambiguity. No annotation coordinates passed to readers.",
+    "adversarial": "Existing historical unit diagnostics for clipping, extra columns, decoy numbers, topology, ambiguity and fresh-frame invalidation; synthetic diagnostics remain separate from real acceptance."
+  },
+  "promotion_gate": {
+    "incorrect_accepted_or_wrong_row": 0,
+    "unsafe_control_accepts": 0,
+    "prior_correct_regressions": 0,
+    "benefit": "More correctly bound readable values, or equivalent outputs with meaningfully lower cached cost.",
+    "latency": "Measure on the same host/settings as the baseline; report violations of the working 50 ms p95 target. Accuracy-promising but slow candidates are not declared suitable for real time."
+  },
+  "followup_after_first_focused_results": {
+    "reason": "Four-threshold consensus improves coverage but is costly; template caching helps, while pruning alone shows no clear timing benefit.",
+    "vector": "Batch the same glyph/template score calculation; require equivalent values before considering performance.",
+    "glyph_cache": "Bounded cache of glyph rankings keyed by the complete normalized glyph, aspect ratio, height, hole count, scale and family. Every frame still segments and assembles the current numeric text; no complete resource reading or output value is cached.",
+    "validation": "Report first-read cost separately and use existing changed-value/fresh-frame guards. Static-repeat cache results do not establish live gameplay performance."
+  },
+  "full_benchmark": "Every one of the 51 preserved originals, with new primary, prior primary, reference-only and safety controls separated. At least 50 repeated cached reads for each discovered layout. Preserve all raw outputs outside Git history.",
+  "integrity": "No annotation changes, no screenshot transformations as acceptance inputs, no per-case IDs or truth in readers, no new screenshot-derived templates. These previously diagnosed images now provide development/regression evidence, not untouched holdout generalization.",
+  "followup_after_full_round_one": {
+    "run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39053337015",
+    "evidence": "The first combined reader recovers 11/26 misses; consensus recovers 15/26 but incurs 84.7 ms p95 and 147.4 ms on the slowest image. Isolated numeric gains did not predict the full pipeline latency.",
+    "hypotheses": {
+      "pruning_interaction": "The combined readers had not enabled the separately tested minimum-cell-width count pruning. Apply the exact existing width bound before enumerating impossible split products.",
+      "touching_glyph_cache": "The first glyph cache accelerated separated glyphs only. Apply the same bounded vector/glyph ranking cache to repeated candidate fragments in the touching-digit fallback, preserving that fallback strict topology and every score/ambiguity threshold."
+    },
+    "focused_gate": "Two slowest original frames, shared autonomously discovered layout, exact per-field output/region equality before and after acceleration; report this as cached-layout diagnosis only.",
+    "promotion": "If unchanged outputs and useful speedup, rerun all 51 originals with independent discovery for baseline, both previous combinations, both pruned combinations and both touching-cache combinations; 50 repeats and existing guards.",
+    "not_heldout": "Follow-up is explicitly selected after inspecting the first full development/regression run; no generalization claim."
+  }
+}

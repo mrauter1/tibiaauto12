@@ -1,0 +1,420 @@
+{
+  "schema": "tibiaauto.collection-baseline-summary",
+  "version": 1,
+  "batch": "2026-10-17",
+  "annotation_freeze_commit": "12b52ffb3eac4b4b8d9fe8b346c9e78bd9003440",
+  "evaluated_head_commit": "6f3b4295ba7ee3585044910d42be676676829cf3",
+  "raw_artifact": {
+    "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39039950936/artifacts/12103842391",
+    "sha256": "01e183fc9315319d3020a8b4ea7659df7c91561b280834d811049218a2f75d3f",
+    "expires_at": "2027-01-15T14:15:13Z",
+    "baseline_sha256": "04ce5c50fc43ffd2455ac274ab279b55fcc60999dc2380eb8f205405f519132a",
+    "latency_sha256": "674ead3b501ab854f4c9c2bfe636706e7ca1b40efa68990dbf38ee67947aa39b"
+  },
+  "input_and_implementation_verification": {
+    "reader_base_commit": "92195dd9d49b38c4d529c7a7f08aa22f00e3c47b",
+    "code_files_match_base_git_blobs": true,
+    "profile_bundle_matches_base_git_blobs": true,
+    "profile_file_count": 43,
+    "manifest_matches_pre_inference_commit_git_blob": true
+  },
+  "environment": {
+    "numpy": "2.2.6",
+    "opencv": "4.11.0",
+    "pillow": "11.3.0",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "pytesseract": null,
+    "python": "3.12.15",
+    "tesseract": null
+  },
+  "options": {
+    "reader": "adaptive_templates",
+    "ocr": false,
+    "generated_inputs": false,
+    "comparison_warm_reads": 3,
+    "latency_warm_reads": 50,
+    "per_latency_case_timeout_seconds": 60
+  },
+  "gates": {
+    "comparison_safety_passed": true,
+    "coverage_threshold": null,
+    "latency_correctness_passed": false
+  },
+  "groups": {
+    "new": {
+      "positive_acceptance": {
+        "images": 22,
+        "readable_integer_fields": 88,
+        "correct_value_and_region": 62,
+        "unknown": 26,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "found": 17,
+          "missing": 5
+        },
+        "safety_fields": 0,
+        "safety_unknown": 0,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "negative_safety_control": {
+        "images": 6,
+        "readable_integer_fields": 0,
+        "correct_value_and_region": 0,
+        "unknown": 0,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "missing": 6
+        },
+        "safety_fields": 24,
+        "safety_unknown": 24,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "ambiguous_safety_control": {
+        "images": 1,
+        "readable_integer_fields": 0,
+        "correct_value_and_region": 0,
+        "unknown": 0,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "ambiguous": 1
+        },
+        "safety_fields": 4,
+        "safety_unknown": 4,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "reference_diagnostic": {
+        "images": 3,
+        "readable_integer_fields": 7,
+        "correct_value_and_region": 2,
+        "unknown": 5,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "missing": 2,
+          "found": 1
+        },
+        "safety_fields": 0,
+        "safety_unknown": 0,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      }
+    },
+    "prior_regression": {
+      "positive_acceptance": {
+        "images": 7,
+        "readable_integer_fields": 28,
+        "correct_value_and_region": 28,
+        "unknown": 0,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "found": 7
+        },
+        "safety_fields": 0,
+        "safety_unknown": 0,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "negative_safety_control": {
+        "images": 1,
+        "readable_integer_fields": 0,
+        "correct_value_and_region": 0,
+        "unknown": 0,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "missing": 1
+        },
+        "safety_fields": 4,
+        "safety_unknown": 4,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "ambiguous_safety_control": {
+        "images": 1,
+        "readable_integer_fields": 0,
+        "correct_value_and_region": 0,
+        "unknown": 0,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "missing": 1
+        },
+        "safety_fields": 4,
+        "safety_unknown": 4,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      },
+      "reference_diagnostic": {
+        "images": 10,
+        "readable_integer_fields": 40,
+        "correct_value_and_region": 39,
+        "unknown": 1,
+        "incorrect_accepted": 0,
+        "wrong_numeric_value": 0,
+        "accepted_region_mismatch": 0,
+        "accepted_region_contains_other_resource_center": 0,
+        "panel_statuses": {
+          "found": 10
+        },
+        "safety_fields": 0,
+        "safety_unknown": 0,
+        "safety_accepted": 0,
+        "safety_false_panels": 0
+      }
+    },
+    "no_known_existing_relative": {
+      "images": 19,
+      "readable_integer_fields": 76,
+      "correct_value_and_region": 51,
+      "unknown": 25,
+      "incorrect_accepted": 0,
+      "wrong_numeric_value": 0,
+      "accepted_region_mismatch": 0,
+      "accepted_region_contains_other_resource_center": 0,
+      "panel_statuses": {
+        "found": 14,
+        "missing": 5
+      },
+      "safety_fields": 0,
+      "safety_unknown": 0,
+      "safety_accepted": 0,
+      "safety_false_panels": 0
+    },
+    "existing_source_relative": {
+      "images": 3,
+      "readable_integer_fields": 12,
+      "correct_value_and_region": 11,
+      "unknown": 1,
+      "incorrect_accepted": 0,
+      "wrong_numeric_value": 0,
+      "accepted_region_mismatch": 0,
+      "accepted_region_contains_other_resource_center": 0,
+      "panel_statuses": {
+        "found": 3
+      },
+      "safety_fields": 0,
+      "safety_unknown": 0,
+      "safety_accepted": 0,
+      "safety_false_panels": 0
+    }
+  },
+  "latency": {
+    "new": {
+      "images": 29,
+      "errors": [],
+      "cold_positive_discovery": {
+        "samples": 22,
+        "p50_ms": 5113.073,
+        "p95_ms": 8992.724,
+        "max_ms": 11094.586
+      },
+      "cold_safety_discovery": {
+        "samples": 7,
+        "p50_ms": 8172.114,
+        "p95_ms": 17461.809,
+        "max_ms": 21097.094
+      },
+      "cached_reads": {
+        "samples": 850,
+        "p50_ms": 17.335,
+        "p95_ms": 74.868,
+        "max_ms": 75.92
+      },
+      "images_with_cached_reads": 17,
+      "images_all_cached_reads_correct": 12
+    },
+    "prior_regression": {
+      "images": 9,
+      "errors": [],
+      "cold_positive_discovery": {
+        "samples": 7,
+        "p50_ms": 2902.454,
+        "p95_ms": 5347.472,
+        "max_ms": 5437.756
+      },
+      "cold_safety_discovery": {
+        "samples": 2,
+        "p50_ms": 6408.83,
+        "p95_ms": 7903.641,
+        "max_ms": 8069.731
+      },
+      "cached_reads": {
+        "samples": 350,
+        "p50_ms": 17.243,
+        "p95_ms": 59.037,
+        "max_ms": 59.43
+      },
+      "images_with_cached_reads": 7,
+      "images_all_cached_reads_correct": 7
+    }
+  },
+  "misses": [
+    {
+      "id": "dfg-demolidores-4KCJ",
+      "role": "reference_diagnostic",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 3,
+      "unknown_fields": [
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "dfg-gentebra-3XWB",
+      "role": "positive_acceptance",
+      "panel": "found",
+      "correct": 3,
+      "unknown": 1,
+      "unknown_fields": [
+        "resource_mana"
+      ]
+    },
+    {
+      "id": "dfg-gentebra-BJEI",
+      "role": "positive_acceptance",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 4,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "dfg-quintera-VS41",
+      "role": "positive_acceptance",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 4,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "dfg-gladera-SSVX",
+      "role": "positive_acceptance",
+      "panel": "found",
+      "correct": 2,
+      "unknown": 2,
+      "unknown_fields": [
+        "resource_health",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "role": "positive_acceptance",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 4,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "reddit-deleted-09s6sbl",
+      "role": "positive_acceptance",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 4,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    },
+    {
+      "id": "reddit-blake-m91oix5",
+      "role": "positive_acceptance",
+      "panel": "found",
+      "correct": 3,
+      "unknown": 1,
+      "unknown_fields": [
+        "resource_mana"
+      ]
+    },
+    {
+      "id": "reddit-blake-ib60r93",
+      "role": "reference_diagnostic",
+      "panel": "found",
+      "correct": 2,
+      "unknown": 2,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health"
+      ]
+    },
+    {
+      "id": "reddit-daralion-0tx21ye",
+      "role": "positive_acceptance",
+      "panel": "found",
+      "correct": 3,
+      "unknown": 1,
+      "unknown_fields": [
+        "resource_capacity"
+      ]
+    },
+    {
+      "id": "reddit-dworc-o0ap20c",
+      "role": "positive_acceptance",
+      "panel": "found",
+      "correct": 3,
+      "unknown": 1,
+      "unknown_fields": [
+        "resource_capacity"
+      ]
+    },
+    {
+      "id": "reddit-chrissykes-4ppe2dp",
+      "role": "positive_acceptance",
+      "panel": "missing",
+      "correct": 0,
+      "unknown": 4,
+      "unknown_fields": [
+        "resource_capacity",
+        "resource_health",
+        "resource_mana",
+        "resource_soul"
+      ]
+    }
+  ],
+  "limitations": [
+    "Static repeated-image algorithm timing does not measure live capture, freshness or recovery.",
+    "Cached timing includes unknown readings and covers only images with a discovered layout.",
+    "No reader or profile was tuned; all annotations and classifications remain frozen.",
+    "A redundant local Windows comparison was stopped after the complete hosted run became available; no partial Windows timings enter this scorecard.",
+    "The different-interface decimal Capacity is retained as exact display text, not scored as an integer."
+  ]
+}
