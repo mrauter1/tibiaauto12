@@ -1,0 +1,417 @@
+{
+  "schema": "tibiaauto.resource-reader-cleanup",
+  "date": "2026-10-20",
+  "evaluated_revision": "f3874ffbd473fb546209447044cc26b850bfc668",
+  "benchmark_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532303",
+  "reader": "tools.resource_reader.CurrentResourceReader",
+  "production_default_changed": false,
+  "removed": [
+    "bar/caption fusion",
+    "temporal confirmation",
+    "native whole-number font fitting",
+    "unused native-font calibration",
+    "rejected experiment factories and tests",
+    "three dedicated experiment workflows",
+    "verbose historical JSON from active tree"
+  ],
+  "retained": [
+    "current-frame row structure",
+    "robust numeric threshold consensus",
+    "bounded glyph caches",
+    "32-entry complete-evidence-pixel geometry cache",
+    "unconditional duplicate-panel guard",
+    "N/A on missing/ambiguous pixels"
+  ],
+  "source_cleanup": {
+    "files_changed": 53,
+    "lines_added": 1543,
+    "lines_removed": 43886,
+    "net_lines_removed": 42343,
+    "count_includes_historical_reports": true,
+    "implementation_tests_workflows_net_lines_removed": 4097
+  },
+  "historical_evidence": "reports/resource-reader-experiment-archive-2026-10-20.json",
+  "result": {
+    "metrics": {
+      "cases": 81,
+      "eligible_fields": 239,
+      "numeric_exact": 221,
+      "unknown": 18,
+      "incorrect_accepted": 0,
+      "unsafe_intentional_unknown_acceptances": 0,
+      "accepted_location_mismatch": 0,
+      "reader_errors": 0
+    },
+    "by_split": {
+      "development": {
+        "cases": 57,
+        "eligible_fields": 155,
+        "numeric_exact": 139,
+        "unknown": 16,
+        "incorrect_accepted": 0,
+        "accepted_location_mismatch": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "reader_errors": 0
+      },
+      "test": {
+        "cases": 14,
+        "eligible_fields": 44,
+        "numeric_exact": 43,
+        "unknown": 1,
+        "incorrect_accepted": 0,
+        "accepted_location_mismatch": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "reader_errors": 0
+      },
+      "reference": {
+        "cases": 10,
+        "eligible_fields": 40,
+        "numeric_exact": 39,
+        "unknown": 1,
+        "incorrect_accepted": 0,
+        "accepted_location_mismatch": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "reader_errors": 0
+      }
+    },
+    "controls": {
+      "images": 17,
+      "accepted_values": 0,
+      "false_panels": 0
+    },
+    "gates": {
+      "accuracy_floor_preserved": true,
+      "no_wrong_unsafe_or_misassociated_values": true,
+      "all_safety_controls_abstain": true,
+      "per_image_p95_within_100ms": true,
+      "repeat_outputs_consistent": true,
+      "focused_guards_pass": true
+    },
+    "latency": {
+      "new_frame_timings": {
+        "pooled_p95_ms": 21.580185000019007,
+        "worst_image_p95_ms": 41.47056500000587,
+        "max_observed_ms": 48.654800000008436
+      },
+      "background_timings": {
+        "pooled_p95_ms": 38.791435000003105,
+        "worst_image_p95_ms": 49.28902499999737,
+        "max_observed_ms": 54.88689999998542
+      }
+    },
+    "budget_breaches": [],
+    "reading_budget_ms": 100,
+    "focused_guard_tests": 115,
+    "environment": {
+      "python": "3.12.10",
+      "platform": "Windows-2025Server-10.0.26100-SP0",
+      "opencv": "4.11.0",
+      "numpy": "2.2.6",
+      "pillow": "11.3.0",
+      "pytesseract": null,
+      "tesseract": null
+    }
+  },
+  "timing_scope": "Four-resource reading after discovery. Capture, copying and discovery excluded. Fifty new Frame objects with unchanged original pixels plus 20 generated outside-evidence pixel changes per detected image. Per-image p95, not a hard deadline or live latency.",
+  "preservation_audit": {
+    "baseline_revision": "4e120a9b3e859ff1dd250cea676bfcfa665a7324",
+    "baseline_run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39320690800",
+    "originals": 81,
+    "field_outputs_compared": 324,
+    "correct_fields_retained": 221,
+    "correct_fields_lost": 0,
+    "new_correct_fields": 0,
+    "values_qualities_regions_and_scoring_unchanged": true,
+    "originals_truth_profiles_and_split_unchanged": true
+  },
+  "geometry_cache_decision": {
+    "decision": "Retain minimal memoization; remove calibration and experiment switches.",
+    "scope": "Paired development originals, not complete acceptance benchmark; concurrent local workload may affect timings. Same robust numeric backend and translated-duplicate guard; font calibration disabled. Frame creation/copy excluded. Background mode is generated timing only.",
+    "method": "Former geometry memoizer ON/OFF with identical robust backend, duplicate guard and disabled calibration. Follow-up used verified archived cache code with separately recorded shared source hashes. New minimal implementation validated by hosted guards and full benchmark.",
+    "raw_local_file": ".work/bar-evidence-20261020/geometry-cache-ablation.json",
+    "raw_sha256": "2a8a7cfa1326e43f4904020c7829d88328f1d4e6e2f30ce3e67e28c594c6fcbb",
+    "cases": [
+      {
+        "id": "user-paulistinha-20261013",
+        "frame_size": [
+          1919,
+          1079
+        ],
+        "source_sha256": "8e0d74453d0d0ad57e104e434dca7941763f1f0d33b1c399b932effd55763176",
+        "execution_order": [
+          "geometry_cache_on",
+          "geometry_cache_off"
+        ],
+        "timing_ms": {
+          "geometry_cache_on": {
+            "same_frame": {
+              "sample_count": 50,
+              "p50_ms": 123.2437499857042,
+              "p95_ms": 215.43134998646562
+            },
+            "new_frame_identical_pixels": {
+              "sample_count": 50,
+              "p50_ms": 105.45614999136887,
+              "p95_ms": 226.46600001899054
+            },
+            "background_change": {
+              "sample_count": 20,
+              "p50_ms": 343.4826000011526,
+              "p95_ms": 489.657264953712
+            }
+          },
+          "geometry_cache_off": {
+            "same_frame": {
+              "sample_count": 50,
+              "p50_ms": 182.67299997387454,
+              "p95_ms": 400.7843400060664
+            },
+            "new_frame_identical_pixels": {
+              "sample_count": 50,
+              "p50_ms": 185.8879000064917,
+              "p95_ms": 350.7605499878991
+            },
+            "background_change": {
+              "sample_count": 20,
+              "p50_ms": 414.1819500073325,
+              "p95_ms": 687.3971499939216
+            }
+          }
+        }
+      },
+      {
+        "id": "dfg-laudera-knight64-PD1G",
+        "frame_size": [
+          1400,
+          678
+        ],
+        "source_sha256": "e43b6d6f7b3ba529533c345cf184dd281bdc13375245a1790ac98fdcae9f25cf",
+        "execution_order": [
+          "geometry_cache_off",
+          "geometry_cache_on"
+        ],
+        "timing_ms": {
+          "geometry_cache_off": {
+            "same_frame": {
+              "sample_count": 30,
+              "p50_ms": 254.44979997701012,
+              "p95_ms": 597.3030349763574
+            },
+            "new_frame_identical_pixels": {
+              "sample_count": 30,
+              "p50_ms": 294.8630499886349,
+              "p95_ms": 546.434484992642
+            },
+            "background_change": {
+              "sample_count": 10,
+              "p50_ms": 425.40985002415255,
+              "p95_ms": 613.0548399960388
+            }
+          },
+          "geometry_cache_on": {
+            "same_frame": {
+              "sample_count": 30,
+              "p50_ms": 160.1921000110451,
+              "p95_ms": 365.40301502391225
+            },
+            "new_frame_identical_pixels": {
+              "sample_count": 30,
+              "p50_ms": 196.5162000269629,
+              "p95_ms": 449.6417199930873
+            },
+            "background_change": {
+              "sample_count": 10,
+              "p50_ms": 264.83529998222366,
+              "p95_ms": 371.81765996792814
+            }
+          }
+        }
+      }
+    ],
+    "limitation": "Two development originals under concurrent local load; absolute timings are not hosted budget results, and blockwise measurements cannot rule out workload drift."
+  },
+  "validation": {
+    "source_revision": "f3874ffbd473fb546209447044cc26b850bfc668",
+    "workflow": "Offline reliability checks",
+    "run_url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532138",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "job_id": 118660970267,
+        "name": "test (ubuntu-latest, 3.12)",
+        "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532138/job/118660970267",
+        "conclusion": "success",
+        "pytest": {
+          "passed": 902,
+          "skipped": 1,
+          "seconds": 144.14
+        },
+        "compileall": "passed",
+        "ruff": "passed"
+      },
+      {
+        "job_id": 118660970395,
+        "name": "test (ubuntu-latest, 3.10)",
+        "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532138/job/118660970395",
+        "conclusion": "success",
+        "pytest": {
+          "passed": 902,
+          "skipped": 1,
+          "seconds": 144.94
+        },
+        "compileall": "passed",
+        "ruff": "passed"
+      },
+      {
+        "job_id": 118660970555,
+        "name": "test (windows-latest, 3.10)",
+        "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532138/job/118660970555",
+        "conclusion": "success",
+        "pytest": {
+          "passed": 900,
+          "skipped": 3,
+          "seconds": 191.78
+        },
+        "compileall": "passed",
+        "ruff": "passed"
+      },
+      {
+        "job_id": 118660971106,
+        "name": "test (windows-latest, 3.12)",
+        "url": "https://github.com/mrauter1/tibiaauto12/actions/runs/39432532138/job/118660971106",
+        "conclusion": "success",
+        "pytest": {
+          "passed": 900,
+          "skipped": 3,
+          "seconds": 128.86
+        },
+        "compileall": "passed",
+        "ruff": "passed"
+      }
+    ]
+  },
+  "initial_hosted_attempt": {
+    "revision": "5413e78844616d3284f139bc68bfd7e7012fd58e",
+    "run": "https://github.com/mrauter1/tibiaauto12/actions/runs/39430888057",
+    "result": "All 12 shards and 114 focused guards passed; final summary failed exact JUnit identity validation.",
+    "cause": "Three existing pytest parameter IDs contain literal double colons. The validator incorrectly parsed those as class separators.",
+    "fix": "Split the address before the parameter delimiter, preserve the complete parameter identity, and add a regression that rejects a substituted parameter. Exact identity validation remains mandatory.",
+    "reader_changed": false,
+    "preservation": {
+      "originals": 81,
+      "fields_compared": 324,
+      "outputs_unchanged": true,
+      "correct_fields_retained": 221,
+      "metrics": {
+        "cases": 81,
+        "eligible_fields": 239,
+        "numeric_exact": 221,
+        "unknown": 18,
+        "incorrect_accepted": 0,
+        "unsafe_intentional_unknown_acceptances": 0,
+        "accepted_location_mismatch": 0,
+        "reader_errors": 0
+      },
+      "worst_image_p95_ms": {
+        "new_frame_timings": 63.78301499999706,
+        "background_timings": 65.3633450000001
+      }
+    }
+  },
+  "summary_sha256": "050bd4992e5ece337fe02b6e0812acfd284c15446bcd314b5a14871a30dde915",
+  "independent_local_summary_matches_hosted_bytes": true,
+  "source_fingerprint_map_sha256": "ebc1622f47aa288f82367c8e8e56911696bd46a1ee54da7e257b2c2c715c542e",
+  "artifacts": [
+    {
+      "id": 12269725478,
+      "name": "resource-reader-shard-4",
+      "bytes": 31758,
+      "digest": "sha256:79a7827978df1877dc6e7fde8a70a013b5548a42a13ad2de158dfd0777f97871"
+    },
+    {
+      "id": 12269546369,
+      "name": "resource-reader-summary",
+      "bytes": 9944,
+      "digest": "sha256:d7ff5acfbb96ef12b9266e93eec57a4609b56d2f666bb22ea1fa557fde8b6db9"
+    },
+    {
+      "id": 12269415881,
+      "name": "resource-reader-shard-5",
+      "bytes": 29150,
+      "digest": "sha256:33b9c36a16c0664f23e8eb4c9398a09a065571e18ff6abf131ee7c2d662be6e5"
+    },
+    {
+      "id": 12269356661,
+      "name": "resource-reader-shard-11",
+      "bytes": 24202,
+      "digest": "sha256:3de4363180b14e18dd2012436f57cb3bbfa2e5c37f541e819a33e50bcd4860ce"
+    },
+    {
+      "id": 12268827170,
+      "name": "resource-reader-guards",
+      "bytes": 15211,
+      "digest": "sha256:ed8566272f04c7274872b39bd47207278b5f21ce6c794c6bc3a180317f045a1b"
+    },
+    {
+      "id": 12268772353,
+      "name": "resource-reader-shard-7",
+      "bytes": 30196,
+      "digest": "sha256:5d9f39f6abfb37d6a61c0ad96a6bed2cb5e42720f37c02c1e2c265892ac3e307"
+    },
+    {
+      "id": 12268677871,
+      "name": "resource-reader-shard-8",
+      "bytes": 24520,
+      "digest": "sha256:84740746c8e21a3ec8f2c9bd13ffe1732786b32ba43aadbd69d0b335480dd424"
+    },
+    {
+      "id": 12268637637,
+      "name": "resource-reader-shard-2",
+      "bytes": 31929,
+      "digest": "sha256:09902e09b09319ccff6edc0f47f93bbe44dfbf4ff4b954fee2581b6b5391da3e"
+    },
+    {
+      "id": 12268593246,
+      "name": "resource-reader-shard-3",
+      "bytes": 33059,
+      "digest": "sha256:c5f704d32c8a1e5e0c146ab1ea50b8ec711bac8f85d99477e5be23c8510694f4"
+    },
+    {
+      "id": 12268413018,
+      "name": "resource-reader-shard-6",
+      "bytes": 27350,
+      "digest": "sha256:12a380053b84737a1c46ff7f86ceae652215c8a7dce5b001f4f06f98ac02ce5e"
+    },
+    {
+      "id": 12268338197,
+      "name": "resource-reader-shard-1",
+      "bytes": 27847,
+      "digest": "sha256:91c94a80a38ee1cd37db0c65f58bcfca66a081986c1f74900e473ac7d20d7504"
+    },
+    {
+      "id": 12268289862,
+      "name": "resource-reader-shard-9",
+      "bytes": 24243,
+      "digest": "sha256:fbb19bec52ae7b0c1f78a4d67e5aa4d901b6ea6370e1869928afac1735ed0c76"
+    },
+    {
+      "id": 12268213909,
+      "name": "resource-reader-shard-10",
+      "bytes": 30604,
+      "digest": "sha256:cfffaf9e1131a9c648f8fffedfec7ee7043212e9e154e67a9f61cfcaa68d2e28"
+    },
+    {
+      "id": 12268213895,
+      "name": "resource-reader-shard-0",
+      "bytes": 30994,
+      "digest": "sha256:f5bf2c823e8517eea8e8484a1e7b8bf40e87df6b2b772de9828f9a70997a7bb9"
+    }
+  ],
+  "limitations": [
+    "First-read original accuracy; repeats are offline algorithm latency, not live freshness.",
+    "The previously inspected test split is regression evidence.",
+    "The 221-field aggregate floor does not replace a per-field comparison with the historical artifact.",
+    "Cleanup preserves measured accuracy; it does not recover any of the remaining 18 readable misses.",
+    "Hosted timing across different runs is not a controlled paired speed comparison."
+  ]
+}

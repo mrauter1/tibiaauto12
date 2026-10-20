@@ -1,0 +1,70 @@
+Resource reader cleanup and consolidation
+2026-10-20
+
+The selected reader preserves all 221 previously correct fields. The cleanup
+does not recover any of the 18 remaining readable misses.
+
+Evaluated source: f3874ffbd473fb546209447044cc26b850bfc668
+Benchmark: https://github.com/mrauter1/tibiaauto12/actions/runs/39432532303
+PR: https://github.com/mrauter1/tibiaauto12/pull/9
+
+Removed
+- HP/Mana bar/caption fusion and temporal confirmation: no original-reading
+  recovery in the full benchmark; the combined layer increased reading time.
+- Native whole-number font fitting: no gain and one regression.
+- Native-font calibration: the selected robust backend did not consume it.
+- Their dedicated factories, tests and three experiment workflows.
+- Fifteen verbose historical JSON reports from the active tree. The archive
+  index retains their hashes and immutable Git links; historical TXT reports stay.
+
+Retained
+- Current-frame panel and individual-row structure, identity and visibility checks.
+- The existing robust numeric threshold consensus and bounded glyph caches.
+- A 32-entry geometry cache keyed by complete current evidence pixels.
+- Duplicate-panel rejection and UNKNOWN/N/A for unsupported or ambiguous readings.
+- One opt-in entry point: tools.resource_reader.CurrentResourceReader.
+  Production defaults remain unchanged.
+
+The geometry cache was tested separately from unused font calibration. Two
+development originals, with opposite ON/OFF ordering, preserved all eight
+readings and showed lower cached p95 in all six case/mode comparisons. These
+local blockwise measurements were under concurrent load; they justify retaining
+the small cache but do not establish live latency or exclude workload drift.
+The compact JSON records sample counts, medians, p95, order and raw-file hash.
+
+Frozen-original results
+221/239 correct readable integer fields;
+18 UNKNOWN; zero incorrect, unsafe or misassociated accepted values.
+All 17 safety-control images abstain. All 324 field outputs across 81 originals
+match the previous robust result: values, quality, regions and scoring.
+Screenshots, truth, profiles and split hashes are unchanged.
+- development: 139/155 correct; 16 readable fields UNKNOWN.
+- test: 43/44 correct; 1 readable field UNKNOWN.
+- reference: 39/40 correct; 1 readable field UNKNOWN.
+
+Timing and verification
+- Worst image p95, fresh Frame with original pixels: 41.47 ms.
+- Worst image p95, changed background pixel: 49.29 ms.
+- Every detected image passes the 100 ms p95 gate in both modes.
+- Fifty fresh-frame and twenty outside-evidence background samples per image;
+  all repeated outputs are consistent.
+- 115 focused guards pass with no failures, errors or skips.
+- Full offline CI passes on Windows/Linux with Python 3.10/3.12, including
+  pytest, Ruff and compilation. See the compact JSON for job IDs and counts.
+
+Timings cover reading after discovery; capture, copying and discovery are
+excluded. This is offline algorithm timing, not a live freshness measurement or
+a hard deadline. The previously inspected 80/20 split is regression evidence.
+
+The initial hosted run passed all 12 shards and 114 guards, but its final
+summary rejected three existing parameterized test names containing "::".
+The parser now preserves complete parameter identities. A new regression also
+rejects a substituted parameter with matching counts and refreshed XML hashes.
+The complete benchmark and 115 guards were rerun after this reporting-only fix.
+
+Maintenance
+The single resource-reader workflow runs all shards, focused guards and strict
+summary gates. Reports-only pushes skip repeating that benchmark. Raw artifacts
+remain attached to the benchmark run; their verified digests and the per-field
+preservation audit are recorded in resource-reader-cleanup-2026-10-20.json.
+Historical evidence: resource-reader-experiment-archive-2026-10-20.json.
