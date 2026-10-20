@@ -31,8 +31,8 @@ GUARD_MODULES = (
     "tests/test_resource_reader_benchmark.py",
 )
 # The original guard modules contribute 60 cases, rows 12, current panels 16,
-# and benchmark integrity 26. No shortened or skipped run can satisfy the gate.
-MIN_GUARD_TESTS = 114
+# and benchmark integrity 27. No shortened or skipped run can satisfy the gate.
+MIN_GUARD_TESTS = 115
 EXCLUDE_ORIGINAL_ACCEPTANCE = (
     "not existing_regression_screenshot and not calmera_resampled and not manually_boxed"
 )

@@ -126,6 +126,28 @@ def test_complete_artifact_recomputes_221_exact_18_unknown_and_17_safe_controls(
     assert "cases" not in report and "samples_ms" not in json.dumps(report)
 
 
+def test_guard_parameter_id_with_double_colon_matches_junit_exactly(evidence):
+    module = "tests/test_adaptive_resources.py"
+    name = ("test_resampled_narrow_digit_leads_remain_ambiguous["
+            "portal-tibia-2016-02-VtukRkf::panel-scale-0.9-"
+            "fb57041c9a99370c30c34ad26f8119854d7c75c9d0489ee2956717433ca79f4f-"
+            "region0-0.7136363636363636-304]")
+    evidence.guard["selected_nodeids"][0] = module + "::" + name
+    evidence.guard["selected_nodeids_sha256"] = sha256(json.dumps(
+        evidence.guard["selected_nodeids"], separators=(",", ":")).encode()).hexdigest()
+    testcase = next(evidence.guard_root.iter("testcase"))
+    testcase.set("classname", module[:-3].replace("/", "."))
+    testcase.set("name", name)
+    evidence.write_guard()
+    assert evidence.summarize()["passed"] is True
+
+    # Matching counts and an updated XML hash cannot hide a substituted parameter.
+    testcase.set("name", name.replace("::panel-scale-0.9", "::panel-scale-1.3"))
+    evidence.write_guard()
+    with pytest.raises(ValueError, match="identities"):
+        evidence.summarize()
+
+
 @pytest.mark.parametrize("problem", [
     "partial", "duplicate", "subset", "mixed_revision", "mixed_environment", "changed_code",
     "source_hash", "wrong_score", "wrong_split", "short_repeats", "nonfinite", "fake_percentile",

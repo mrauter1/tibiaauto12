@@ -227,9 +227,13 @@ def _validate_guards(directory, first):
             "Focused guard collection does not match executed tests")
     expected = set()
     for nodeid in nodeids:
-        parts = nodeid.split("::")
+        # Pytest keeps the complete parameter ID in the test name, including
+        # literal "::" that must not be mistaken for a class boundary.
+        address, bracket, parameters = nodeid.partition("[")
+        parts = address.split("::")
         require(parts[0] in GUARD_MODULES and len(parts) >= 2, "Unexpected focused guard test")
-        expected.add((".".join([parts[0][:-3].replace("/", "."), *parts[1:-1]]), parts[-1]))
+        expected.add((".".join([parts[0][:-3].replace("/", "."), *parts[1:-1]]),
+                      parts[-1] + bracket + parameters))
     require(expected == {(t.get("classname"), t.get("name")) for t in tests},
             "Focused guard test identities do not match collection")
     require(all(any(node.startswith(module + "::") for node in nodeids) for module in GUARD_MODULES),
