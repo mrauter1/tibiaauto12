@@ -7,6 +7,8 @@ on:
       - 'tools/screenshot_split.py'
       - 'tools/summarize_latest_screenshots.py'
       - 'tibia_client/adaptive*.py'
+      - 'tibia_client/resource*.py'
+      - 'tibia_client/visual.py'
       - 'tibia_client/models.py'
       - 'core/perception.py'
       - 'core/paths.py'
@@ -44,6 +46,7 @@ jobs:
           watched = (
               "tools/*resource*.py", "tools/screenshot_split.py",
               "tools/summarize_latest_screenshots.py", "tibia_client/adaptive*.py",
+              "tibia_client/resource*.py", "tibia_client/visual.py",
               "tibia_client/models.py", "core/perception.py", "core/paths.py",
               "profiles/paulistinha-skills-v1/**", "tests/fixtures/screenshots/**",
               "tests/fixtures/resources/**", "tests/test_resource*.py",

@@ -1,4 +1,4 @@
-"""Opt-in reader experiments; production defaults and frozen fixtures stay intact.
+"""Configurable reader components for the selected reader and comparisons.
 
 Readers receive only pixels. No case IDs, annotations or expected values are
 available here. The companion runner owns scoring and experiment selection.

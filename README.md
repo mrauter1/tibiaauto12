@@ -72,6 +72,16 @@ The health and mana reader retains the existing 100-pixel bar calibration and fi
 
 On Linux use `.venv/bin/python`. The doctor never captures a window or sends input. `--profile` checks saved geometry, not its correspondence with a live screen. `--route` checks the definition, marker assets, and resume checkpoint. Its exit code is nonzero on errors.
 
+For live resource inspection, open **Readings** in the launcher or run
+`.venv\Scripts\python.exe -m tools.resource_monitor`, then press **Start monitoring**.
+The [observation-only monitor](docs/resource-monitor.md) uses the benchmark-selected
+reader and shows HP, Mana, Soul and Capacity, N/A/stale states, local age,
+matching image crops and capture-to-result timing against the 100 ms budget.
+It sends no game input. Adaptive resource tracking, profile setup, direct visual
+reads and the selected benchmark share `tibia_client.resource_reader.ResourceReader`
+as their default. Existing adaptive profiles use it automatically. Health/mana
+percentage sensors remain distinct from these absolute resource values.
+
 CI runs the offline suite and syntax/undefined-name checks on Windows and Linux with Python 3.10 and 3.12. GUI tests require a display and skip when one is unavailable.
 
 ## Shared SDK architecture

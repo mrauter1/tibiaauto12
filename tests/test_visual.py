@@ -173,7 +173,7 @@ def test_direct_adaptive_read_honors_selected_panel_hint(tmp_path, monkeypatch):
                 )
             }
 
-    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     frame = Frame(np.ones((20, 60, 3), dtype=np.uint8))
     reading = profile.read(Sensor(SensorKind.VISUAL, (0, 0, 60, 11), "mana"), frame)
 
@@ -234,7 +234,7 @@ def test_direct_adaptive_read_only_broadens_missing_hint(tmp_path, monkeypatch, 
         def read(self, frame, selected, *, use_ocr=False):
             return {"resource_mana": Reading({"count": 1085})}
 
-    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     frame = Frame(np.ones((20, 60, 3), dtype=np.uint8))
     region = (0, 0, 60, 11)
     reading = profile.read(Sensor(SensorKind.VISUAL, region, "mana"), frame)
@@ -848,7 +848,7 @@ def test_profile_rejects_unsafe_evidence_thresholds(tmp_path, change):
 
 def test_direct_adaptive_read_recovers_a_row_missing_during_setup(tmp_path):
     from pathlib import Path
-    from tibia_client.adaptive import ResourceReader
+    from tibia_client.resource_reader import ResourceReader
     from tibia_client.resource_profiles import apply_adaptive_resource_preset
 
     path = Path(__file__).parents[1] / 'tests/fixtures/resources/paulistinha-skills.png'

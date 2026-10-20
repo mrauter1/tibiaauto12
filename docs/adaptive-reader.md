@@ -8,7 +8,7 @@ for subsequent frames of the same size, and rediscover after invalidation.
 
 ```python
 from core.perception import Frame
-from tibia_client.adaptive import ResourceReader
+from tibia_client.resource_reader import ResourceReader
 
 reader = ResourceReader()
 result = reader.discover(frame, use_ocr=False)
@@ -19,6 +19,15 @@ if result.layout is not None:
 OCR is disabled by default and is only attempted when callers pass
 `use_ocr=True`. Ordinary template and digit recognition therefore has no
 Tesseract runtime dependency.
+
+The application, live tracker, profile discovery, direct visual reads, observation
+monitor and selected benchmark use this same default composition. It combines
+current-frame row/visibility checks, duplicate-panel rejection, robust numeric
+threshold consensus and bounded caches. Existing `paulistinha-skills-v1` adaptive
+profiles use it automatically; no saved-profile migration is required.
+The base reader in `tibia_client.adaptive` remains available for historical
+comparisons. Percentage-based health/mana sensors are a separate interface:
+absolute Skills-panel values cannot directly replace healing thresholds in percent.
 
 Discovery keeps rendered font family separate from position and scale. The
 alternate label family has a bounded RGB refinement path, and verified alternate
@@ -96,7 +105,9 @@ claimed until actual capture evidence is available.
 ## Runtime and input
 
 `AdaptiveResourceTracker` performs discovery outside the action loop and checks
-cached layouts against fresh captures. A changed or ambiguous panel invalidates
+cached layouts against fresh captures. Background rediscovery uses a separate
+reader instance so its mutable caches cannot interfere with current readings.
+A changed or ambiguous panel invalidates
 dependent readings; replacement bindings are published together under a new
 layout revision. The workflow cancels queued dependent actions when it observes
 that revision change. This does not remove the time between capture and physical

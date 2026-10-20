@@ -1,7 +1,8 @@
-"""Selected opt-in resource reader with current-frame row and panel guards.
+"""Selected resource-reader composition with current-frame row and panel guards.
 
 The retained numeric backend uses threshold consensus and bounded glyph caches.
 Values always come from the current frame; unsupported readings remain UNKNOWN.
+Application callers use the shared aliases in ``tibia_client.resource_reader``.
 """
 from __future__ import annotations
 

@@ -143,6 +143,19 @@ def OpenHuntConsole():
     return HuntConsole(_active_root.windowID, get_client(), _profile_controller)
 
 
+def OpenResourceMonitor():
+    from modules.ResourceMonitor import ResourceMonitorWindow
+
+    existing = getattr(_active_root, "resource_monitor", None)
+    if existing is not None and (not existing._closed or existing.monitor.busy):
+        existing.window.deiconify()
+        existing.window.lift()
+        return existing
+    window = ResourceMonitorWindow(_active_root.windowID)
+    _active_root.resource_monitor = window
+    return window
+
+
 def OpenHuntWorkflow():
     from modules.HuntWorkflow import HuntWorkflow
     from tibia_client.hunt_workflow import HuntWorkflowController
@@ -208,6 +221,7 @@ class root:
         self.root.addButton("Trace viewer", OpenTraceViewer, [92, 23], [245, 340])
         self.root.addButton("Hunt Console", OpenHuntConsole, [213, 23], [134, 426])
         self.root.addButton("Hunt workflow", OpenHuntWorkflow, [92, 23], [147, 366])
+        self.root.addButton("Readings", OpenResourceMonitor, [92, 23], [147, 392])
 
         import tkinter as tk
         from modules.HuntConsole import run_control
@@ -249,6 +263,10 @@ class root:
         def close():
             self._closing = True
             try:
+                monitor = getattr(_active_root, "resource_monitor", None)
+                if monitor is not None:
+                    monitor.close()
+                    monitor.monitor.wait()
                 close_client()
             finally:
                 shutdown()

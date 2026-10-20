@@ -280,6 +280,10 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         root_module.OpenCompatibility()
         root_module.OpenTraceViewer()
         root_module.OpenHuntConsole()
+        monitor = root_module.OpenResourceMonitor()
+        assert not monitor.monitor.busy
+        assert root_module.OpenResourceMonitor() is monitor
+        monitor.close()
         workflow = root_module.OpenHuntWorkflow()
         workflow.data["bindings"] = {
             "first": {"name": "first_detector", "region": [1, 2, 10, 12]},
