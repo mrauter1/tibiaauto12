@@ -150,6 +150,7 @@ def test_active_ui_modules_do_not_import_native_execution_layers():
         "CaveBot.py",
         "support_ui.py",
         "Root.py",
+        "ResourceMonitor.py",
     )
     forbidden = {
         "core.ThreadManager",

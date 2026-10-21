@@ -248,7 +248,7 @@ def test_probe_scores_only_first_original_and_uses_fresh_frames_for_all_repeats(
                                               "layout_fingerprint": "verified"})
                     for index, name in enumerate(FIELDS)}
 
-    monkeypatch.setattr("tools.resource_reader.CurrentResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     row = benchmark.probe(case)
     assert row["fields"][FIELDS[0]]["actual"] == 10
     assert row["repeated_outputs_consistent"] is False

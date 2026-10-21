@@ -230,7 +230,8 @@ def apply_adaptive_resource_preset(
     sensor identity while independently resolving and guarding current regions.
     This never changes capture/input calibration or proves live compatibility.
     """
-    from tibia_client.adaptive import FIELDS, ResourceReader
+    from tibia_client.adaptive import FIELDS
+    from tibia_client.resource_reader import ResourceReader
 
     if not isinstance(document, Mapping):
         raise ResourceProfileError("workflow must be an object")
@@ -319,7 +320,7 @@ def apply_adaptive_resource_candidate(
         raise ResourceProfileError("resource panel candidate selection is out of range")
     if type(use_ocr) is not bool:
         raise ResourceProfileError("use_ocr must be true or false")
-    from tibia_client.adaptive import ResourceReader
+    from tibia_client.resource_reader import ResourceReader
 
     candidate = choices.candidates[candidate_index]
     return _finish_adaptive_resource_preset(

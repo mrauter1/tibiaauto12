@@ -1,5 +1,8 @@
 """Image-only semantic resource discovery and guarded panel-local reading.
 
+Application callers use ``tibia_client.resource_reader.ResourceReader``. This
+module retains the base implementation for composition and baseline comparisons.
+
 Coordinates are captured pixels, never input coordinates. Discovery is bounded
 but intentionally expensive; desktop adapters must schedule it off the action
 loop. A resolved layout is evidence for one arrangement, not a live calibration.

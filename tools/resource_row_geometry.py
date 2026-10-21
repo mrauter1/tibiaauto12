@@ -1,4 +1,4 @@
-"""Opt-in structural row localization; numeric decoding remains injectable.
+"""Structural row localization; numeric decoding remains injectable.
 
 Compose ``class Reader(StructuralRowMixin, ExperimentalResourceReader)`` and
 pass the ordinary experiment features plus an optional ``number_reader``.  This

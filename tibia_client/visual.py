@@ -594,7 +594,7 @@ class VisualProfile(Mapping[str, VisualSpec]):
             # This direct API is used by bounded offline inspection. Live
             # adapters batch and track these specs through adaptive_runtime so
             # discovery never blocks health or input scheduling.
-            from tibia_client.adaptive import ResourceReader
+            from tibia_client.resource_reader import ResourceReader
 
             reader = ResourceReader()
             # A saved region is an operator-reviewed panel hint, not the

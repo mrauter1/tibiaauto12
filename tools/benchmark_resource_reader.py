@@ -1,4 +1,4 @@
-"""One opt-in reader: frozen-original regression and post-discovery latency.
+"""Default resource reader: frozen-original regression and post-discovery latency.
 
 Run twelve shards, then summarize their matching focused-guard artifact.  Only
 the first unchanged original is scored for accuracy.  Replays with fresh Frame
@@ -65,6 +65,7 @@ def fingerprints():
         "tibia_client/adaptive.py", "tibia_client/adaptive_text.py",
         "tibia_client/adaptive_runtime.py", "tibia_client/models.py",
         "tibia_client/resource_profiles.py", "tibia_client/visual.py",
+        "tibia_client/resource_reader.py", "tests/test_resource_reader_default.py",
         "core/perception.py", "core/paths.py", "requirements.txt", "requirements-dev.txt",
         "tests/fixtures/screenshots/manifest.json",
         "tests/fixtures/screenshots/split-2026-10-17-latest.json",
@@ -112,10 +113,10 @@ def observation_signature(readings):
 
 
 def probe(case, warm_reads=WARM_READS):
-    from tools.resource_reader import CurrentResourceReader
+    from tibia_client.resource_reader import ResourceReader
 
     started = perf_counter()
-    reader = CurrentResourceReader()
+    reader = ResourceReader()
     initialization_ms = (perf_counter() - started) * 1000
     started = perf_counter()
     discovery = reader.discover(case.frame, use_ocr=False)

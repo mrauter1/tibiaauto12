@@ -186,6 +186,66 @@ def test_requested_fields_share_one_panel_discovery():
     assert reader.discovers == 1
 
 
+def test_background_rediscovery_does_not_share_live_reader_caches():
+    started = threading.Event()
+    release = threading.Event()
+    created = []
+    discoveries = []
+
+    class LaneReader(Reader):
+        discovering = False
+
+        def discover(self, observed, *, selection=None, use_ocr=False, checkpoint=None):
+            self.discovering = True
+            discoveries.append(self)
+            try:
+                if len(discoveries) == 2:
+                    started.set()
+                    assert release.wait(5)
+                return super().discover(
+                    observed, selection=selection, use_ocr=use_ocr, checkpoint=checkpoint,
+                )
+            finally:
+                self.discovering = False
+
+        def read(self, observed, layout, *, use_ocr=False):
+            assert not self.discovering, "live reads shared mutable discovery caches"
+            return super().read(observed, layout, use_ocr=use_ocr)
+
+    def factory(_name):
+        reader = LaneReader()
+        created.append(reader)
+        return reader
+
+    tracker = AdaptiveResourceTracker(factory)
+    health, requests = request()
+    mana = Sensor(SensorKind.VISUAL, (0, 15, 20, 20), "resource_mana")
+    requests[mana] = AdaptiveVisual("paulistinha-skills-v1", "resource_mana")
+    group = None
+    try:
+        tracker.read(frame(9), requests)
+        group = tracker._groups[("paulistinha-skills-v1", False)]
+        group.worker.join(5)
+        assert not group.worker.is_alive()
+
+        assert tracker.read(frame(9), requests)[health].quality is Quality.KNOWN
+        assert started.wait(5)
+        current = tracker.read(frame(9), requests)
+        assert current[health].quality is Quality.KNOWN
+        assert current[health].value["count"] == 710
+        assert current[mana].quality is Quality.UNKNOWN
+        assert len(created) == 2
+        assert discoveries == created
+        assert group.reader is created[0]
+        assert created[1].discovering
+    finally:
+        tracker.close()
+        release.set()
+        if group is not None and group.worker is not None:
+            group.worker.join(5)
+            assert not group.worker.is_alive()
+
+
 def test_failed_discovery_is_rate_limited_off_the_scheduler_thread():
     now = [0.0]
     factory_thread = []

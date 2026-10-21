@@ -94,7 +94,7 @@ class CaptureInputMapping:
 
 
 def _default_reader_factory(reader_id: str) -> Any:
-    from tibia_client.adaptive import ResourceReader
+    from tibia_client.resource_reader import ResourceReader
 
     if reader_id != "paulistinha-skills-v1":
         raise ValueError(f"unsupported adaptive reader {reader_id!r}")
@@ -269,10 +269,12 @@ class AdaptiveResourceTracker:
         def run() -> None:
             # Keep the local defined even when construction itself fails so
             # the failure detail can be published and rate-limited.
-            reader = group.reader
+            reader = None
             try:
-                if reader is None:
-                    reader = self._reader_factory(reader_id)
+                # A partial layout can still be read while rediscovery runs.
+                # Keep the selected reader's mutable geometry and panel-guard
+                # caches private to each lane until discovery is complete.
+                reader = self._reader_factory(reader_id)
 
                 def checkpoint() -> None:
                     if self._closed or generation != self._generation or ticket != group.ticket:

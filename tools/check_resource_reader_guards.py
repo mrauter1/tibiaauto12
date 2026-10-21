@@ -44,14 +44,14 @@ class _CurrentReaderPlugin:
         self._originals = {}
 
     def pytest_collection_modifyitems(self, items):
-        from tools.resource_reader import CurrentNumberReader, CurrentResourceReader
+        from tibia_client.resource_reader import NumberReader, ResourceReader
 
         for item in items:
             module = item.module
             if not module.__name__.endswith(("test_adaptive_text", "test_adaptive_resources")):
                 continue
-            for name, selected in (("NumberReader", CurrentNumberReader),
-                                   ("ResourceReader", CurrentResourceReader)):
+            for name, selected in (("NumberReader", NumberReader),
+                                   ("ResourceReader", ResourceReader)):
                 if hasattr(module, name):
                     key = (module, name)
                     self._originals.setdefault(key, getattr(module, name))

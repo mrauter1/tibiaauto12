@@ -50,7 +50,7 @@ def test_import_bounds_preview_counts_and_preserves_the_source_document(tmp_path
                 "resource_capacity": Reading(None, Quality.UNKNOWN, "unreadable"),
             }
 
-    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     document = {
         "bindings": {"existing": {"name": "existing", "region": [0, 0, 2, 2]}},
         "visual": {"existing": {"kind": "template"}},
@@ -117,7 +117,7 @@ def test_ambiguous_import_returns_bounded_clickable_choices_from_the_same_frame(
         def read(self, frame, layout, *, use_ocr=False):
             return {field: _known(index + 1) for index, field in enumerate(FIELDS)}
 
-    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     frame = Frame(np.zeros((50, 200, 3), dtype=np.uint8), source="offline:ambiguous.png")
     document = {"bindings": {}, "visual": {}, "notes": ["keep"]}
     before = deepcopy(document)
@@ -155,7 +155,7 @@ def test_candidate_completion_rechecks_id_collisions(tmp_path, monkeypatch):
         def read(self, frame, selected, *, use_ocr=False):
             return {field: _known(1) for field in FIELDS}
 
-    monkeypatch.setattr("tibia_client.adaptive.ResourceReader", Reader)
+    monkeypatch.setattr("tibia_client.resource_reader.ResourceReader", Reader)
     frame = Frame(np.zeros((50, 100, 3), dtype=np.uint8))
     choices = apply_adaptive_resource_preset(
         {"bindings": {}, "visual": {}}, frame, calibration_size=frame.size, base_dir=tmp_path
