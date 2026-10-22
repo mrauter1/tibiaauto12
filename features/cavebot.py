@@ -192,7 +192,6 @@ class CaveBotFeature:
         self._deadline: float | None = None
         self._pending: _Pending | None = None
         self._follow_pending: _Pending | None = None
-        self._desired_follow: bool | None = None
         self._follow_sent: tuple[bool, int] | None = None
         self._request_sequence = 0
         self._arrival_failures = 0
@@ -348,7 +347,6 @@ class CaveBotFeature:
         self._active_target = None
         self._combat_deadline = None
         self._selected_wait = None
-        self._desired_follow = None
         self._set_status(
             "Finding marker",
             "recognized_anchor_resume",
@@ -389,8 +387,8 @@ class CaveBotFeature:
         if self.config.walking and not self.route.waypoints:
             return ()
         operations: list[str] = []
-        if ((self.config.walking and self.route.waypoints)
-                or (self.targets and (self.config.follow or (self.config.loot and self.loot_points)))):
+        if (self.config.follow or (self.config.walking and self.route.waypoints)
+                or (self.targets and self.config.loot and self.loot_points)):
             operations.append("left_click")
         if self.targets:
             operations.append("battle_list_click")
@@ -691,7 +689,6 @@ class CaveBotFeature:
         self._loot_started = context.now
         self._loot_resweep = False
         self._selected_wait = None
-        self._desired_follow = False
         self._set_status("Holding position for loot", "stable_target_count_drop")
 
     def _finish_combat(self, context: FeatureContext) -> None:
@@ -719,19 +716,6 @@ class CaveBotFeature:
         if dropped is not None and self.config.loot and self.loot_points:
             self._begin_loot(context, dropped)
             return self._tick_loot(context)
-        hold_for_loot = bool(self.config.loot and self.loot_points and any(
-            count < self._counts[name] for name, (count, _) in self._count_candidates.items()
-        ))
-        if hold_for_loot:
-            # Stop chasing on the first observed decrease, before selecting the
-            # next target. The stable-count check still decides whether to loot.
-            hold = self._set_follow(context, enabled=False)
-            if hold is not None:
-                return hold
-        elif self.config.follow:
-            # Follow is independent of target selection, including when the
-            # last creature disappeared or the selected border is unreadable.
-            self._desired_follow = True
         if spec is None or target is None:
             self._empty_samples += 1
             if self._empty_samples < self.config.count_stable_samples:
@@ -770,10 +754,9 @@ class CaveBotFeature:
         )
         return self._step(request)
 
-    def _set_follow(self, context: FeatureContext, *, enabled: bool) -> Step | None:
-        """Set follow intent; a known control can accompany this tick's action."""
-        self._desired_follow = enabled
-        sensor = Sensor(SensorKind.FOLLOW, name="" if enabled else "disable")
+    def _require_loot_hold(self, context: FeatureContext) -> Step | None:
+        """Loot only when holding position is observed or its control is known."""
+        sensor = Sensor(SensorKind.FOLLOW, name="disable")
         try:
             value = context.require(sensor, self._MAX_EVIDENCE_AGE)
         except ObservationUnavailable as exc:
@@ -788,9 +771,12 @@ class CaveBotFeature:
         return None
 
     def _with_follow(self, context: FeatureContext, step: Step) -> Step:
-        """Service follow even while another request or creature reading waits."""
+        """Recheck follow every policy cycle, independently of creature readings."""
         pending = self._follow_pending
-        enabled = self._desired_follow
+        # Derive intent from the current phase instead of latching a prior
+        # decision. Missing creature readings, pending attacks, startup and
+        # route waits must never leave follow off outside an actual loot sweep.
+        enabled = False if self._mode == "loot" else (True if self.config.follow else None)
         kind = "follow" if enabled else "follow_off"
         if pending is not None and (
             step.finished or enabled is None or pending.kind != kind
@@ -841,7 +827,6 @@ class CaveBotFeature:
                 self._loot_started = context.now
             else:
                 self._mode = "combat"
-                self._desired_follow = self.config.follow
                 self._set_status("Fighting", "loot_complete")
                 # Restore follow alongside target selection, even if the next
                 # creature reading is unavailable or no targets remain.
@@ -854,7 +839,7 @@ class CaveBotFeature:
             # the sweep or start it over from the first square.
             self._loot_started = context.now
             self._set_status("Loot timeout; retrying", "loot_timeout_retry")
-        hold = self._set_follow(context, enabled=False)
+        hold = self._require_loot_hold(context)
         if hold is not None:
             return hold
         if spec is not None and target is not None:

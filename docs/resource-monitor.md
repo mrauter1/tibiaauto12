@@ -152,6 +152,12 @@ once per frame. When looting finishes, CaveBot restores follow if enabled,
 independently of whether a target is selected, absent, or temporarily unreadable.
 Follow and selection can run in the same tick without a follow cooldown. With
 no targets, CaveBot resumes the route while continuing to retry follow if needed.
+With Follow enabled, every CaveBot policy cycle checks the follow control using
+the shared captured frame (default poll interval: 200 ms, subject to capture
+latency). Outside the loot phase it re-enables inactive follow, including during
+route waits, pending attacks and unreadable creature rows. Only an actual loot
+sweep holds follow off; a tentative count drop does not latch it off. No extra
+capture or cooldown is added for this check.
 Follow changes use the calibrated UI scale and require a positively identified
 red standing or green following control; missing control evidence waits.
 
