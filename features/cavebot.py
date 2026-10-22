@@ -1,9 +1,9 @@
 """Non-blocking CaveBot policy built only on the public client SDK.
 
-The feature owns no capture, input, threads, or sleeps.  Each call to ``tick``
-examines one immutable snapshot and returns at most one input request.  This
-keeps combat, route timeouts, and cancellation deterministic under the shared
-runtime.
+The feature owns no capture, input, threads, or sleeps. Each call to ``tick``
+examines one immutable snapshot and returns at most one combat/route request
+plus an independent follow control. Native input remains serialized by the
+shared runtime.
 """
 
 from __future__ import annotations
@@ -191,6 +191,9 @@ class CaveBotFeature:
         self._mode_started: float | None = None
         self._deadline: float | None = None
         self._pending: _Pending | None = None
+        self._follow_pending: _Pending | None = None
+        self._desired_follow: bool | None = None
+        self._follow_sent: tuple[bool, int] | None = None
         self._request_sequence = 0
         self._arrival_failures = 0
         self._navigation_history: tuple[
@@ -201,7 +204,6 @@ class CaveBotFeature:
         self._exit_requested = False
         self._abort_requested = False
         self._selected_wait: tuple[str, int, float] | None = None
-        self._follow_wait: tuple[int, float] | None = None
         self._active_target: str | None = None
         self._counts: dict[str, int] = {}
         self._count_candidates: dict[str, tuple[int, int]] = {}
@@ -316,7 +318,7 @@ class CaveBotFeature:
     ) -> int:
         """Resume at a fresh reached marker, requiring selection if ambiguous."""
 
-        if self._pending is not None:
+        if self._pending is not None or self._follow_pending is not None:
             raise RuntimeError("cannot resume while an input request is pending")
         candidates = self.recognized_anchor_candidates(context)
         if not candidates:
@@ -346,7 +348,7 @@ class CaveBotFeature:
         self._active_target = None
         self._combat_deadline = None
         self._selected_wait = None
-        self._follow_wait = None
+        self._desired_follow = None
         self._set_status(
             "Finding marker",
             "recognized_anchor_resume",
@@ -407,6 +409,7 @@ class CaveBotFeature:
         if self._pre_pause_status is None:
             self._pre_pause_status = self._status
         self._pending = None
+        self._follow_pending = None
         self._set_status("Paused", "navigation_paused")
 
     def on_resume(self, *, paused_for: float = 0.0) -> None:
@@ -431,9 +434,6 @@ class CaveBotFeature:
         if self._selected_wait is not None:
             target, frame, ready_at = self._selected_wait
             self._selected_wait = (target, frame, ready_at + elapsed)
-        if self._follow_wait is not None:
-            frame, ready_at = self._follow_wait
-            self._follow_wait = (frame, ready_at + elapsed)
         if previous is not None:
             self._status = previous
 
@@ -506,7 +506,11 @@ class CaveBotFeature:
         additional_sensors: Iterable[Sensor] = (),
     ) -> Request:
         key = self._next_key(kind)
-        self._pending = _Pending(key, kind, context.now, context.snapshot.frame_id)
+        pending = _Pending(key, kind, context.now, context.snapshot.frame_id)
+        if kind in ("follow", "follow_off"):
+            self._follow_pending = pending
+        else:
+            self._pending = pending
         requirements = (sensor, *additional_sensors)
         return Request(
             key=key,
@@ -642,7 +646,6 @@ class CaveBotFeature:
         self._count_frame = None
         self._empty_samples = 0
         self._selected_wait = None
-        self._follow_wait = None
         self._set_status(
             f"Fighting {target.name}",
             "target_interrupted_walk",
@@ -688,7 +691,7 @@ class CaveBotFeature:
         self._loot_started = context.now
         self._loot_resweep = False
         self._selected_wait = None
-        self._follow_wait = None
+        self._desired_follow = False
         self._set_status("Holding position for loot", "stable_target_count_drop")
 
     def _finish_combat(self, context: FeatureContext) -> None:
@@ -698,7 +701,6 @@ class CaveBotFeature:
         self._active_target = None
         self._combat_deadline = None
         self._selected_wait = None
-        self._follow_wait = None
         self._set_status(
             "Finding marker" if self.config.walking else "Waiting for targets", "combat_clear", target=None,
             waypoint_id=self.route.waypoints[self.index].id if self.route.waypoints else None,
@@ -707,7 +709,7 @@ class CaveBotFeature:
     def _tick_combat(self, context: FeatureContext) -> Step:
         if self._combat_deadline is not None and context.now >= self._combat_deadline:
             self._combat_deadline = context.now + self.config.combat_timeout
-            self._selected_wait = self._follow_wait = None
+            self._selected_wait = None
             self._set_status("Combat timeout; retrying", "combat_timeout_retry")
 
         spec, target, evidence_error = self._choose_target(context)
@@ -726,6 +728,10 @@ class CaveBotFeature:
             hold = self._set_follow(context, enabled=False)
             if hold is not None:
                 return hold
+        elif self.config.follow:
+            # Follow is independent of target selection, including when the
+            # last creature disappeared or the selected border is unreadable.
+            self._desired_follow = True
         if spec is None or target is None:
             self._empty_samples += 1
             if self._empty_samples < self.config.count_stable_samples:
@@ -739,14 +745,10 @@ class CaveBotFeature:
         selection = self._maintain_attack(context, spec, target)
         if selection is not None:
             return selection
-        if self.config.follow and not hold_for_loot:
-            follow = self._set_follow(context, enabled=True)
-            if follow is not None:
-                return follow
         return self._step()
 
     def _maintain_attack(self, context: FeatureContext, spec: TargetSpec, target: Target) -> Step | None:
-        """Select a live target before spending another action on loot/follow."""
+        """Select a live target before spending the ordinary action slot on loot."""
         if self._active_target != spec.name:
             self._active_target = spec.name
             self._selected_wait = None
@@ -769,7 +771,8 @@ class CaveBotFeature:
         return self._step(request)
 
     def _set_follow(self, context: FeatureContext, *, enabled: bool) -> Step | None:
-        """None means the requested mode is observed; unknown mode waits."""
+        """Set follow intent; a known control can accompany this tick's action."""
+        self._desired_follow = enabled
         sensor = Sensor(SensorKind.FOLLOW, name="" if enabled else "disable")
         try:
             value = context.require(sensor, self._MAX_EVIDENCE_AGE)
@@ -777,29 +780,53 @@ class CaveBotFeature:
             self._set_status(f"Waiting for follow reading: {exc}", "follow_evidence_unavailable")
             return self._step()
         if value is None:
-            self._follow_wait = None
             return None
+        try:
+            self._point(value, "follow")
+        except (TypeError, ValueError):
+            return self._fail("invalid_follow_observation")
+        return None
+
+    def _with_follow(self, context: FeatureContext, step: Step) -> Step:
+        """Service follow even while another request or creature reading waits."""
+        pending = self._follow_pending
+        enabled = self._desired_follow
+        kind = "follow" if enabled else "follow_off"
+        if pending is not None and (
+            step.finished or enabled is None or pending.kind != kind
+            or context.now - pending.issued_at >= max(1.0, self.interval * 4)
+        ):
+            step = replace(step, cancel_keys=(*step.cancel_keys, pending.key))
+            self._follow_pending = pending = None
+        if step.finished or enabled is None:
+            return step
+        sensor = Sensor(SensorKind.FOLLOW, name="" if enabled else "disable")
+        try:
+            value = context.require(sensor, self._MAX_EVIDENCE_AGE)
+        except ObservationUnavailable:
+            return step
+        if value is None:
+            if pending is not None:
+                step = replace(step, cancel_keys=(*step.cancel_keys, pending.key))
+                self._follow_pending = None
+            return step
+        if pending is not None or self._follow_sent == (enabled, context.snapshot.frame_id):
+            return step
         try:
             point = self._point(value, "follow")
         except (TypeError, ValueError):
-            return self._fail("invalid_follow_observation")
-        self._set_status("Enabling follow" if enabled else "Disabling follow for loot",
-                         "enabling_follow" if enabled else "disabling_follow")
-        wait = self._follow_wait
-        if wait is not None and (context.snapshot.frame_id <= wait[0] or context.now < wait[1]):
-            return self._step()
-        return self._step(self._request(
-            context, "follow" if enabled else "follow_off",
-            Action(ActionKind.LEFT_CLICK, point=point), Priority.COMBAT, sensor,
+            failed = self._fail("invalid_follow_observation")
+            return replace(failed, cancel_keys=step.cancel_keys)
+        request = self._request(
+            context, kind, Action(ActionKind.LEFT_CLICK, point=point),
+            Priority.COMBAT, sensor,
             "enable target follow" if enabled else "hold position while attacking and looting",
-        ))
+        )
+        return replace(step, requests=(request, *step.requests))
 
     def _tick_loot(self, context: FeatureContext) -> Step:
         if self._combat_deadline is not None and context.now >= self._combat_deadline:
             self._combat_deadline = context.now + self.config.combat_timeout
-        spec, target, evidence_error = self._choose_target(context)
-        if evidence_error is not None:
-            return self._wait_for_evidence(context, evidence_error)
         if self._observe_combat_counts(context) is not None:
             # A new corpse may be on a square already visited. Finish this pass,
             # then sweep again without moving or delaying selection of a target.
@@ -814,11 +841,14 @@ class CaveBotFeature:
                 self._loot_started = context.now
             else:
                 self._mode = "combat"
-                self._follow_wait = None
+                self._desired_follow = self.config.follow
                 self._set_status("Fighting", "loot_complete")
-                # Re-evaluate current targets now, then restore follow only
-                # after an attack is selected (or finish combat if none remain).
+                # Restore follow alongside target selection, even if the next
+                # creature reading is unavailable or no targets remain.
                 return self._tick_combat(context)
+        spec, target, evidence_error = self._choose_target(context)
+        if evidence_error is not None:
+            return self._wait_for_evidence(context, evidence_error)
         if elapsed >= self.config.loot_max_seconds:
             # Resume at the next unsent square; slow capture must not truncate
             # the sweep or start it over from the first square.
@@ -982,6 +1012,9 @@ class CaveBotFeature:
         return self._step()
 
     def tick(self, context: FeatureContext) -> Step:
+        return self._with_follow(context, self._tick_policy(context))
+
+    def _tick_policy(self, context: FeatureContext) -> Step:
         if self._status.finished:
             return self._step()
         self._resume_evidence_clock(context)
@@ -1019,6 +1052,18 @@ class CaveBotFeature:
         return self._tick_route(context)
 
     def on_result(self, result: ActionResult) -> None:
+        follow = self._follow_pending
+        if follow is not None and result.key == follow.key:
+            if result.state in (ResultState.EXECUTED, ResultState.CONFIRMED):
+                # Deduplicate only this source frame; there is no follow cooldown.
+                self._follow_sent = (follow.kind == "follow", follow.evidence_frame)
+                self._follow_pending = None
+            elif result.state in (ResultState.CANCELLED, ResultState.REJECTED):
+                self._follow_pending = None
+            elif result.state is ResultState.FAILED:
+                self._follow_pending = None
+                self._fail("input_failed", result.reason or f"{follow.kind} input failed")
+            return
         pending = self._pending
         if pending is None or result.key != pending.key:
             return
@@ -1057,8 +1102,6 @@ class CaveBotFeature:
         elif pending.kind == "select":
             target = self._active_target or ""
             self._selected_wait = (target, pending.evidence_frame, result.at + settle)
-        elif pending.kind in ("follow", "follow_off"):
-            self._follow_wait = (pending.evidence_frame, result.at + settle)
         elif pending.kind == "loot":
             self._loot_cursor += 1
 

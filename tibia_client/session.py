@@ -177,7 +177,7 @@ class ClientSession:
 
     ``autostart=False`` leaves scheduling entirely under the caller's control;
     each :meth:`tick_once` performs at most one capture, one health hotkey,
-    one mana hotkey, and one other action, in that order.
+    one mana hotkey, one follow control, and one other action, in that order.
     """
 
     # Feature hooks are required to be short, but a broken hook must not hang a
@@ -1350,11 +1350,11 @@ class ClientSession:
         for record in due:
             if self._run_feature(record, snapshot, now):
                 finished.append(record)
-        # Resource hotkeys do not consume the combat/loot slot. Native input
+        # Resource hotkeys and follow do not consume the combat/loot slot. Native input
         # remains serialized, with freshness/cancellation checked for each call.
-        for kind in (SensorKind.HEALTH, SensorKind.MANA):
-            self._dispatch_one(self._now(), eligible=lambda item, kind=kind: self._resource_kind(item) is kind)
-        self._dispatch_one(self._now(), eligible=lambda item: self._resource_kind(item) is None)
+        for kind in (SensorKind.HEALTH, SensorKind.MANA, SensorKind.FOLLOW):
+            self._dispatch_one(self._now(), eligible=lambda item, kind=kind: self._independent_kind(item) is kind)
+        self._dispatch_one(self._now(), eligible=lambda item: self._independent_kind(item) is None)
         for record in finished:
             self._invalidate_record(record, "finished", self._now())
         return self.snapshot
@@ -1794,12 +1794,19 @@ class ClientSession:
             self._terminal(item, ResultState.CANCELLED, now, "cancelled by feature")
 
     @staticmethod
-    def _resource_kind(item: _Queued) -> SensorKind | None:
+    def _independent_kind(item: _Queued) -> SensorKind | None:
         if item.request.action.kind is ActionKind.PRESS:
             kinds = {binding.requirement.sensor.kind for binding in item.bindings}
             for kind in (SensorKind.HEALTH, SensorKind.MANA):
                 if kind in kinds:
                     return kind
+        # Loot can also depend on a FOLLOW reading. Only a click bound directly
+        # to the follow control's position belongs in this independent slot.
+        if item.request.action.kind is ActionKind.LEFT_CLICK and item.bindings:
+            primary = item.bindings[0]
+            if (primary.requirement.sensor.kind is SensorKind.FOLLOW
+                    and item.request.action.point == primary.value):
+                return SensorKind.FOLLOW
         return None
 
     def _dispatch_one(self, now: float, *, eligible: Callable[[_Queued], bool] | None = None) -> None:

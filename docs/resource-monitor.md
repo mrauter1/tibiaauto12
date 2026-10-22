@@ -148,16 +148,20 @@ remaining configured target, then loots adjacent squares while the client keeps
 attacking. Target selection is checked before every loot click. Another death
 during the sweep selects the next target first and schedules a further sweep for
 new corpses on already visited tiles. Counts are tracked per species and sampled
-once per frame. When looting finishes, CaveBot selects any remaining target and
-restores follow if enabled; with no targets it resumes the route.
+once per frame. When looting finishes, CaveBot restores follow if enabled,
+independently of whether a target is selected, absent, or temporarily unreadable.
+Follow and selection can run in the same tick without a follow cooldown. With
+no targets, CaveBot resumes the route while continuing to retry follow if needed.
 Follow changes use the calibrated UI scale and require a positively identified
 red standing or green following control; missing control evidence waits.
 
 Enabled healing and mana refill remain independent of this loot/combat state.
-The session sends a needed health hotkey and mana hotkey before its ordinary
-combat/loot action in the same tick, provided each reading is still fresh.
-Input calls are serialized; neither resource action waits for the loot sweep to
-finish, and neither consumes the ordinary action slot. Game cooldowns still apply.
+The session sends a needed health hotkey, mana hotkey and follow control before
+its ordinary combat/loot action in the same tick, provided each reading is still
+fresh. This applies follow-off before a simultaneous attack or loot click.
+Input calls are serialized; resource actions do not wait for the loot sweep to
+finish, and resources and follow do not consume the ordinary action slot.
+Game cooldowns still apply to resource hotkeys.
 
 The monitor owns only capture and reading, has no input adapter, does not start
 automation or save screenshots. Applying stale time updates the shared reading
