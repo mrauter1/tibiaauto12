@@ -85,11 +85,24 @@ cancels capture/discovery, and discards a decoder result that finishes later.
 Restart waits for the previous worker to finish. Capture failures clear readings;
 transport errors retry capture, while invalid frame size/black frames stop the run.
 
+Creature target names accept `*` (zero or more characters) and `?` (one character).
+For example, enter `Lizard *` in a CaveBot target field to match Lizard Henchman,
+Lizard Magician and other names starting with Lizard. Matching ignores case and
+spacing, as exact names already do; other punctuation, including brackets, stays
+literal. A name without wildcards still matches the whole normalized name.
+Counts combine all matching complete rows, and a matching creature already under
+attack remains selected. Priorities still apply to target entries, so a specific
+name can take priority over a broader pattern by assigning it a lower number.
+The same pattern and aggregate count are used by CaveBot and Readings, including
+loot decisions. Pattern matching reuses the cached OCR rows without extra captures,
+OCR calls or per-creature template scans. The Targets detail lists matching names;
+diagnostics expose `target_pattern`, `match_mode` and `matched_names`.
+
 Creature OCR joins aligned fragments into complete names. All configured OCR
 targets share the same prepared name pixels and cached OCR result. Missing text
 rows get at most four cropped OCR retries, with a cooperative 120 ms scheduling
 budget; one native OCR call can exceed that budget. Clipped boundary rows cannot
-be recovered by retrying. A complete, exact OCR name can still supply a target
+be recovered by retrying. A complete, matching OCR name can still supply a target
 to CaveBot when another row is unreadable. The Targets group shows partial counts
 with a `+` (for example, `3+` means at least three). CaveBot uses the recognized
 integer directly for loot: `3+` to `2+` is a decrease from three to two. A completed

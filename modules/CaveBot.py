@@ -140,7 +140,7 @@ class CaveBot:
 
     def _build_ui(self):
         add_label = self.CaveBot.addLabel
-        add_label("Type any creature name; lower number attacks first", [20, 12])
+        add_label("Name or wildcard (Lizard *); lower number first", [20, 12])
         for row in range(4):
             y = 42 + row * 38
             self.CaveBot.addCheck(
@@ -703,7 +703,7 @@ class CaveBot:
             if enabled[0].get():
                 name = monster[0].get().strip()
                 if not name or len(name) > 160 or any(ord(char) < 32 for char in name):
-                    raise RouteError("enter a creature name of 1–160 characters")
+                    raise RouteError("enter a creature name or pattern of 1–160 characters")
                 targets.append(TargetSpec(int(priority[0].get()), name))
         if not walking and not targets:
             raise RouteError("enable at least one target for stationary combat")

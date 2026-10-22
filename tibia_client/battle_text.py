@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import OrderedDict
+from fnmatch import fnmatchcase
 from functools import lru_cache
 import hashlib
 import os
@@ -30,6 +31,9 @@ def name_key(name: str) -> str:
 @lru_cache(maxsize=128)
 def bundled_target(name: str):
     # Resolve through an inventory, never interpret entered names as paths.
+    # Patterns use the shared OCR rows, not a scan of every matching template.
+    if "*" in name or "?" in name:
+        return None
     key = name_key(name)
     for path in project_path("images/Targets/Names").glob("*.png"):
         if name_key(path.stem) == key:
@@ -303,25 +307,37 @@ class BattleTextReader:
 
     def read(self, frame, region, name, scale):
         reading = self.read_all(frame, region, scale)
+        wildcard = "*" in name or "?" in name
+        diagnostics = {**reading.diagnostics, 'target_pattern': name,
+                       'match_mode': 'wildcard' if wildcard else 'exact'}
         if reading.value is None or reading.diagnostics.get('retryable'):
-            return Reading(None, reading.quality, reading.detail, reading.diagnostics)
+            return Reading(None, reading.quality, reading.detail, diagnostics)
         rows = reading.value
         # CaveBot uses recognized counts directly, including partial counts.
         # A completed read with no matching names means absent by policy, even
         # when other text bands are uncertain. Pending/failed OCR is not zero.
-        key = name_key(name)
+        # Preserve the existing case/spacing normalization. Only * and ? are
+        # operators: quote brackets so punctuation in exact names stays literal.
+        # fnmatchcase caches compiled patterns; this adds no OCR work.
+        pattern = name_key(name).replace('[', '[[]')
         complete = reading.quality is Quality.KNOWN and all(row['complete'] for row in rows)
-        matches = [row for row in rows if row['complete'] and name_key(row['name']) == key]
+        matches = [row for row in rows
+                   if row['complete'] and fnmatchcase(name_key(row['name']), pattern)]
+        diagnostics['matched_names'] = [row['name'] for row in matches]
         if not matches:
             return Reading(Target(count=0, position=None, selected=False, count_complete=complete),
                            detail='' if complete else 'No matching names recognized; treated as absent for CaveBot',
-                           diagnostics={**reading.diagnostics, 'count_complete': complete,
+                           diagnostics={**diagnostics, 'count_complete': complete,
                                         'count_for_loot': 0, 'absence_assumed': not complete})
         selected = [row for row in matches if row['selected']]
         row = (selected or matches)[0]
+        details = (['Matched: '+', '.join(dict.fromkeys(diagnostics['matched_names']))]
+                   if wildcard else [])
+        if not complete:
+            details.append(f'Partial count; CaveBot uses {len(matches)} for loot')
         return Reading(Target(len(matches), row['position'], bool(selected), complete),
-                       detail='' if complete else f'Partial count; CaveBot uses {len(matches)} for loot',
-                       diagnostics={**reading.diagnostics, "matched_name": name,
+                       detail=' · '.join(details),
+                       diagnostics={**diagnostics, "matched_name": row['name'],
                                     'capture_position': row['position'], 'selected': bool(selected),
                                     'count_complete': complete, 'count_for_loot': len(matches),
                                     'boxes': [match['box'] for match in matches]})
