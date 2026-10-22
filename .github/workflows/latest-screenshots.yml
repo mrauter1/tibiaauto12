@@ -1,12 +1,7 @@
 name: Latest screenshots frozen benchmark
 
 on:
-  pull_request:
-    paths:
-      - 'tests/fixtures/screenshots/**'
-      - 'tools/benchmark_latest_screenshots.py'
-      - 'tools/screenshot_split.py'
-      - '.github/workflows/latest-screenshots.yml'
+  # Accuracy/coverage measurements are experiments, not PR correctness gates.
   workflow_dispatch:
 
 permissions:

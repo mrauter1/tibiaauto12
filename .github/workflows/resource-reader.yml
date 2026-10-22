@@ -1,24 +1,7 @@
 name: Selected resource reader benchmark
 
 on:
-  pull_request:
-    paths:
-      - 'tools/*resource*.py'
-      - 'tools/screenshot_split.py'
-      - 'tools/summarize_latest_screenshots.py'
-      - 'tibia_client/adaptive*.py'
-      - 'tibia_client/resource*.py'
-      - 'tibia_client/visual.py'
-      - 'tibia_client/models.py'
-      - 'core/perception.py'
-      - 'core/paths.py'
-      - 'profiles/paulistinha-skills-v1/**'
-      - 'tests/fixtures/screenshots/**'
-      - 'tests/fixtures/resources/**'
-      - 'tests/test_resource*.py'
-      - 'tests/test_adaptive*.py'
-      - 'requirements*.txt'
-      - '.github/workflows/resource-reader.yml'
+  # Latency and reader-selection thresholds belong to an explicit benchmark run.
   workflow_dispatch:
 
 permissions:
