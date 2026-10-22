@@ -170,11 +170,13 @@ def test_pause_excludes_paused_time_from_stall_diagnosis_and_attempt_timeout():
     assert bot.status.navigation_state == "stalled"
 
     timed_out = bot.tick(context(bot, 10.51, marker=Marker((10, 10)), frame=4))
-    assert timed_out.finished
-    assert bot.status.reason == "arrival_timeout"
+    assert not timed_out.finished
+    retry = bot.tick(context(bot, 10.6, marker=Marker((10, 10)), frame=5))
+    assert retry.requests[0].action.point == (10, 10)
+    assert bot.index == 0
 
 
-def test_jitter_never_refunds_or_extends_executed_attempt_budget():
+def test_marker_jitter_does_not_advance_waypoint_and_attempt_batches_keep_retrying():
     bot = make_bot(
         config=SessionConfig(
             arrival_timeout=0.3,
@@ -200,10 +202,11 @@ def test_jitter_never_refunds_or_extends_executed_attempt_budget():
     assert bot.navigation_progress["attempts_remaining"] == 0
 
     bot.tick(context(bot, 0.50, marker=Marker((10, 10)), frame=5))
-    failed = bot.tick(context(bot, 0.62, marker=Marker((11, 10)), frame=6))
-    assert failed.finished
-    assert bot.status.reason == "arrival_timeout"
-    assert bot.status.navigation_attempt == 2
+    waiting = bot.tick(context(bot, 0.62, marker=Marker((11, 10)), frame=6))
+    assert not waiting.finished
+    retry = bot.tick(context(bot, 0.7, marker=Marker((11, 10)), frame=7))
+    assert retry.requests[0].action.point == (11, 10)
+    assert bot.index == 0 and bot.status.completed_waypoints == 0
 
 
 def test_exit_cancels_pending_navigation_without_advancing_route():

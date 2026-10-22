@@ -34,7 +34,7 @@ def context(bot, now, *, marker=None, targets=None, follow=None, frame=1):
         elif sensor.kind is SensorKind.TARGET:
             value = targets.get(sensor.name, Target(0))
         else:
-            value = follow
+            value = follow.get(sensor.name) if isinstance(follow, dict) else follow
         values[sensor] = Observation(sensor, value, now, frame, 1)
     return FeatureContext(Snapshot(values, frame_id=frame, epoch=1, created_at=now), now)
 
@@ -87,7 +87,7 @@ def test_targeted_route_requires_configured_loot_operation():
     )
 
 
-def test_sensors_are_dynamic_sdk_values_and_known_none_marker_times_out():
+def test_missing_marker_retries_after_timeout_and_recovers_without_restart():
     feature = bot(config=SessionConfig(marker_timeout=0.4))
     sensors = feature.sensors()
     assert [(sensor.kind, sensor.region, sensor.name) for sensor in sensors] == [
@@ -96,14 +96,15 @@ def test_sensors_are_dynamic_sdk_values_and_known_none_marker_times_out():
     ]
 
     assert feature.tick(context(feature, 0.0, marker=Marker(None), frame=1)).requests == ()
-    failed = feature.tick(context(feature, 0.4, marker=Marker(None), frame=2))
-    assert failed.finished
-    assert feature.failed
-    assert feature.status.reason == "marker_timeout"
-    assert "timed out" in feature.error
+    for frame, now in enumerate((0.4, 1.0, 5.0), start=2):
+        waiting = feature.tick(context(feature, now, marker=Marker(None), frame=frame))
+        assert not waiting.finished and not feature.failed
+        assert waiting.requests == () and feature.error is None
+    recovered = feature.tick(context(feature, 5.2, marker=Marker((10, 20)), frame=5))
+    assert recovered.requests[0].action.point == (10, 20)
 
 
-def test_arrival_timeout_retries_are_bounded_and_rejection_does_not_charge_retry():
+def test_arrival_timeout_renews_attempts_on_same_waypoint_until_explicit_stop():
     config = SessionConfig(marker_timeout=1, arrival_timeout=0.5, movement_attempts=2)
     feature = bot(config=config)
 
@@ -118,8 +119,14 @@ def test_arrival_timeout_retries_are_bounded_and_rejection_does_not_charge_retry
     second = feature.tick(context(feature, 0.7, marker=Marker((10, 20)), frame=4)).requests[0]
     feature.on_result(result(second, ResultState.EXECUTED, 0.7))
     final = feature.tick(context(feature, 1.2, marker=Marker((10, 20)), frame=5))
-    assert final.finished
-    assert feature.status.reason == "arrival_timeout"
+    assert not final.finished and not feature.failed
+    retry = feature.tick(context(feature, 1.3, marker=Marker((10, 20)), frame=6))
+    assert retry.requests[0].action.point == (10, 20)
+    assert feature.index == 0 and feature.status.completed_waypoints == 0
+    feature.request_abort()
+    stopped = feature.tick(context(feature, 1.4, marker=Marker((10, 20)), frame=7))
+    assert stopped.finished and not stopped.requests
+    assert retry.requests[0].key in stopped.cancel_keys
 
 
 def test_pause_preserves_remaining_arrival_timeout():
@@ -139,8 +146,10 @@ def test_pause_preserves_remaining_arrival_timeout():
     at_deadline = feature.tick(
         context(feature, 10.51, marker=Marker((1, 1), False), frame=3)
     )
-    assert at_deadline.finished
-    assert feature.status.reason == "arrival_timeout"
+    assert not at_deadline.finished
+    retry = feature.tick(context(feature, 10.6, marker=Marker((1, 1)), frame=4))
+    assert retry.requests[0].action.point == (1, 1)
+    assert feature.index == 0
 
 
 def test_invalid_pause_duration_keeps_navigation_paused_and_resumable():
@@ -205,10 +214,10 @@ def test_combat_can_preempt_marker_search_before_any_movement():
         (None, Quality.ERROR, 0.0, "detector failed", "detector failed"),
         (None, Quality.UNKNOWN, 0.0, "region unavailable", "region unavailable"),
         (Target(0), Quality.KNOWN, 0.0, "", "unknown or stale observation"),
-        ("zero", Quality.KNOWN, 1.0, "", "invalid type str"),
+        ("zero", Quality.KNOWN, 3.0, "", "invalid type str"),
     ),
 )
-def test_navigation_fails_closed_on_unusable_target_evidence(
+def test_unavailable_target_evidence_waits_without_disabling_and_recovers(
     value, quality, observed_at, detail, expected
 ):
     feature = bot(
@@ -218,25 +227,26 @@ def test_navigation_fails_closed_on_unusable_target_evidence(
     observations = {}
     for sensor in feature.sensors():
         if sensor.kind is SensorKind.MARKER:
-            observation = Observation(sensor, Marker((9, 9)), 1.0, 1, 1)
+            observation = Observation(sensor, Marker((9, 9)), 3.0, 1, 1)
         else:
             observation = Observation(
                 sensor, value, observed_at, 1, 1, quality, detail
             )
         observations[sensor] = observation
     step = feature.tick(
-        FeatureContext(Snapshot(observations, frame_id=1, epoch=1, created_at=1.0), 1.0)
+        FeatureContext(Snapshot(observations, frame_id=1, epoch=1, created_at=3.0), 3.0)
     )
 
     assert step.requests == ()
-    assert step.finished
-    assert feature.failed
+    assert not step.finished
+    assert not feature.failed and feature.error is None
     assert feature.status.reason == "target_evidence_unavailable"
-    assert "dragon" in feature.error
-    assert expected in feature.error
+    assert "dragon" in step.phase and expected in step.phase
+    recovered = feature.tick(context(feature, 3.2, marker=Marker((9, 9)), frame=2))
+    assert recovered.requests[0].action.point == (9, 9)
 
 
-def test_navigation_fails_closed_when_target_observation_is_missing():
+def test_missing_target_observation_keeps_navigation_enabled_without_input():
     feature = bot(
         targets=(TargetSpec(1, "dragon"),),
         config=SessionConfig(follow=False),
@@ -251,12 +261,12 @@ def test_navigation_fails_closed_when_target_observation_is_missing():
     )
 
     assert step.requests == ()
-    assert step.finished
+    assert not step.finished and feature.error is None
     assert feature.status.reason == "target_evidence_unavailable"
-    assert "no observation" in feature.error
+    assert "no observation" in step.phase
 
 
-def test_unreadable_high_priority_target_does_not_select_lower_priority_target():
+def test_readable_target_can_be_attacked_when_higher_priority_name_is_unreadable():
     feature = bot(
         targets=(TargetSpec(1, "urgent"), TargetSpec(2, "ordinary")),
         config=SessionConfig(follow=False),
@@ -277,9 +287,10 @@ def test_unreadable_high_priority_target_does_not_select_lower_priority_target()
         FeatureContext(Snapshot(observations, frame_id=1, epoch=1, created_at=0.0), 0.0)
     )
 
-    assert step.requests == ()
-    assert step.finished
-    assert "urgent detector failed" in feature.error
+    assert not step.finished and feature.error is None
+    assert len(step.requests) == 1
+    assert step.requests[0].action.point == (20, 20)
+    assert step.requests[0].requirements[0].sensor.name == "ordinary"
 
 
 def test_navigation_binds_marker_and_known_target_absence_evidence():
@@ -344,6 +355,58 @@ def test_follow_request_uses_fresh_follow_evidence():
     assert request.action.kind is ActionKind.LEFT_CLICK
     assert request.action.point == (30, 31)
     assert request.requirements[0].sensor.kind is SensorKind.FOLLOW
+
+
+def test_follow_is_rechecked_while_attack_pending_and_without_new_target_readings():
+    feature = bot(targets=(TargetSpec(1, "Lizard *"),), config=SessionConfig(walking=False))
+    first = feature.tick(context(feature, 0, targets={"Lizard *": Target(1, (4, 4))}))
+    assert first.requests[0].action.point == (4, 4)
+    # Leave the attack pending: follow has its own action slot.
+    waiting = feature.tick(context(feature, 0.1, follow=(30, 31), frame=2))
+    request = waiting.requests[0]
+    assert request.requirements[0].sensor.kind is SensorKind.FOLLOW
+    feature.on_result(result(request, ResultState.EXECUTED, 0.1))
+    assert feature.tick(context(feature, 0.11, follow=(30, 31), frame=2)).requests == ()
+    again = feature.tick(context(feature, 0.12, follow=(30, 31), frame=3))
+    assert again.requests[0].action.point == (30, 31)  # no follow cooldown
+
+    feature.on_result(result(again.requests[0], ResultState.EXECUTED, 0.12))
+    feature.on_result(result(first.requests[0], ResultState.EXECUTED, 0.12))
+    unreadable = context(feature, 0.2, follow=(30, 31), frame=4)
+    observations = dict(unreadable.snapshot.observations)
+    for sensor in observations:
+        if sensor.kind is SensorKind.TARGET:
+            observations[sensor] = Observation(sensor, None, 0.2, 4, 1, Quality.UNKNOWN)
+    step = feature.tick(FeatureContext(Snapshot(observations, 4, 1, 0.2), 0.2))
+    assert not step.finished and feature.error is None
+    assert [request.action.point for request in step.requests] == [(30, 31)]
+
+
+def test_partial_count_drop_attacks_next_target_before_loot_then_restores_follow():
+    feature = bot(
+        targets=(TargetSpec(1, "Lizard *"),),
+        config=SessionConfig(walking=False, count_stable_samples=1, loot_button="right"),
+        loot_points=((10, 10),),
+    )
+    feature.tick(context(feature, 0, targets={"Lizard *": Target(3, (5, 5), True, False)}))
+    killed = feature.tick(context(feature, 0.2, frame=2,
+        targets={"Lizard *": Target(2, (6, 6), False, False)}, follow={"disable": (30, 31)}))
+    assert [(r.requirements[0].sensor.kind, r.action.point) for r in killed.requests] == [
+        (SensorKind.FOLLOW, (30, 31)), (SensorKind.TARGET, (6, 6)),
+    ]
+    assert all(r.action.kind is ActionKind.LEFT_CLICK for r in killed.requests)
+    for request in killed.requests:
+        feature.on_result(result(request, ResultState.EXECUTED, 0.2))
+
+    looting = feature.tick(context(feature, 0.4, frame=3,
+        targets={"Lizard *": Target(2, (6, 6), True, False)}))
+    assert [r.action for r in looting.requests] == [Action(ActionKind.RIGHT_CLICK, point=(10, 10))]
+    feature.on_result(result(looting.requests[0], ResultState.EXECUTED, 0.4))
+    restored = feature.tick(context(feature, 0.6, frame=4,
+        targets={"Lizard *": Target(2, (6, 6), True, False)}, follow={"": (30, 31)}))
+    assert [r.action.point for r in restored.requests] == [(30, 31)]
+    assert restored.requests[0].requirements[0].sensor.name == ""
+    assert not restored.finished and not feature.failed
 
 
 def test_loot_disabled_never_requests_a_loot_click():
@@ -543,7 +606,7 @@ def test_combat_during_arrival_clears_then_refinds_same_waypoint():
     assert feature.status.waypoint_id == "same"
 
 
-def test_combat_timeout_and_backend_failure_are_actionable_failures():
+def test_input_failure_is_reported_but_combat_timeout_keeps_attacking():
     feature = bot(
         targets=(TargetSpec(1, "dragon"),),
         config=SessionConfig(follow=False, combat_timeout=0.5),
@@ -576,8 +639,10 @@ def test_combat_timeout_and_backend_failure_are_actionable_failures():
             targets={"dragon": Target(1, None, True)}, frame=3,
         )
     )
-    assert final.finished
-    assert timed.status.reason == "combat_timeout"
+    assert not final.finished and not timed.failed
+    retarget = timed.tick(context(timed, 1.3, marker=Marker((1, 1)),
+                                 targets={"dragon": Target(1, (2, 2), False)}, frame=4))
+    assert retarget.requests[0].action.point == (2, 2)
 
 
 def test_pause_preserves_remaining_combat_timeout():
@@ -601,8 +666,11 @@ def test_pause_preserves_remaining_combat_timeout():
     at_deadline = feature.tick(
         context(feature, 10.70, marker=Marker((1, 1)), targets=target, frame=4)
     )
-    assert at_deadline.finished
-    assert feature.status.reason == "combat_timeout"
+    assert not at_deadline.finished and not feature.failed
+    feature.request_abort()
+    stopped = feature.tick(context(feature, 10.8, marker=Marker((1, 1)),
+                                   targets=target, frame=5))
+    assert stopped.finished and not stopped.requests
 
 
 def test_runtime_cancels_queued_navigation_when_combat_appears():
@@ -682,7 +750,7 @@ def test_runtime_cancels_queued_navigation_when_combat_appears():
     session.close()
 
 
-def test_runtime_never_dispatches_queued_navigation_after_target_evidence_fails():
+def test_runtime_cancels_old_navigation_and_selects_current_readable_target():
     class Clock:
         value = 0.0
 
@@ -761,9 +829,10 @@ def test_runtime_never_dispatches_queued_navigation_after_target_evidence_fails(
     clock.value = 0.2
     session.tick_once()
 
-    assert adapter.actions == [Action(ActionKind.PRESS, key="F1")]
+    assert adapter.actions == [Action(ActionKind.PRESS, key="F1"),
+                               Action(ActionKind.LEFT_CLICK, point=(20, 20))]
     status = session.feature_status("CaveBot")
-    assert not status.active
-    assert status.phase == "Failed"
-    assert "urgent detector failed" in status.error
+    assert status.active and status.error is None
+    # The old waypoint click must never be replayed on the changed battle list.
+    assert all(action.point != (10, 10) for action in adapter.actions)
     session.close()

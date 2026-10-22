@@ -800,8 +800,12 @@ def test_reacquisition_rejects_future_acquisition_time(app):
         app._input_work()
 
 
-def test_reacquisition_rejects_expired_template(app):
+def test_reacquisition_rejects_expired_template(app, monkeypatch):
+    from tools import desktop_probe
+
     stable_template(app, age=301)
+    app.preview_loaded_at = 699.0
+    monkeypatch.setattr(desktop_probe, "time", SimpleNamespace(monotonic=lambda: 1000.0))
     with pytest.raises(ValueError, match="stable template expired"):
         app._input_work()
 
@@ -826,6 +830,8 @@ def test_template_expiring_during_countdown_is_rejected_before_worker_request(ap
     from tibia_client import input_probe
 
     stable_template(app, age=299)
+    app.preview_loaded_at = 701.0
+    monkeypatch.setattr(desktop_probe, "time", SimpleNamespace(monotonic=lambda: 1000.0))
     work = app._input_work()
     observed = app.preview_loaded_at
     monkeypatch.setattr(desktop_probe, "time", SimpleNamespace(monotonic=lambda: observed + 301))

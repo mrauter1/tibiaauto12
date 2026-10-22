@@ -99,6 +99,7 @@ def test_snapshot_rejects_unsaved_editor_route_before_start(monkeypatch):
 
     owner = object.__new__(cavebot_module.CaveBot)
     owner.script_name = Variable("loop")
+    owner.walk_enabled = Variable(True)
     owner._route = Route("loop", (Waypoint("one", "Star"),))
     owner._validate_pack_activation = lambda: None
     class Existing:

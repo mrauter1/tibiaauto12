@@ -443,36 +443,31 @@ def test_observe_uses_one_frame_for_union_and_returns_domain_values(monkeypatch)
             seen_frames.append(frame)
             return 75 if self.name == "Health" else None
 
-    def locate(template, *, Region=None, Precision=None, frame=None):
+    def locate(template, *, Region=None, Precision=None, frame=None, Scale=1.0):
         seen_frames.append(frame)
-        if "MapSettings" in template:
-            return Match(17, 17, 6, 6, 0.8)
-        if "Targets" in template:
-            return Match(3, 4, 10, 6, 0.9)
-        if "NotFollow" in template:
-            return Match(4, 5, 8, 6, 0.8)
         if "NoRing" in template or "Hur" in template:
             return Match(0, 0, 2, 2, 0.9)
         return None
 
-    def locate_all(template, *, Region=None, Precision=None, frame=None):
+    def target(frame, region, name, scale, reader):
         seen_frames.append(frame)
-        return [Match(1, 2, 10, 6, 0.9), Match(20, 22, 10, 6, 0.88)]
+        assert region == (50, 30, 170, 100) and name == "Orc"
+        return Reading(Target(2, (58, 37), True))
 
-    def selected(region, *, frame, target):
+    def marker(frame, region, name, scale):
         seen_frames.append(frame)
-        assert target == "Orc"
-        return True
+        assert region == (20, 40, 60, 80) and name == "Flag"
+        return Reading(Marker((40, 60), True))
 
-    def need_follow(*, frame):
+    def follow(sensor, frame, scale=1.0, matches=None):
         seen_frames.append(frame)
-        return True
+        return Reading((8, 8))
 
     monkeypatch.setattr(desktop, "ScanStages", Bars)
     monkeypatch.setattr(desktop, "LocateMatch", locate)
-    monkeypatch.setattr(desktop, "LocateMatches", locate_all)
-    monkeypatch.setattr(desktop.Scanners, "target_selected", selected)
-    monkeypatch.setattr(desktop.Scanners, "NeedFollow", need_follow)
+    monkeypatch.setattr("tibia_client.battle_text.read_target", target)
+    monkeypatch.setattr("tibia_client.visual_readings.read_marker", marker)
+    monkeypatch.setattr(DesktopAdapter, "_follow", staticmethod(follow))
 
     sensors = [
         Sensor(SensorKind.HEALTH, (1, 1)),

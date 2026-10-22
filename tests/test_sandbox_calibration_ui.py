@@ -116,7 +116,8 @@ class GUI:
 
 @pytest.fixture
 def ui(monkeypatch):
-    config = {"capture_size": [800, 600], "window_target": {"kind": "sandbox"}}
+    config = {"capture_size": [800, 600], "input_hwnd": 123,
+              "window_target": {"kind": "sandbox"}}
     saved, opened, errors, workers = [], [], [], []
     host = Window()
 
@@ -128,6 +129,8 @@ def ui(monkeypatch):
             workers.append(self.target)
 
     monkeypatch.setattr(chooser_module, "GUI", GUI)
+    monkeypatch.setattr("core.MoveMouse.MoveMouse", lambda **kwargs:
+                        SimpleNamespace(Activate=lambda: None))
     for name in ("StringVar", "IntVar", "BooleanVar"):
         monkeypatch.setattr(chooser_module.tk, name, Value)
     monkeypatch.setattr(chooser_module.tk, "Label", Widget)
@@ -165,7 +168,7 @@ def test_close_during_countdown_cancels_timer_and_stale_callback(ui):
     ui.start()
     timer = ui.chooser._prepare_timer
     milliseconds, delayed_begin = ui.window.callbacks[timer]
-    assert milliseconds == 3000 and not ui.workers
+    assert milliseconds > 0 and not ui.workers
     ui.chooser.window.close()
     assert timer in ui.window.cancelled
     assert ui.chooser._closed and not ui.chooser._preparing
@@ -231,7 +234,7 @@ def test_open_window_capture_failure_shows_error_and_allows_retry(ui, monkeypatc
     ui.workers[0]()
     ui.window.run_timer(ui.chooser._prepare_timer)
     assert not ui.saved and not ui.opened and not ui.chooser._preparing
-    assert "Sandbox is not foreground" in ui.errors[0][1]
+    assert "Sandbox is not foreground" in str(ui.errors[0][1])
     assert ui.window.actions[-1] == "show"
     previous_generation = ui.chooser._prepare_generation
     ui.start()

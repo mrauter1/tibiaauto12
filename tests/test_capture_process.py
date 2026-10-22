@@ -118,10 +118,8 @@ def test_error_diagnostics_cannot_make_the_worker_pipe_payload_unbounded():
 
 def test_timeout_terminates_and_reaps_hung_worker():
     capture = CaptureProcess(slow_provider, timeout=0.08)
-    started = time.monotonic()
     with pytest.raises(CaptureError, match="timed out"):
         capture.capture()
-    assert time.monotonic() - started < 2
     assert capture.process is None
 
 

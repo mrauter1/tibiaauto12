@@ -79,15 +79,31 @@ class Reader:
         self.reads += 1
         return {name: known(self.reads) for name in FIELDS}
 
+    def visible_fields(self, frame, layout):
+        return set(FIELDS)
+
+    def relocate(self, frame, layout):
+        return None
+
+
+class VisualReader:
+    def read(self, frame):
+        return {}
+
+    def close(self):
+        pass
+
 
 @pytest.fixture
 def launch():
     monitors = []
 
-    def make(capture=None, reader=None, **kwargs):
+    def make(capture=None, reader=None, *, layout_cache_path=None, **kwargs):
         capture = capture or Capture()
         reader = reader or Reader()
-        monitor = ResourceMonitor(lambda: capture, lambda: reader, interval=0.01, **kwargs)
+        monitor = ResourceMonitor(lambda: capture, lambda: reader, interval=0.01,
+                                  visual_reader_factory=VisualReader, **kwargs)
+        monitor._cache_path = layout_cache_path
         monitors.append(monitor)
         monitor.start()
         return monitor, capture, reader
@@ -103,7 +119,8 @@ def test_freshness_expires_without_another_capture_and_rejects_future_time():
     assert display_readings(state, 10.04)[0].value == "710"
     assert display_readings(state, 10.04)[0].status == "Accepted"
     assert display_readings(state, 10.04)[0].age_ms == pytest.approx(40)
-    for now in (10.501, 9.99, float("nan")):
+    assert display_readings(state, 11.9)[0].value == "710"
+    for now in (12.001, 9.99, float("nan")):
         assert all(row.value == "N/A" and row.status == "Stale"
                    for row in display_readings(state, now))
     stopped = replace(state, phase="Stopped", running=False)
@@ -130,12 +147,15 @@ def test_invalid_crop_does_not_crash_presentation():
     assert all(row.region is None and row.value == "0" for row in rows)
 
 
-def test_only_latest_frame_is_retained_and_each_frame_is_decoded(launch):
+def test_capture_and_decode_progress_without_requiring_every_preview_to_be_decoded(launch):
     monitor, capture, reader = launch()
     await_condition(lambda: (monitor.state().sample or sample()).sequence >= 3)
     current = monitor.state().sample
-    assert current.readings[FIELDS[0]].value["count"] == current.sequence
-    assert current.total_ms >= current.capture_ms + current.decode_ms
+    await_condition(lambda: monitor.state().sample.readings[FIELDS[0]].quality is Quality.KNOWN)
+    current = monitor.state().sample
+    assert current.sequence <= monitor.state().preview.sequence
+    assert 0 < current.readings[FIELDS[0]].value["count"] <= current.sequence
+    assert current.total_ms >= current.decode_ms
     assert reader.discoveries == 1
     assert capture.count >= 3
     assert not monitor.start()
@@ -199,21 +219,23 @@ def test_stop_interrupts_capture_and_discovery_cooperatively(launch):
         monitor.start()
 
 
-def test_ambiguous_discovery_abstains_and_retries_at_a_bounded_rate(launch):
+def test_ambiguous_discovery_keeps_preview_running_without_reading_unknown_geometry(launch):
     class Ambiguous(Reader):
         def discover(self, *args, **kwargs):
             super().discover(*args, **kwargs)
             return SimpleNamespace(layout=None, detail="resource panel is ambiguous")
 
     monitor, _, reader = launch(reader=Ambiguous(), rediscovery_interval=0.08)
-    await_condition(lambda: reader.discoveries >= 2)
+    await_condition(lambda: reader.discoveries >= 1 and monitor.state().preview.sequence >= 3)
+    assert monitor.state().running
+    assert all(r.quality is Quality.UNKNOWN for r in monitor.state().sample.readings.values())
     monitor.stop()
     assert monitor.wait()
     assert reader.reads == 0
     assert reader.discoveries < 5
 
 
-def test_missing_rows_trigger_rediscovery(launch):
+def test_unreadable_number_keeps_layout_and_other_resource_readings(launch):
     class Missing(Reader):
         def read(self, *args, **kwargs):
             readings = super().read(*args, **kwargs)
@@ -221,7 +243,9 @@ def test_missing_rows_trigger_rediscovery(launch):
             return readings
 
     monitor, _, reader = launch(reader=Missing(), rediscovery_interval=0.04)
-    await_condition(lambda: reader.discoveries >= 2)
+    await_condition(lambda: reader.reads >= 3)
+    assert reader.discoveries == 1
+    assert monitor.state().sample.readings[FIELDS[0]].quality is Quality.KNOWN
     assert monitor.state().sample.readings[FIELDS[-1]].quality is Quality.UNKNOWN
 
 
@@ -267,15 +291,16 @@ assert 'pyautogui' not in sys.modules
     assert "--hwnd" in result.stdout
 
 
-def test_selected_decoder_reads_fixture_and_abstains_after_value_is_obscured(launch):
-    from tools.resource_reader import CurrentResourceReader
+def test_selected_decoder_reads_saved_layout_and_abstains_after_value_is_obscured(launch, tmp_path):
+    from tibia_client.resource_reader import ResourceReader
+    from tibia_client.retained_resources import save_layout
 
     reader = create_reader()
-    assert type(reader) is CurrentResourceReader
     path = Path(__file__).parent / "fixtures/resources/paulistinha-skills.png"
     with Image.open(path) as image:
         frame = Frame(image)
-    layout = reader.discover(frame, use_ocr=False).layout
+    # Seed known geometry offline; Windows OCR availability is not a decoder contract.
+    layout = ResourceReader().discover(frame, use_ocr=False).layout
     assert layout is not None
     assert [r.value["count"] for r in reader.read(frame, layout).values()] == [710, 1085, 4, 192]
     pixels = frame.pixels.copy()
@@ -288,7 +313,9 @@ def test_selected_decoder_reads_fixture_and_abstains_after_value_is_obscured(lau
             super().capture(token)
             return frame if self.count == 1 else changed
 
-    monitor, _, _ = launch(Sequence(), reader)
+    cache = tmp_path / "layout.json"
+    save_layout(cache, layout)
+    monitor, _, _ = launch(Sequence(), reader, layout_cache_path=cache)
     await_condition(lambda: monitor.state().sample is not None, timeout=20)
     first = monitor.state().sample
     # Subsequent captures may already have replaced the first. Check the live
@@ -316,27 +343,38 @@ def test_stop_cancels_a_blocked_capture_without_starting_discovery(launch):
     assert reader.discoveries == reader.reads == 0
 
 
-def test_stale_discovery_result_is_not_accepted_as_current(launch):
-    class HoldSecondCapture(Capture):
+def test_background_discovery_keeps_preview_live_and_decodes_current_pixels(launch):
+    entered, release = threading.Event(), threading.Event()
+
+    class ChangingCapture(Capture):
         def capture(self, token):
-            if self.count:
-                while True:
-                    token.checkpoint()
-                    time.sleep(0.001)
-            return super().capture(token)
+            super().capture(token)
+            return Frame(np.full((12, 20, 3), self.count % 200 + 20, dtype=np.uint8))
 
     class SlowDiscovery(Reader):
         def discover(self, *args, **kwargs):
-            time.sleep(0.55)
+            entered.set()
+            assert release.wait(5), "Test did not release discovery"
             return super().discover(*args, **kwargs)
 
-    monitor, _, _ = launch(HoldSecondCapture(), SlowDiscovery())
-    await_condition(lambda: monitor.state().sample is not None)
-    state = monitor.state()
-    assert state.sample.sequence == 1
-    rows = display_readings(state, time.monotonic())
-    assert all(row.value == "N/A" and row.status == "Stale" for row in rows)
-    assert state.sample.discovery_ms >= 500
+        def read(self, frame, layout, *, use_ocr):
+            return {name: known(int(frame.pixels[0, 0, 0])) for name in FIELDS}
+
+    monitor, _, _ = launch(ChangingCapture(), SlowDiscovery())
+    try:
+        assert entered.wait(3)
+        await_condition(lambda: monitor.state().sample is not None
+                        and monitor.state().preview.sequence >= 3)
+        before = monitor.state()
+        assert all(row.quality is Quality.UNKNOWN for row in before.sample.readings.values())
+        release.set()
+        await_condition(lambda: monitor.state().sample.readings[FIELDS[0]].quality is Quality.KNOWN)
+        current = monitor.state().sample
+        assert current.sequence > before.sample.sequence
+        assert all(row.value["count"] == int(current.frame.pixels[0, 0, 0])
+                   for row in current.readings.values())
+    finally:
+        release.set()
 
 
 def test_monitor_window_shows_values_crops_staleness_and_clears_on_stop():
@@ -365,6 +403,9 @@ def test_monitor_window_shows_values_crops_staleness_and_clears_on_stop():
 
         close = stop
 
+        def recalibrate(self):
+            pass
+
     monitor = ViewMonitor()
     now = [10.04]
     ui = ResourceMonitorWindow(root, monitor=monitor, clock=lambda: now[0])
@@ -376,20 +417,23 @@ def test_monitor_window_shows_values_crops_staleness_and_clears_on_stop():
 
     try:
         assert monitor.starts == 0
-        monitor.current = MonitorState("Monitoring", sample(), running=True)
+        current = sample()
+        monitor.current = MonitorState("Monitoring", current, running=True, preview=current)
         refresh()
-        assert str(ui.table.item(FIELDS[0], "values")[1]) == "710"
-        assert ui.table.item(FIELDS[0], "values")[2] == "Accepted"
-        assert len(ui._photos) == 5  # one matching frame plus four crops
-        now[0] = 10.6
+        assert ui.table.set(FIELDS[0], "value") == "710"
+        assert ui.table.set(FIELDS[0], "status") == "Accepted"
+        assert ui.preview.find_all() and ui.crop.find_all() and ui._photos
+        now[0] = 12.1
         refresh()
-        assert ui.table.item(FIELDS[0], "values")[1:3] == ("N/A", "Stale")
+        assert ui.table.set(FIELDS[0], "value") == "N/A"
+        assert ui.table.set(FIELDS[0], "status") == "Stale"
         assert "STALE" in ui.preview_title.get()
-        assert "N/A" in ui.crop_boxes[FIELDS[0]].cget("text")
+        assert "N/A" in ui.crop_box.cget("text")
         ui.stop()
         refresh()
         assert ui._photos == []
-        assert ui.table.item(FIELDS[0], "values")[1:3] == ("N/A", "Stopped")
+        assert ui.table.set(FIELDS[0], "value") == "N/A"
+        assert ui.table.set(FIELDS[0], "status") == "Stopped"
     finally:
         ui.close()
         root.destroy()

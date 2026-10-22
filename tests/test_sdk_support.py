@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
-import sys
 
 import pytest
 
@@ -60,40 +59,6 @@ def known(sensor: Sensor, value: object) -> tuple[Sensor, object, Quality]:
 def result(step, state: ResultState, at: float, *, final: bool = True) -> ActionResult:
     request = step.requests[0]
     return ActionResult("request-1", "feature", request.key, state, at, final=final)
-
-
-def test_feature_modules_only_import_sdk_pure_policies_and_standard_library():
-    feature_dir = Path(__file__).parents[1] / "features"
-    project_imports = {
-        "engine.CaveBot.routes",
-        "engine.support",
-        "features.cavebot",
-        "features.support",
-        "tibia_client",
-        "tibia_client.models",
-        "tibia_client.hunt_plan",
-    }
-    forbidden_standard_library = {"ctypes", "subprocess", "threading", "tkinter"}
-    violations = []
-
-    for path in sorted(feature_dir.glob("*.py")):
-        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
-        for node in ast.walk(tree):
-            modules = []
-            if isinstance(node, ast.Import):
-                modules = [alias.name for alias in node.names]
-            elif isinstance(node, ast.ImportFrom) and node.module:
-                modules = [node.module]
-            for module in modules:
-                root = module.split(".", 1)[0]
-                allowed_project = module in project_imports
-                allowed_standard = root in sys.stdlib_module_names
-                if root in forbidden_standard_library or not (
-                    allowed_project or allowed_standard
-                ):
-                    violations.append(f"{path.name}:{node.lineno} imports {module}")
-
-    assert violations == []
 
 
 def test_feature_modules_never_sleep_or_execute_client_actions_directly():

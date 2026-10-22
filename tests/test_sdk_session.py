@@ -131,7 +131,7 @@ def test_due_features_share_one_snapshot_and_missing_reading_is_unknown():
     session.close()
 
 
-def test_priority_dispatches_one_action_then_low_priority_regenerates_on_new_frame():
+def test_same_health_binding_prioritizes_healing_before_lower_priority_key():
     clock = Clock()
     adapter = Adapter(clock)
     heal = Feature(
@@ -157,6 +157,42 @@ def test_priority_dispatches_one_action_then_low_priority_regenerates_on_new_fra
         for result in loot.results
     )
     session.close()
+
+
+def test_healing_mana_follow_and_loot_can_dispatch_in_the_same_cycle():
+    from engine.CaveBot.routes import Route, Waypoint
+    from engine.support import Threshold
+    from features import CaveBot, HealFeature, ManaFeature, SessionConfig, TargetSpec
+    from tibia_client import Target
+
+    clock = Clock()
+    mana = Sensor(SensorKind.MANA)
+    target = Sensor(SensorKind.TARGET, (5, 6, 7, 8), "Lizard *")
+    follow = Sensor(SensorKind.FOLLOW)
+    hold = Sensor(SensorKind.FOLLOW, name="disable")
+    shared = {HEALTH: Reading(20), mana: Reading(20),
+              follow: Reading(None), hold: Reading((30, 31))}
+    adapter = Adapter(clock, readings=[
+        {**shared, target: Reading(Target(2, (5, 5), True))},
+        {**shared, target: Reading(Target(1, (5, 5), True))},
+    ])
+    cavebot = CaveBot(Route("test", (Waypoint("one", "CheckMark"),)), (TargetSpec(1, "Lizard *"),),
+        config=SessionConfig(walking=False, count_stable_samples=1, loot_button="right"),
+        map_region=(1, 2, 3, 4), battle_region=target.region, loot_points=((10, 10),))
+    with ClientSession(adapter, clock=clock, autostart=False) as session:
+        session.start_feature(cavebot)
+        session.start_feature(ManaFeature(mana, (Threshold(True, 50, "F4"),)))
+        session.start_feature(HealFeature(HEALTH, (Threshold(True, 50, "F1"),)))
+        session.tick_once()
+        adapter.actions.clear()
+        clock.advance(0.2)
+        session.tick_once()
+        assert adapter.actions == [
+            Action(ActionKind.PRESS, key="F1"), Action(ActionKind.PRESS, key="F4"),
+            Action(ActionKind.LEFT_CLICK, point=(30, 31)),
+            Action(ActionKind.RIGHT_CLICK, point=(10, 10)),
+        ]
+        assert session.feature_status("CaveBot").active
 
 
 def test_stale_bound_observation_is_rejected_before_dispatch():
@@ -343,27 +379,42 @@ def test_initial_readiness_blocks_observation_and_input_then_recovers():
     session.close()
 
 
-def test_readiness_timeout_and_capture_error_fail_closed():
-    clock = Clock()
-    adapter = Adapter(clock, ready=[False])
-    feature = Feature("wait", (HEALTH,))
-    session = ClientSession(adapter, clock=clock, ready_timeout=0.2, autostart=False)
-    session.start_feature(feature)
-    session.tick_once()
-    clock.advance(0.2)
-    session.tick_once()
-    assert session.feature_status("wait").phase == "Failed"
-    assert adapter.closed == 0
-    adapter.ready_values = [True]
-    recovered = Feature(
-        "recovered", (),
-        (Step((Request("ready", Action(ActionKind.PRESS, key="F10")),)),),
-    )
-    session.start_feature(recovered)
-    session.tick_once()
-    assert [action.key for action in adapter.actions] == ["F10"]
-    session.close()
+def test_repeated_capture_timeouts_keep_cavebot_and_healing_enabled_until_stopped():
+    from engine.CaveBot.routes import Route, Waypoint
+    from engine.support import Threshold
+    from features import CaveBot, HealFeature, SessionConfig, TargetSpec
+    from tibia_client import Target
+    from tibia_client.capture import TransientCaptureError
 
+    clock = Clock()
+    target = Sensor(SensorKind.TARGET, (5, 6, 7, 8), "Lizard *")
+    adapter = Adapter(clock, readings=[{HEALTH: Reading(20), target: Reading(Target(1, (5, 5), True))}])
+    cavebot = CaveBot(Route("test", (Waypoint("one", "CheckMark"),)), (TargetSpec(1, "Lizard *"),),
+        config=SessionConfig(walking=False, follow=False), map_region=(1, 2, 3, 4), battle_region=target.region)
+    with ClientSession(adapter, clock=clock, autostart=False) as session:
+        session.start_feature(cavebot)
+        session.start_feature(HealFeature(HEALTH, (Threshold(True, 50, "F1"),)))
+        session.tick_once()
+        adapter.actions.clear()
+        adapter.observe_error = TransientCaptureError("capture timed out")
+        for delay in (0.3, 4.0, 60.0):
+            clock.advance(delay)
+            session.tick_once()
+            assert session.feature_status("CaveBot").active
+            assert session.feature_status("AutoHeal").active
+            assert adapter.actions == [] and adapter.closed == 0
+        adapter.observe_error = None
+        adapter.readings = [{HEALTH: Reading(20), target: Reading(Target(1, (5, 5)))}]
+        clock.advance(0.3)
+        session.tick_once()
+        assert adapter.actions == [Action(ActionKind.PRESS, key="F1"),
+                                   Action(ActionKind.LEFT_CLICK, point=(5, 5))]
+        session.stop_feature("CaveBot")
+        assert not session.feature_status("CaveBot").active
+
+
+def test_unclassified_capture_error_is_reported_without_sending_input():
+    clock = Clock()
     second_adapter = Adapter(clock)
     second_adapter.observe_error = OSError("capture source lost")
     second = ClientSession(second_adapter, clock=clock, autostart=False)

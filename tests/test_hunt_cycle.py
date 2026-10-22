@@ -83,7 +83,7 @@ def context(
 ):
     observations = {}
     for sensor in feature.sensors():
-        observed_at = now - 2 if sensor.name in stale else now
+        observed_at = now - 3 if sensor.name in stale else now
         if sensor.kind is SensorKind.VISUAL:
             reading = visual.get(sensor.name, {"present": False, "position": None, "count": None})
             quality = Quality.UNKNOWN if sensor.name in unknown else Quality.KNOWN
@@ -336,7 +336,7 @@ def test_unknown_and_stale_visuals_never_authorize_input():
         "detector_mana_potions": {"present": True, "position": (1, 1), "count": 8},
     }
     assert feature.tick(context(feature, 1, 0.0, visual, unknown=("detector_prepared",))).requests == ()
-    assert feature.tick(context(feature, 2, 2.0, visual, stale=("detector_prepared",))).requests == ()
+    assert feature.tick(context(feature, 2, 3.0, visual, stale=("detector_prepared",))).requests == ()
 
 
 def test_input_failure_reconciles_before_retry_and_unknown_timeout_goes_manual():

@@ -2,6 +2,7 @@ name: Offline reliability checks
 
 on:
   push:
+    branches: [master]
   pull_request:
 
 permissions:
