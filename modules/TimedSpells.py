@@ -24,7 +24,7 @@ class TimedSpells:
         self.instant = tk.BooleanVar(value=bool(data.get("InstantExecute", False)))
         ttk.Label(self.ui.body, text="Hotkey").grid(row=0, column=0, sticky="w")
         self.key_widget = ttk.Combobox(
-            self.ui.body, values=hotkeys(), textvariable=self.key, state="readonly"
+            self.ui.body, values=hotkeys(), textvariable=self.key, state="normal"
         )
         self.key_widget.grid(row=0, column=1)
         ttk.Label(self.ui.body, text="Every seconds").grid(row=1, column=0, sticky="w")
@@ -130,7 +130,7 @@ class TimedSpells:
         self.enabled = True
         set_enabled(self._controls, False)
         self.button.configure(text="TimedSpells: ON")
-        self.ui.status("Armed — focus game")
+        self.ui.status("Armed — keep game foreground")
         try:
             self._client.start_feature(TimedSpellsFeature(spells, immediate=instant, spacing=0.15))
         except (ValueError, RuntimeError) as exc:

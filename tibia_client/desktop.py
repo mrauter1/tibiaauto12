@@ -16,11 +16,10 @@ from typing import Any, Sequence
 from conf.Constants import LifeColor, LifeColorFull, ManaColor, ManaColorFull
 from conf.Hotkeys import Hotkey
 from core import runtime
-from core.HookWindow import LocateMatch, LocateMatches
+from core.HookWindow import LocateMatch
 from core.perception import CaptureError, Frame, as_frame, validate_region
-from engine.CaveBot import Scanners
 from engine.ScanStages import ScanStages
-from tibia_client.capture import CaptureProcess
+from tibia_client.capture import CaptureProcess, TransientCaptureError
 from tibia_client.adaptive_runtime import AdaptiveResourceTracker, CaptureInputMapping
 from tibia_client.diagnostics import AdapterCapabilities
 from tibia_client.models import (
@@ -66,6 +65,8 @@ def _region(sensor: Sensor, length: int) -> tuple[int, ...]:
 class DesktopAdapter:
     """Read one coherent client frame and dispatch validated desktop actions."""
 
+    availability_policy = "on_error"
+
     def __init__(
         self,
         mouse_mode: int,
@@ -76,6 +77,7 @@ class DesktopAdapter:
         visual_profile: VisualProfile | Mapping[str, object] | None = None,
         adaptive_tracker: AdaptiveResourceTracker | None = None,
         coordinate_mapping: CaptureInputMapping | None = None,
+        ui_scale: float = 1.0,
     ) -> None:
         if isinstance(mouse_mode, bool) or mouse_mode not in (0, 1):
             raise ValueError("mouse_mode must be 0 (message) or 1 (physical)")
@@ -85,6 +87,9 @@ class DesktopAdapter:
             else VisualProfile(visual_profile)
         )
         self.mouse_mode = int(mouse_mode)
+        self.ui_scale = float(ui_scale)
+        from tibia_client.battle_text import BattleTextReader
+        self._battle_text = BattleTextReader()
         native_hotkey = hotkey is None
         self.hotkey = hotkey if hotkey is not None else Hotkey(self.mouse_mode)
         if capture_provider is None:
@@ -94,7 +99,7 @@ class DesktopAdapter:
             from conf.conf_manager import ConfManager
 
             capture_size = ConfManager.get("conf.json").get("capture_size")
-            self.capture_provider = CaptureProcess(capture_size=capture_size)
+            self.capture_provider = CaptureProcess(capture_size=capture_size, startup_timeout=15.0)
         else:
             self.capture_provider = capture_provider
         self._evidence_source = (
@@ -117,6 +122,7 @@ class DesktopAdapter:
         )
         self._last_capture_at: float | None = None
         self._capture_error: str | None = None
+        self.last_error_diagnostic = None
         self._visual_profile = compiled_visual_profile
         if adaptive_tracker is not None and not isinstance(
             adaptive_tracker, AdaptiveResourceTracker
@@ -193,7 +199,7 @@ class DesktopAdapter:
         return bool(checker())
 
     def ready(self) -> bool:
-        """Read fresh target dimensions and readiness without generating input."""
+        """Explicit manual diagnostic; normal ticks/actions do not call this."""
 
         if self._closed:
             return False
@@ -214,6 +220,30 @@ class DesktopAdapter:
         except Exception:
             return False
 
+    def _diagnose_operation_error(self, error: Exception) -> None:
+        """Keep a failed operation's diagnostic without repeating its input."""
+        current = error
+        visited = set()
+        detail = None
+        while current is not None and id(current) not in visited:
+            visited.add(id(current))
+            detail = getattr(current, "client_availability", None)
+            if detail is not None:
+                break
+            current = current.__cause__
+        if detail is None:
+            try:
+                diagnose = getattr(self.hotkey, "diagnose_availability", None)
+                detail = (diagnose(error) if callable(diagnose)
+                          else {"is_window": self._backend_check("IsReady")})
+            except Exception as exc:
+                detail = {"diagnostic_error": f"{type(exc).__name__}: {exc}"}
+        self.last_error_diagnostic = detail
+        try:
+            error.client_availability = detail
+        except Exception:
+            pass
+
     def _capture(self, token: Any) -> Frame:
         provider = self.capture_provider
         if isinstance(provider, CaptureProcess):
@@ -222,8 +252,18 @@ class DesktopAdapter:
         value = method() if callable(method) else provider()
         return as_frame(value, source="desktop-adapter")
 
+    def _capture_failure(self, message: str):
+        failure = CaptureError(message)
+        self._diagnose_operation_error(failure)
+        raise failure
+
     @staticmethod
     def _bar(sensor: Sensor, frame: Frame) -> Reading:
+        if len(sensor.region) == 4:
+            from engine.ScanStages import read_bar_region
+            value = read_bar_region(frame, sensor.region, sensor.kind.value)
+            return Reading(value) if value is not None else Reading(
+                None, Quality.UNKNOWN, "calibrated bar is not readable")
         anchor = _region(sensor, 2)
         if sensor.kind is SensorKind.HEALTH:
             scanner = ScanStages("Health")
@@ -239,94 +279,72 @@ class DesktopAdapter:
             )
         return Reading(int(value))
 
-    @staticmethod
-    def _present(template: str, sensor: Sensor, frame: Frame, *, precision: float = 0.9) -> Reading:
+    def _present(self, template: str, sensor: Sensor, frame: Frame, *, precision: float = 0.9) -> Reading:
         region = _region(sensor, 4)
         return Reading(
-            LocateMatch(template, Region=region, Precision=precision, frame=frame) is not None
+            LocateMatch(template, Region=region, Precision=precision, frame=frame, Scale=self.ui_scale) is not None
         )
 
-    @staticmethod
-    def _target(sensor: Sensor, frame: Frame) -> Reading:
+    def _target(self, sensor: Sensor, frame: Frame) -> Reading:
         region = _region(sensor, 4)
-        if not sensor.name.strip():
-            raise ValueError("target sensor needs a monster name")
-        matches = LocateMatches(
-            f"images/Targets/Names/{sensor.name}.png",
-            Region=region,
-            Precision=0.8,
-            frame=frame,
-        )
-        # Counting deliberately uses the broader 0.8 NMS result.  A click
-        # requires the legacy scanner's stricter best-match threshold.
-        best = LocateMatch(
-            f"images/Targets/Names/{sensor.name}.png",
-            Region=region,
-            Precision=0.86,
-            frame=frame,
-        )
-        position = None if best is None else (
-            region[0] + best.center[0],
-            region[1] + best.center[1],
-        )
-        selected = bool(
-            Scanners.target_selected(region, frame=frame, target=sensor.name)
-        )
-        return Reading(Target(count=len(matches), position=position, selected=selected))
+        from tibia_client.battle_text import read_target
+        return read_target(frame, region, sensor.name, self.ui_scale, self._battle_text)
 
     @staticmethod
-    def _marker(sensor: Sensor, frame: Frame) -> Reading:
+    def _marker(sensor: Sensor, frame: Frame, scale: float = 1.0) -> Reading:
         region = _region(sensor, 4)
         if not sensor.name.strip():
             raise ValueError("marker sensor needs a marker name")
-        # Navigation uses stricter click evidence than the legacy arrival
-        # predicate, so preserve both thresholds on the same frame.
-        match = LocateMatch(
-            f"images/MapSettings/{sensor.name}.png",
-            Region=region,
-            Precision=0.8,
-            frame=frame,
-        )
-        arrival = LocateMatch(
-            f"images/MapSettings/{sensor.name}.png",
-            Region=region,
-            Precision=0.7,
-            frame=frame,
-        )
-        width, height = region[2] - region[0], region[3] - region[1]
-        reached = False
-        if arrival is not None:
-            arrival_x, arrival_y = arrival.center
-            reached = (
-                abs(arrival_x - width / 2.0) <= math.ceil(arrival.width / 2.0)
-                and abs(arrival_y - height / 2.0) <= math.ceil(arrival.height / 2.0)
-            )
-        if match is None:
-            return Reading(Marker(position=None, reached=reached))
-        relative_x, relative_y = match.center
-        return Reading(
-            Marker(
-                position=(region[0] + relative_x, region[1] + relative_y),
-                reached=reached,
-            )
-        )
+        from tibia_client.visual_readings import read_marker
+        return read_marker(frame, region, sensor.name, scale)
 
     @staticmethod
-    def _follow(sensor: Sensor, frame: Frame) -> Reading:
+    def _follow(sensor: Sensor, frame: Frame, scale: float = 1.0, matches=None) -> Reading:
         if sensor.region:
             raise ValueError("follow sensor does not take a region")
-        if not Scanners.NeedFollow(frame=frame):
-            return Reading(None)
-        button = LocateMatch(
-            "images/TibiaSettings/NotFollow.png", Precision=0.7, frame=frame
-        )
+        if sensor.name not in ("", "disable"):
+            raise ValueError("follow sensor name must be empty (enable) or 'disable'")
+        # Enable/disable requests share these template matches within one frame.
+        matches = {} if matches is None else matches
+
+        def match(name):
+            if name not in matches:
+                matches[name] = LocateMatch(
+                    f"images/TibiaSettings/{name}.png", Precision=0.7, frame=frame, Scale=scale)
+            return matches[name]
+
+        def active(name):
+            found = match(name)
+            if found is None:
+                return False
+            # Matching is grayscale: inactive gray buttons can match the same
+            # glyph. Require the active red standing / green following colour.
+            pixels = frame.pixels[found.y:found.y+found.height,
+                                  found.x:found.x+found.width].astype("int16")
+            red, green, blue = pixels[:, :, 0], pixels[:, :, 1], pixels[:, :, 2]
+            coloured = ((red > 100) & (red > green+35) & (red > blue+35) if name == "Idle" else
+                        (green > 100) & (green > red+35) & (green > blue+25))
+            return int(coloured.sum()) >= max(3, round(5*scale*scale))
+
+        disabling = sensor.name == "disable"
+        desired, opposite, button_name = (("Idle", "Following", "NotIdle") if disabling else
+                                          ("Following", "Idle", "NotFollow"))
+        diagnostics = {"reader": "follow-controls", "ui_scale": scale,
+                       "desired_follow": not disabling}
+        desired_active, opposite_active = active(desired), active(opposite)
+        if desired_active and not opposite_active:
+            return Reading(None, diagnostics=diagnostics)
+        if desired_active == opposite_active:
+            return Reading(None, Quality.UNKNOWN, "follow mode is unreadable", diagnostics)
+        button = match(button_name)
         if button is None:
             return Reading(
                 None,
                 Quality.UNKNOWN,
-                "follow is needed but the enable-follow button is unreadable",
+                f"follow change is needed but the {button_name} button is unreadable",
+                diagnostics,
             )
-        return Reading(button.center)
+        return Reading(button.center, diagnostics=diagnostics)
 
     def _validate_sensor(self, sensor: Sensor, frame: Frame) -> None:
         """Validate every requested geometry before any detector executes."""
@@ -334,6 +352,9 @@ class DesktopAdapter:
         if not isinstance(sensor, Sensor):
             raise TypeError("observe sensors must be Sensor values")
         if sensor.kind in (SensorKind.HEALTH, SensorKind.MANA):
+            if len(sensor.region) == 4:
+                validate_region(_region(sensor, 4), frame.size)
+                return
             anchor_x, anchor_y = _region(sensor, 2)
             # ScanStages reads x+5 through x+100 inclusive on one row.
             validate_region((anchor_x + 5, anchor_y, anchor_x + 101, anchor_y + 1), frame.size)
@@ -357,6 +378,8 @@ class DesktopAdapter:
         if sensor.kind is SensorKind.FOLLOW:
             if sensor.region:
                 raise ValueError("follow sensor does not take a region")
+            if sensor.name not in ("", "disable"):
+                raise ValueError("follow sensor name must be empty (enable) or 'disable'")
             return
         if sensor.kind is SensorKind.VISUAL:
             region = validate_region(_region(sensor, 4), frame.size)
@@ -371,7 +394,7 @@ class DesktopAdapter:
             return
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
 
-    def _read(self, sensor: Sensor, frame: Frame) -> Reading:
+    def _read(self, sensor: Sensor, frame: Frame, *, follow_matches=None) -> Reading:
         if sensor.kind is SensorKind.FRAME_VALID:
             return Reading(True)
         if sensor.kind in (SensorKind.HEALTH, SensorKind.MANA):
@@ -387,9 +410,9 @@ class DesktopAdapter:
         if sensor.kind is SensorKind.TARGET:
             return self._target(sensor, frame)
         if sensor.kind is SensorKind.MARKER:
-            return self._marker(sensor, frame)
+            return self._marker(sensor, frame, self.ui_scale)
         if sensor.kind is SensorKind.FOLLOW:
-            return self._follow(sensor, frame)
+            return self._follow(sensor, frame, self.ui_scale, follow_matches)
         if sensor.kind is SensorKind.VISUAL:
             return self._visual_profile.read(sensor, frame)
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
@@ -404,7 +427,7 @@ class DesktopAdapter:
         diagnostics = dict(reading.diagnostics)
         if isinstance(value, Target) and value.position is not None:
             diagnostics.setdefault("capture_position", value.position)
-            value = Target(value.count, mapping.capture_to_input(value.position), value.selected)
+            value = Target(value.count, mapping.capture_to_input(value.position), value.selected, value.count_complete)
         elif isinstance(value, Marker) and value.position is not None:
             diagnostics.setdefault("capture_position", value.position)
             value = Marker(mapping.capture_to_input(value.position), value.reached)
@@ -427,6 +450,7 @@ class DesktopAdapter:
         if self._closed:
             raise DesktopAdapterError("desktop adapter is closed")
         token.checkpoint()
+        self.last_error_diagnostic = None
         observed_at = float(self.clock.monotonic())
         try:
             frame = self._capture(token)
@@ -434,7 +458,11 @@ class DesktopAdapter:
             self._capture_error = f"{type(exc).__name__}: {exc}"
             if _cancelled(token):
                 raise
-            raise CaptureError(f"desktop observation capture failed: {exc}") from exc
+            self._diagnose_operation_error(exc)
+            failure_type = TransientCaptureError if isinstance(exc, TransientCaptureError) else CaptureError
+            failure = failure_type(f"desktop observation capture failed: {exc}")
+            failure.client_availability = self.last_error_diagnostic
+            raise failure from exc
         if self._capture_size is None:
             self._capture_size = frame.size
         elif frame.size != self._capture_size:
@@ -443,17 +471,17 @@ class DesktopAdapter:
                 f"{self._capture_size[0]}x{self._capture_size[1]} to "
                 f"{frame.size[0]}x{frame.size[1]}"
             )
-            raise CaptureError(self._capture_error + "; recalibrate the client profile")
+            self._capture_failure(self._capture_error + "; recalibrate the client profile")
         if self._coordinate_mapping is None:
             self._coordinate_mapping = CaptureInputMapping(frame.size, frame.size)
         elif self._coordinate_mapping.capture_size != frame.size:
-            raise CaptureError("capture geometry differs from the configured coordinate mapping")
+            self._capture_failure("capture geometry differs from the configured coordinate mapping")
         # An exactly uniform black PrintWindow result is an observable capture
         # failure.  This check says nothing about a static or frozen upstream
         # source; non-black identical frames remain explicitly unverified.
         if not bool(frame.pixels.any()):
             self._capture_error = "capture returned an exactly uniform black frame"
-            raise CaptureError(self._capture_error)
+            self._capture_failure(self._capture_error)
         if isinstance(self.capture_provider, CaptureProcess) and self._system_clock:
             capture_started = self.capture_provider.last_observed_at
             returned_at = float(self.clock.monotonic())
@@ -462,7 +490,7 @@ class DesktopAdapter:
                 or not math.isfinite(capture_started)
                 or not 0 <= returned_at - capture_started
             ):
-                raise CaptureError("capture process returned an invalid observation timestamp")
+                self._capture_failure("capture process returned an invalid observation timestamp")
             observed_at = capture_started
         self._last_capture_at = observed_at
         self._capture_error = None
@@ -470,6 +498,7 @@ class DesktopAdapter:
 
         readings: dict[Sensor, Reading] = {}
         cache: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
+        follow_matches = {}
         invalid: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
         visual_work = 0
         budgeted_visual: set[tuple[SensorKind, tuple[int, ...], str]] = set()
@@ -522,7 +551,7 @@ class DesktopAdapter:
                     adaptive_requests[sensor] = adaptive
                     continue
                 try:
-                    reading = self._input_reading(self._read(sensor, frame))
+                    reading = self._input_reading(self._read(sensor, frame, follow_matches=follow_matches))
                 except Exception as exc:
                     if _cancelled(token):
                         raise
@@ -584,13 +613,31 @@ class DesktopAdapter:
                 return
             # Compatibility for small injected test/third-party facades that
             # predate the dedicated screen-coordinate restore API.
-            width, height = self.hotkey.MainWindowSize()
-            if not _cancelled(token) and 0 <= x < int(width) and 0 <= y < int(height):
+            if not _cancelled(token) and x >= 0 and y >= 0:
                 self.hotkey.MoveTo(x, y)
-        except Exception:
+        except Exception as exc:
             # Restoration is best effort after the requested action; changed
             # focus or dimensions must not cause another input attempt.
+            if not _cancelled(token):
+                self._diagnose_operation_error(exc)
             return
+
+    def activate_input(self) -> bool:
+        """Activate once at an explicit lifecycle start, before capture or dispatch."""
+        if self._closed:
+            raise DesktopAdapterError("desktop adapter is closed")
+        if self.mouse_mode != 1:
+            return False
+        activate = getattr(self.hotkey, "Activate", None)
+        if not callable(activate):
+            return False
+        try:
+            return bool(activate())
+        except Exception as exc:
+            self._diagnose_operation_error(exc)
+            failure = DesktopAdapterError(f"could not activate input client: {exc}")
+            failure.client_availability = self.last_error_diagnostic
+            raise failure from exc
 
     def execute(self, action: Action, token: Any) -> None:
         if self._closed:
@@ -599,14 +646,7 @@ class DesktopAdapter:
             raise TypeError("execute action must be an Action value")
         token.checkpoint()
         self._last_cursor_transition = None
-        # Revalidate the live input binding immediately before entering the
-        # native transaction.  A moved/recreated window or geometry change must
-        # not inherit coordinates from an earlier capture.
-        if not self.ready():
-            raise DesktopAdapterError(
-                "input target is no longer ready or its geometry changed; recalibrate"
-            )
-        token.checkpoint()
+        self.last_error_diagnostic = None
         previous = None
         preserve = self.mouse_mode == 1 and action.kind is not ActionKind.PRESS
         restore_support = getattr(self.hotkey, "SupportsScreenRestore", None)
@@ -668,16 +708,37 @@ class DesktopAdapter:
         except Exception as exc:
             if _cancelled(token):
                 raise
-            raise DesktopAdapterError(
+            self._diagnose_operation_error(exc)
+            failure = DesktopAdapterError(
                 f"{action.kind.value} action failed: {type(exc).__name__}: {exc}"
-            ) from exc
+            )
+            failure.client_availability = self.last_error_diagnostic
+            raise failure from exc
 
     def close(self) -> None:
         self._closed = True
+        self._battle_text.close()
         self._adaptive_tracker.close()
         close = getattr(self.capture_provider, "close", None)
         if callable(close):
             close()
 
 
-__all__ = ["DesktopAdapter", "DesktopAdapterError"]
+class KeyboardDesktopAdapter(DesktopAdapter):
+    """Production keyboard modules without pretending image calibration succeeded."""
+
+    def capabilities(self) -> AdapterCapabilities:
+        return AdapterCapabilities(operations=("press", "modified_press"), sensors=())
+
+    def observe(self, sensors: Sequence[Sensor], token: Any) -> ObservationBatch:
+        if sensors:
+            raise DesktopAdapterError("image calibration is required for visual sensors")
+        return super().observe(sensors, token)
+
+    def execute(self, action: Action, token: Any) -> None:
+        if action.kind is not ActionKind.PRESS:
+            raise DesktopAdapterError("keyboard modules only support key presses")
+        return super().execute(action, token)
+
+
+__all__ = ["DesktopAdapter", "DesktopAdapterError", "KeyboardDesktopAdapter"]

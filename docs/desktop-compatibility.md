@@ -116,7 +116,11 @@ Do not interpret repeated identical images as conclusive freeze detection.
 - **Hunt Console** keeps Stop All available while a navigation start, pause, or
   resume control is pending, so a slow control operation cannot hide the stop
   path.
-- Capture failure, malformed capture or fatal scheduler failure can close the
+- Recoverable capture timeouts or disconnected workers retain enabled features
+  in **Waiting for capture; retrying**. Old observations and queued actions are
+  discarded, and the next attempt follows a 250 ms delay. Already executed
+  actions awaiting confirmation are reconciled after recovery, never replayed.
+- Invalid capture geometry, malformed capture or fatal scheduler failure can close the
   session. Fix the cause and reopen/reselect the client; Stop All does not
   silently revive a failed session.
 

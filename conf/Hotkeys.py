@@ -10,7 +10,10 @@ from conf.HexMapKeys import ACTION_HOTKEYS
 
 
 class Hotkey:
-    def __init__(self, MOUSE_OPTION, backend=None):
+    def __init__(self, MOUSE_OPTION, backend=None, *, preflight=False):
+        if type(preflight) is not bool:
+            raise TypeError("preflight must be a boolean")
+        self.preflight = preflight
         self.MOUSE_OPTION = MOUSE_OPTION
         self.SendToClient = backend if backend is not None else self._make_backend()
 
@@ -18,22 +21,49 @@ class Hotkey:
         # Imports stay inside construction so importing conf.Hotkeys never
         # imports an OS-specific package. The backends themselves load native
         # APIs only on first use.
+        from conf.conf_manager import ConfManager
+        from tibia_client.window_target import WindowTarget, TargetInput
+
+        config = ConfManager.get("conf.json")
+        target = WindowTarget.from_config(config)
+        if target.kind == "sandbox" and self.MOUSE_OPTION != 1:
+            raise ValueError("Windows Sandbox requires physical mouse/keyboard input")
         if self.MOUSE_OPTION == 0:
             from core.SendToClient import SendToClient
-            return SendToClient()
+            return SendToClient(preflight=self.preflight)
 
         try:
-            from conf.conf_manager import ConfManager
-            platform = ConfManager.get("conf.json").get("platform", "windows")
+            platform = config.get("platform", "windows")
         except (OSError, ValueError, TypeError):
             platform = "windows"
         if str(platform).lower() == "linux":
             from core.MoveMouseLinux import MoveLinuxMouse
             return MoveLinuxMouse()
         from core.MoveMouse import MoveMouse
-        return MoveMouse()
+        hwnd = config.get("input_hwnd", config.get("hwnd", 0))
+        size = target.host_size if target.kind == "sandbox" else config.get("capture_size")
+        native = MoveMouse(hwnd_resolver=lambda: hwnd,
+                           expected_size_resolver=lambda: size,
+                           preflight=self.preflight)
+        if target.kind == "sandbox":
+            if config.get("capture_hwnd") != config.get("input_hwnd"):
+                raise ValueError("Sandbox capture and input must use the same host window")
+            # Bind the session's native target and geometry once. A file change
+            # is latched by DesktopProfileController before production dispatch.
+            wrapped = TargetInput(native, target, lambda: hwnd, preflight=self.preflight)
+            if self.preflight:
+                native.readiness_guard = wrapped.check_ready
+            return wrapped
+        return native
 
     Hotkeys = list(ACTION_HOTKEYS)
+
+    def Activate(self):
+        """One focus handoff on start/resume; message and Linux modes retain their behavior."""
+        if self.MOUSE_OPTION != 1:
+            return False
+        activate = getattr(self.SendToClient, "Activate", None)
+        return activate() if callable(activate) else False
 
     def Press(self, Key):
         if not isinstance(Key, str) or not Key.strip():
@@ -86,12 +116,17 @@ class Hotkey:
         return self.SendToClient.MainWindowSize()
 
     def wait_until_ready(self, timeout=30):
-        """Wait until this backend can safely receive input without focusing it."""
+        """Compatibility entry point; normal dispatch does not poll availability."""
         if isinstance(timeout, bool) or not isinstance(timeout, Real):
             raise TypeError("timeout must be a real number")
         timeout = float(timeout)
         if not math.isfinite(timeout) or timeout < 0:
             raise ValueError("timeout must be finite and non-negative")
+
+        if not self.preflight:
+            runtime.checkpoint()
+            runtime.set_phase("Running")
+            return True
 
         if self.MOUSE_OPTION == 0:
             checker = getattr(self.SendToClient, "IsReady", None)
@@ -116,6 +151,13 @@ class Hotkey:
             if remaining <= 0:
                 raise TimeoutError("game window did not receive focus before timeout")
             runtime.wait(min(0.05, remaining))
+
+    @property
+    def last_error_diagnostic(self):
+        return getattr(self.SendToClient, "last_error_diagnostic", None)
+
+    def diagnose_availability(self, error):
+        return self.SendToClient.diagnose_availability(error)
 
     def DragTo(self, From, To):
         with input_transaction("drag"):

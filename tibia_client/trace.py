@@ -118,8 +118,15 @@ def _decode(value: Any, depth: int = 0) -> Any:
             and isinstance(supplied, dict)
             and set(supplied) == expected - {"diagnostics"}
         )
+        # Earlier targets represented complete counts. Preserve those traces
+        # while recording the explicit completeness flag in new traces.
+        legacy_target = (
+            cls is models.Target
+            and isinstance(supplied, dict)
+            and set(supplied) == expected - {"count_complete"}
+        )
         if not isinstance(supplied, dict) or (
-            set(supplied) != expected and not legacy_observation
+            set(supplied) != expected and not legacy_observation and not legacy_target
         ):
             raise TraceError("trace model fields do not match schema")
         return cls(**{key: _decode(item, depth + 1) for key, item in supplied.items()})

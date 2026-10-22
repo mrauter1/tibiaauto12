@@ -189,8 +189,10 @@ class EnvironmentMetadata:
             object.__setattr__(self, name, _text(getattr(self, name), name))
         if self.input_mode not in ("physical", "messages"):
             raise CompatibilityError("input_mode must be 'physical' or 'messages'")
-        if self.capture_mode not in ("obs_projector", "direct_client"):
-            raise CompatibilityError("capture_mode must be 'obs_projector' or 'direct_client'")
+        if self.capture_mode not in ("obs_projector", "direct_client", "sandbox_screen"):
+            raise CompatibilityError(
+                "capture_mode must be 'obs_projector', 'direct_client' or 'sandbox_screen'"
+            )
         object.__setattr__(self, "test_date", _today(self.test_date))
         object.__setattr__(
             self, "battleye_state", _text(self.battleye_state, "battleye_state")
@@ -290,6 +292,11 @@ def calibration_digest(calibration: Mapping[str, Any]) -> str:
         key: calibration.get(key)
         for key in ("Stats", "calibration_size", "Positions", "Boxes", "SQM", "MouseOption", "ItemsMode")
     }
+    from tibia_client.window_target import WindowTarget
+
+    target = WindowTarget.from_config(calibration)
+    if target.kind == "sandbox":
+        relevant["window_target"] = target.to_dict()
     return _digest(relevant)
 
 
@@ -300,7 +307,17 @@ def context_from_calibration(
     input_size: Sequence[int] | None = None,
 ) -> DesktopContext:
     validate_calibration(calibration)
+    from tibia_client.window_target import WindowTarget
+
+    target = WindowTarget.from_config(calibration)
+    if target.kind == "sandbox" and (
+        calibration.get("MouseOption") != 1 or environment.input_mode != "physical"
+        or environment.capture_mode != "sandbox_screen"
+    ):
+        raise CompatibilityError("Sandbox requires physical input and sandbox_screen capture")
     capture_size = _positive_pair(calibration.get("calibration_size"), "calibration_size")
+    if target.kind == "sandbox" and capture_size != target.size:
+        raise CompatibilityError("calibration size differs from the Sandbox viewport")
     expected_mode = {0: "messages", 1: "physical"}.get(calibration.get("MouseOption"))
     if expected_mode is None:
         raise CompatibilityError("calibration MouseOption must be 0 (messages) or 1 (physical)")

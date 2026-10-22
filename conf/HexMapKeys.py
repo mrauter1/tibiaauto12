@@ -145,3 +145,5 @@ KeyToHex = {
     'zoom_key': 0xFB,
     'clear_key': 0xFE,
 }
+
+KEY_CODES_CASEFOLDED = {name.casefold(): code for name, code in KeyToHex.items()}

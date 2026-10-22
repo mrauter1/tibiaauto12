@@ -1,0 +1,597 @@
+{
+  "status": "preliminary_replay_before_final_static_refinements",
+  "note": "The user requested static diligence after this replay. Final changes were reviewed statically; no final live check or test suite was run. The Fury case exposed a clipped unreadable name at the crop boundary, now explicitly reported as unknown rather than a definitive count.",
+  "cases": [
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "drenox-client",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "battle-list text was visible but could not be read",
+      "baseline_pass": false,
+      "pass": false,
+      "row_retries": 1
+    },
+    {
+      "id": "drenox-client",
+      "name": "Rat",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=1, position=(1835, 413), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "battle-list text was visible but could not be read",
+      "baseline_pass": false,
+      "pass": false,
+      "row_retries": 0
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "battle-list text was visible but could not be read",
+      "baseline_pass": false,
+      "pass": false,
+      "row_retries": 0
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "name": "Rat",
+      "quality": "error",
+      "detail": "template size (129, 8) exceeds search image size (86, 50)",
+      "baseline_pass": false,
+      "pass": false
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "name": "Sea Serpent",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=2, position=(1810, 709), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "name": "Draken Warmaster",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=4, position=(1448, 670), selected=False)",
+      "detail": "",
+      "baseline_pass": false,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-prolanninja-8n7qyhc",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-prolanninja-8n7qyhc",
+      "name": "Paladin Familiar",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=1, position=(1824, 461), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-prolanninja-8n7qyhc",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-musquitu96-wzgn2qg",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(1424, 62), reached=True)"
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "name": "Bone Bear",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=1, position=(2268, 160), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "name": "Crypt Construct",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=1, position=(2285, 138), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "name": "Walking Dread",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=3, position=(2280, 72), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(2442, 56), reached=True)"
+    },
+    {
+      "id": "reddit-cowboyisaac-9muurr2",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "battle-list text was visible but could not be read",
+      "baseline_pass": false,
+      "pass": false,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-cowboyisaac-9muurr2",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-cowboyisaac-9muurr2",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(2473, 33), reached=False)"
+    },
+    {
+      "id": "reddit-musquitu96-zw6jbqg",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(1421, 61), reached=True)"
+    },
+    {
+      "id": "reddit-musquitu96-9sol5rg",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(1385, 59), reached=False)"
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "name": "Glooth Golem",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=5, position=(1638, 705), selected=True)",
+      "detail": "",
+      "baseline_pass": false,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "name": "Minotaur Archer",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=3, position=(1439, 402), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "marker": "CheckMark",
+      "pass": true,
+      "actual": "Marker(position=None, reached=False)"
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "name": "Cave Rat",
+      "positive": true,
+      "quality": "known",
+      "actual": "Target(count=1, position=(1623, 515), selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": 0
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "marker": "Cross",
+      "pass": true,
+      "actual": "Marker(position=(1809, 71), reached=False)"
+    },
+    {
+      "id": "reddit-aernithrawaxe-leyvjxw",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-aernithrawaxe-leyvjxw",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    },
+    {
+      "id": "reddit-flashsfw-du2dnj0",
+      "name": "Fury",
+      "positive": true,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "1 battle-list text rows remain unreadable",
+      "baseline_pass": true,
+      "pass": false,
+      "row_retries": 1
+    },
+    {
+      "id": "reddit-flashsfw-du2dnj0",
+      "name": "Lizard Henchman",
+      "positive": false,
+      "quality": "unknown",
+      "actual": "None",
+      "detail": "1 battle-list text rows remain unreadable",
+      "baseline_pass": true,
+      "pass": false,
+      "row_retries": 1
+    },
+    {
+      "id": "reddit-flashsfw-du2dnj0",
+      "name": "Rat",
+      "positive": false,
+      "quality": "known",
+      "actual": "Target(count=0, position=None, selected=False)",
+      "detail": "",
+      "baseline_pass": true,
+      "pass": true,
+      "row_retries": null
+    }
+  ]
+}

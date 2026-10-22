@@ -14,6 +14,7 @@ def rgb(value):
 
 _application_root = None
 _mainloop_running = False
+_garbage_collector = None
 
 
 def application_root():
@@ -29,10 +30,13 @@ def _exists(widget) -> bool:
 
 def shutdown() -> None:
     """Destroy the application interpreter and all child windows."""
-    global _application_root, _mainloop_running
+    global _application_root, _mainloop_running, _garbage_collector
     root = _application_root
     _application_root = None
     _mainloop_running = False
+    if _garbage_collector is not None:
+        _garbage_collector.close()
+        _garbage_collector = None
     if _exists(root):
         try:
             root.quit()
@@ -47,10 +51,12 @@ class GUI:
         self._owns_root = False
 
     def _new_window(self):
-        global _application_root
+        global _application_root, _garbage_collector
         if not _exists(_application_root):
             self.windowID = tk.Tk()
             _application_root = self.windowID
+            from core.tk_lifecycle import TkGarbageCollector
+            _garbage_collector = TkGarbageCollector(self.windowID)
             self._owns_root = True
         else:
             self.windowID = tk.Toplevel(_application_root)

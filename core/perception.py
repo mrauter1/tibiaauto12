@@ -398,16 +398,27 @@ def _validate_probability(value: float, label: str) -> float:
     return result
 
 
+def _scaled_template(template_path, scale: float) -> np.ndarray:
+    if (isinstance(scale, bool) or not isinstance(scale, numbers.Real)
+            or not math.isfinite(scale) or not .5 <= scale <= 3):
+        raise DetectionError("template scale must be between 0.5 and 3")
+    template = load_template(template_path)
+    if scale != 1.0:
+        template = cv2.resize(template, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
+    return template
+
+
 def locate_match(
     template_path: Union[str, os.PathLike[str]],
     *,
     frame: Optional[ImageLike] = None,
     region: Optional[Sequence[int]] = None,
     precision: float = 0.8,
+    scale: float = 1.0,
 ) -> Optional[Match]:
     precision = _validate_probability(precision, "precision")
     haystack = crop_array(current_frame(frame), region)
-    template = load_template(template_path)
+    template = _scaled_template(template_path, scale)
     scores = _match_map(haystack, template)
     _, score, _, position = cv2.minMaxLoc(scores)
     if score < precision:
@@ -433,13 +444,14 @@ def locate_matches(
     region: Optional[Sequence[int]] = None,
     precision: float = 0.8,
     nms_iou: float = 0.3,
+    scale: float = 1.0,
 ) -> list[Match]:
     """Return distinct objects after score-ordered non-maximum suppression."""
 
     precision = _validate_probability(precision, "precision")
     nms_iou = _validate_probability(nms_iou, "nms_iou")
     haystack = crop_array(current_frame(frame), region)
-    template = load_template(template_path)
+    template = _scaled_template(template_path, scale)
     scores = _match_map(haystack, template)
     threshold = scores >= precision
     if not np.any(threshold):
@@ -493,6 +505,17 @@ def _default_capture() -> Image.Image:
     config = _load_capture_config()  # Fresh on every capture.
     platform = str(config.get("platform", "")).lower()
     if platform == "windows":
+        from tibia_client.window_target import WindowTarget
+        from tibia_client.direct_capture import capture_direct_host_client, capture_direct_target
+
+        target_data = config.get("window_target")
+        if isinstance(target_data, dict) and target_data.get("kind") == "sandbox":
+            # The visible-region transport only needs geometry. Old profiles
+            # may contain focus samples; do not decode unused templates per frame.
+            target = WindowTarget("sandbox", target_data.get("host_size"),
+                                  target_data.get("viewport"))
+        else:
+            target = WindowTarget.from_config(config)
         hwnd = config.get("capture_hwnd", config.get("hwnd"))
         if not hwnd:
             raise CaptureError("capture configuration has no capture_hwnd or hwnd")
@@ -509,12 +532,27 @@ def _default_capture() -> Image.Image:
         ):
             raise CaptureError("capture_size is missing or invalid; recalibrate the client profile")
         expected_size = int(configured_size[0]), int(configured_size[1])
-        image = _capture_windows(int(hwnd))
+        if target.kind == "sandbox":
+            if hwnd != config.get("input_hwnd"):
+                raise CaptureError("Sandbox capture and input must use the same host window")
+            try:
+                image = capture_direct_target(int(hwnd), target)
+            except RuntimeError as exc:
+                raise CaptureError(str(exc)) from exc
+        elif hwnd == config.get("input_hwnd", hwnd):
+            image = capture_direct_host_client(int(hwnd))
+        else:
+            # A separate OBS/projector selection keeps its existing transport.
+            image = _capture_windows(int(hwnd))
         if image.size != expected_size:
-            raise CaptureError(
+            failure = CaptureError(
                 f"client size changed from calibrated {expected_size[0]}x{expected_size[1]} "
                 f"to {image.width}x{image.height}; recalibrate the client profile"
             )
+            from tibia_client.direct_capture import _diagnose_failure
+
+            _diagnose_failure(failure, int(hwnd))
+            raise failure
         return image
     if platform == "linux":
         return _capture_linux()

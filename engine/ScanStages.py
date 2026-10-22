@@ -7,6 +7,35 @@ from typing import Optional
 import numpy as np
 
 from core.HookWindow import DetectionError, Frame, TakeImage
+from core.perception import validate_region
+
+
+def read_bar_region(frame, region, kind):
+    """Read an explicitly calibrated bar of any width or fill direction.
+
+    Choose the fullest scanline so overlaid white numbers do not remove fill.
+    Neutral backgrounds and unreadable captures return unknown, never zero.
+    """
+    left, top, right, bottom = validate_region(region, frame.size)
+    pixels = frame.pixels[top:bottom, left:right].astype(np.int16)
+    red, green, blue = (pixels[:, :, i] for i in range(3))
+    if kind == "mana":
+        fill = (blue > red + 25) & (blue > green + 12) & (blue > 55)
+    else:
+        fill = (np.maximum(red, green) > blue + 30) & (np.maximum(red, green) > 65)
+    # A valid row consists of coloured fill and the dark neutral empty track.
+    # Reject occluding application chrome rather than interpreting missing fill
+    # as low HP. Number overlays may obscure rows; select an unobscured one.
+    neutral = (pixels.max(axis=2) - pixels.min(axis=2) < 25) & (pixels.max(axis=2) < 95)
+    invalid = (~(fill | neutral)).sum(axis=1)
+    good_rows = invalid <= max(2, pixels.shape[1] * .02)
+    if not good_rows.any():
+        return None
+    counts = fill.sum(axis=1)[good_rows]
+    count = int(counts.max())
+    if count < 2:
+        return None
+    return min(100, round(100 * count / pixels.shape[1]))
 
 
 def _rgb(color, label: str) -> np.ndarray:

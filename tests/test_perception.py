@@ -199,7 +199,11 @@ def test_default_windows_capture_rejects_stale_calibrated_size(monkeypatch):
         "_load_capture_config",
         lambda: {"platform": "windows", "capture_hwnd": 42, "capture_size": [800, 600]},
     )
-    monkeypatch.setattr(perception, "_capture_windows", lambda hwnd: Image.new("RGB", (1024, 768)))
+    from tibia_client import direct_capture
+
+    monkeypatch.setattr(direct_capture, "capture_direct_host_client",
+                        lambda hwnd: Image.new("RGB", (1024, 768)))
+    monkeypatch.setattr(direct_capture, "diagnose_client_availability", lambda hwnd: {"hwnd": hwnd})
 
     with pytest.raises(CaptureError, match="client size changed.*recalibrate"):
         perception._default_capture()
@@ -212,7 +216,9 @@ def test_default_windows_capture_accepts_current_calibrated_size(monkeypatch):
         "_load_capture_config",
         lambda: {"platform": "windows", "capture_hwnd": 42, "capture_size": [800, 600]},
     )
-    monkeypatch.setattr(perception, "_capture_windows", lambda hwnd: image)
+    from tibia_client import direct_capture
+
+    monkeypatch.setattr(direct_capture, "capture_direct_host_client", lambda hwnd: image)
 
     assert perception._default_capture() is image
 

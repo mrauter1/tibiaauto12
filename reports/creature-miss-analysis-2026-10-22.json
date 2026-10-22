@@ -1,0 +1,1260 @@
+{
+  "scope": "OCR fragment postprocessing probe on reviewed battle regions; original screenshots, unchanged production mask and OCR. Bundled template routes reuse baseline results, not rerun.",
+  "cases": [
+    {
+      "id": "dfg-retro-pvp-rp535",
+      "sha256": "f45f0622dc352ad5daaec7cda7671e0cd1f8a4424924aa17925da2cc363ff771",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 0.038899946957826614,
+      "join_median_ms": 0.0006,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "dfg-ustebra-ek177",
+      "sha256": "c7d3eabd6d7c31309582d48b39bb531739b3c423e1ec9aa34fdab32bba6929cb",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 0.022099935449659824,
+      "join_median_ms": 0.0015,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "drenox-client",
+      "sha256": "7e8ca450e491cfedead9423a5c6204490e651ecddb44899dd50212eeb464e026",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 109.27729995455593,
+      "join_median_ms": 0.0013,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": false,
+          "candidate_count": null,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": false
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 1,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "tibiabr-sidebars-filled",
+      "sha256": "c2c73d322b429d4f9e8dd48d30fe9bfb18b33b79007b65bb7650bce535a7f64e",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 17.040900071151555,
+      "join_median_ms": 0.0005,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": false,
+          "candidate_count": null,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": false
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "allegro-antica-4c39a50f",
+      "sha256": "860673a2636f91594775a1ec38dbed4bbeeb15acaec389c664067c88892dbf22",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 3.1337999971583486,
+      "join_median_ms": 0.0005,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": false,
+          "candidate_count": null,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": false
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": false,
+          "candidate_pass": false
+        }
+      ]
+    },
+    {
+      "id": "reddit-adventurous-xcqycuy",
+      "sha256": "9b227285eed99ce4f6b223b935a6755a5066b66be6f52f2a18648354350b5c18",
+      "raw_lines": [
+        [
+          "Sea Serpent",
+          [
+            3.0,
+            4.0,
+            81.0,
+            14.0
+          ]
+        ],
+        [
+          "Sea Serpent",
+          [
+            3.0,
+            26.0,
+            81.0,
+            36.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Sea Serpent",
+          [
+            3.0,
+            4.0,
+            81.0,
+            14.0
+          ]
+        ],
+        [
+          "Sea Serpent",
+          [
+            3.0,
+            26.0,
+            81.0,
+            36.0
+          ]
+        ]
+      ],
+      "ocr_ms": 37.472199997864664,
+      "join_median_ms": 0.003,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        },
+        {
+          "name": "Sea Serpent",
+          "path": "ocr_probe",
+          "expected_count": 2,
+          "baseline_pass": true,
+          "candidate_count": 2,
+          "candidate_position": [
+            1810,
+            709
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-valouran-pl7tust",
+      "sha256": "96b472f9e12b7b82f9da228e0eeb9962025065ae17a61f10bfd7339e3d52635a",
+      "raw_lines": [
+        [
+          "Draken",
+          [
+            3.0,
+            3.0,
+            48.0,
+            12.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            25.0,
+            48.0,
+            34.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            47.0,
+            48.0,
+            56.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            69.0,
+            48.0,
+            78.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            91.0,
+            48.0,
+            100.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            113.0,
+            48.0,
+            122.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            135.0,
+            48.0,
+            144.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            157.0,
+            48.0,
+            166.0
+          ]
+        ],
+        [
+          "Draken",
+          [
+            3.0,
+            179.0,
+            48.0,
+            188.0
+          ]
+        ],
+        [
+          "Spellweav...",
+          [
+            54.0,
+            3.0,
+            130.0,
+            14.0
+          ]
+        ],
+        [
+          "Spellweav...",
+          [
+            54.0,
+            25.0,
+            130.0,
+            36.0
+          ]
+        ],
+        [
+          "Spellweav...",
+          [
+            54.0,
+            47.0,
+            130.0,
+            58.0
+          ]
+        ],
+        [
+          "Spellweav...",
+          [
+            54.0,
+            69.0,
+            130.0,
+            80.0
+          ]
+        ],
+        [
+          "Spellweav...",
+          [
+            54.0,
+            91.0,
+            130.0,
+            102.0
+          ]
+        ],
+        [
+          "Warmaster",
+          [
+            54.0,
+            114.0,
+            125.0,
+            122.0
+          ]
+        ],
+        [
+          "Warmaster",
+          [
+            54.0,
+            136.0,
+            125.0,
+            144.0
+          ]
+        ],
+        [
+          "Warmaster",
+          [
+            54.0,
+            158.0,
+            125.0,
+            166.0
+          ]
+        ],
+        [
+          "Warmaster",
+          [
+            54.0,
+            180.0,
+            125.0,
+            188.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Draken Spellweav...",
+          [
+            3.0,
+            3.0,
+            130.0,
+            14.0
+          ]
+        ],
+        [
+          "Draken Spellweav...",
+          [
+            3.0,
+            25.0,
+            130.0,
+            36.0
+          ]
+        ],
+        [
+          "Draken Spellweav...",
+          [
+            3.0,
+            47.0,
+            130.0,
+            58.0
+          ]
+        ],
+        [
+          "Draken Spellweav...",
+          [
+            3.0,
+            69.0,
+            130.0,
+            80.0
+          ]
+        ],
+        [
+          "Draken Spellweav...",
+          [
+            3.0,
+            91.0,
+            130.0,
+            102.0
+          ]
+        ],
+        [
+          "Draken Warmaster",
+          [
+            3.0,
+            113.0,
+            125.0,
+            122.0
+          ]
+        ],
+        [
+          "Draken Warmaster",
+          [
+            3.0,
+            135.0,
+            125.0,
+            144.0
+          ]
+        ],
+        [
+          "Draken Warmaster",
+          [
+            3.0,
+            157.0,
+            125.0,
+            166.0
+          ]
+        ],
+        [
+          "Draken Warmaster",
+          [
+            3.0,
+            179.0,
+            125.0,
+            188.0
+          ]
+        ]
+      ],
+      "ocr_ms": 17.773000057786703,
+      "join_median_ms": 0.0611,
+      "queries": [
+        {
+          "name": "Draken Warmaster",
+          "path": "ocr_probe",
+          "expected_count": 4,
+          "baseline_pass": false,
+          "candidate_count": 4,
+          "candidate_position": [
+            1448,
+            670
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-weirdnonamer-h8odlbh",
+      "sha256": "008b9760f61068b80ec1715447a9cdca66ed8a23d0b622ac482756611836a8cf",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 0.011999974958598614,
+      "join_median_ms": 0.0005,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-prolanninja-8n7qyhc",
+      "sha256": "91a9a152b0d7f51fc0fad7850092fc0a9a917251048822fc4a9fea6d224de2e7",
+      "raw_lines": [
+        [
+          "Paladin Familiar",
+          [
+            3.0,
+            2.0,
+            108.0,
+            11.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Paladin Familiar",
+          [
+            3.0,
+            2.0,
+            108.0,
+            11.0
+          ]
+        ]
+      ],
+      "ocr_ms": 8.862600079737604,
+      "join_median_ms": 0.0014,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Paladin Familiar",
+          "path": "ocr_probe",
+          "expected_count": 1,
+          "baseline_pass": true,
+          "candidate_count": 1,
+          "candidate_position": [
+            1824,
+            461
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-ryelz02-0p3zcv3",
+      "sha256": "6e70d9f2f4a59398db27af3af8e10b4ac10b938ed389cddf4a3e22a4ec8b77e7",
+      "raw_lines": [
+        [
+          "Walking Dread",
+          [
+            1.3333333333333333,
+            3.3333333333333335,
+            94.33333333333333,
+            15.666666666666666
+          ]
+        ],
+        [
+          "Walking Dread",
+          [
+            1.6666666666666667,
+            25.333333333333332,
+            95.0,
+            37.666666666666664
+          ]
+        ],
+        [
+          "Walking Dread",
+          [
+            2.3333333333333335,
+            47.333333333333336,
+            95.66666666666667,
+            59.666666666666664
+          ]
+        ],
+        [
+          "Crypt Construct",
+          [
+            2.6666666666666665,
+            70.0,
+            103.0,
+            82.33333333333333
+          ]
+        ],
+        [
+          "Bone Bear",
+          [
+            3.3333333333333335,
+            93.33333333333333,
+            69.66666666666667,
+            102.66666666666667
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Walking Dread",
+          [
+            1.3333333333333333,
+            3.3333333333333335,
+            94.33333333333333,
+            15.666666666666666
+          ]
+        ],
+        [
+          "Walking Dread",
+          [
+            1.6666666666666667,
+            25.333333333333332,
+            95.0,
+            37.666666666666664
+          ]
+        ],
+        [
+          "Walking Dread",
+          [
+            2.3333333333333335,
+            47.333333333333336,
+            95.66666666666667,
+            59.666666666666664
+          ]
+        ],
+        [
+          "Crypt Construct",
+          [
+            2.6666666666666665,
+            70.0,
+            103.0,
+            82.33333333333333
+          ]
+        ],
+        [
+          "Bone Bear",
+          [
+            3.3333333333333335,
+            93.33333333333333,
+            69.66666666666667,
+            102.66666666666667
+          ]
+        ]
+      ],
+      "ocr_ms": 36.16440005134791,
+      "join_median_ms": 0.01,
+      "queries": [
+        {
+          "name": "Bone Bear",
+          "path": "ocr_probe",
+          "expected_count": 1,
+          "baseline_pass": true,
+          "candidate_count": 1,
+          "candidate_position": [
+            2268,
+            160
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Crypt Construct",
+          "path": "ocr_probe",
+          "expected_count": 1,
+          "baseline_pass": true,
+          "candidate_count": 1,
+          "candidate_position": [
+            2285,
+            138
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        },
+        {
+          "name": "Walking Dread",
+          "path": "ocr_probe",
+          "expected_count": 3,
+          "baseline_pass": true,
+          "candidate_count": 3,
+          "candidate_position": [
+            2280,
+            72
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-cowboyisaac-9muurr2",
+      "sha256": "56b9109f31f2ea13276a56a55988552bd09bc4dad07c4fd0a07f26ddae4a48e7",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 6.705300067551434,
+      "join_median_ms": 0.0007,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": false,
+          "candidate_count": null,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": false
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-reverofsipcabej-d7ze1nn",
+      "sha256": "febe8b525e4cb981ac9947981027f51b90979a83781a1dd2f91d66c563dd8de3",
+      "raw_lines": [
+        [
+          "Glooth",
+          [
+            3.0,
+            3.0,
+            43.0,
+            12.0
+          ]
+        ],
+        [
+          "Glooth",
+          [
+            3.0,
+            25.0,
+            43.0,
+            34.0
+          ]
+        ],
+        [
+          "Glooth",
+          [
+            3.0,
+            47.0,
+            43.0,
+            56.0
+          ]
+        ],
+        [
+          "Glooth",
+          [
+            3.0,
+            69.0,
+            43.0,
+            78.0
+          ]
+        ],
+        [
+          "Glooth",
+          [
+            3.0,
+            91.0,
+            43.0,
+            100.0
+          ]
+        ],
+        [
+          "Golem",
+          [
+            49.0,
+            3.0,
+            88.0,
+            12.0
+          ]
+        ],
+        [
+          "Golem",
+          [
+            49.0,
+            25.0,
+            88.0,
+            34.0
+          ]
+        ],
+        [
+          "Golem",
+          [
+            49.0,
+            47.0,
+            88.0,
+            56.0
+          ]
+        ],
+        [
+          "Golem",
+          [
+            49.0,
+            69.0,
+            88.0,
+            78.0
+          ]
+        ],
+        [
+          "Golem",
+          [
+            49.0,
+            91.0,
+            88.0,
+            100.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Glooth Golem",
+          [
+            3.0,
+            3.0,
+            88.0,
+            12.0
+          ]
+        ],
+        [
+          "Glooth Golem",
+          [
+            3.0,
+            25.0,
+            88.0,
+            34.0
+          ]
+        ],
+        [
+          "Glooth Golem",
+          [
+            3.0,
+            47.0,
+            88.0,
+            56.0
+          ]
+        ],
+        [
+          "Glooth Golem",
+          [
+            3.0,
+            69.0,
+            88.0,
+            78.0
+          ]
+        ],
+        [
+          "Glooth Golem",
+          [
+            3.0,
+            91.0,
+            88.0,
+            100.0
+          ]
+        ]
+      ],
+      "ocr_ms": 18.36139999795705,
+      "join_median_ms": 0.03245,
+      "queries": [
+        {
+          "name": "Glooth Golem",
+          "path": "ocr_probe",
+          "expected_count": 5,
+          "baseline_pass": false,
+          "candidate_count": 5,
+          "candidate_position": [
+            1638,
+            705
+          ],
+          "candidate_selected": true,
+          "candidate_pass": true
+        },
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-baear-nbqgn5x",
+      "sha256": "f557016a12377cae52b54153a29c56b0d4af36d616bceade5c2c25f712dc44ca",
+      "raw_lines": [
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            3.0,
+            107.0,
+            12.0
+          ]
+        ],
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            25.0,
+            107.0,
+            34.0
+          ]
+        ],
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            47.0,
+            107.0,
+            56.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            3.0,
+            107.0,
+            12.0
+          ]
+        ],
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            25.0,
+            107.0,
+            34.0
+          ]
+        ],
+        [
+          "Minotaur Archer",
+          [
+            3.0,
+            47.0,
+            107.0,
+            56.0
+          ]
+        ]
+      ],
+      "ocr_ms": 15.03059989772737,
+      "join_median_ms": 0.0062,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Minotaur Archer",
+          "path": "ocr_probe",
+          "expected_count": 3,
+          "baseline_pass": true,
+          "candidate_count": 3,
+          "candidate_position": [
+            1439,
+            402
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-mint-odie-7ngyee8",
+      "sha256": "40d93f5ed3f6c0b2a3b60ab0614682807b5172a1856733623d01af5e5cd5abf5",
+      "raw_lines": [
+        [
+          "Cave Rat",
+          [
+            3.0,
+            3.0,
+            59.0,
+            11.0
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Cave Rat",
+          [
+            3.0,
+            3.0,
+            59.0,
+            11.0
+          ]
+        ]
+      ],
+      "ocr_ms": 21.162700024433434,
+      "join_median_ms": 0.0027,
+      "queries": [
+        {
+          "name": "Cave Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 1,
+          "baseline_pass": true,
+          "candidate_pass": true
+        },
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-aernithrawaxe-leyvjxw",
+      "sha256": "7ff7f3be617579b3b7fb739b0059fcc9f0f330cd9f50f275af440cc25bfe014c",
+      "raw_lines": [],
+      "joined_lines": [],
+      "ocr_ms": 0.03570003900676966,
+      "join_median_ms": 0.0006,
+      "queries": [
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    },
+    {
+      "id": "reddit-flashsfw-du2dnj0",
+      "sha256": "148433bae48b48f8b922f90997f011efe7ba1aae5f1c64389e5b07395a0b0da9",
+      "raw_lines": [
+        [
+          "Nightmare",
+          [
+            1.3333333333333333,
+            3.6666666666666665,
+            67.66666666666667,
+            15.0
+          ]
+        ],
+        [
+          "Fury",
+          [
+            2.0,
+            27.333333333333332,
+            30.333333333333332,
+            36.666666666666664
+          ]
+        ],
+        [
+          "Fury",
+          [
+            3.0,
+            49.333333333333336,
+            31.333333333333332,
+            58.666666666666664
+          ]
+        ],
+        [
+          "Fury",
+          [
+            3.6666666666666665,
+            71.33333333333333,
+            32.0,
+            80.66666666666667
+          ]
+        ]
+      ],
+      "joined_lines": [
+        [
+          "Nightmare",
+          [
+            1.3333333333333333,
+            3.6666666666666665,
+            67.66666666666667,
+            15.0
+          ]
+        ],
+        [
+          "Fury",
+          [
+            2.0,
+            27.333333333333332,
+            30.333333333333332,
+            36.666666666666664
+          ]
+        ],
+        [
+          "Fury",
+          [
+            3.0,
+            49.333333333333336,
+            31.333333333333332,
+            58.666666666666664
+          ]
+        ],
+        [
+          "Fury",
+          [
+            3.6666666666666665,
+            71.33333333333333,
+            32.0,
+            80.66666666666667
+          ]
+        ]
+      ],
+      "ocr_ms": 18.587399972602725,
+      "join_median_ms": 0.017550000000000003,
+      "queries": [
+        {
+          "name": "Fury",
+          "path": "ocr_probe",
+          "expected_count": 3,
+          "baseline_pass": true,
+          "candidate_count": 3,
+          "candidate_position": [
+            1608,
+            267
+          ],
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Lizard Henchman",
+          "path": "ocr_probe",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_count": 0,
+          "candidate_position": null,
+          "candidate_selected": false,
+          "candidate_pass": true
+        },
+        {
+          "name": "Rat",
+          "path": "bundled_unchanged",
+          "expected_count": 0,
+          "baseline_pass": true,
+          "candidate_pass": true
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "positive": {
+      "total": 11,
+      "baseline_pass": 9,
+      "candidate_pass": 11
+    },
+    "negative": {
+      "total": 31,
+      "baseline_pass": 26,
+      "candidate_pass": 26
+    },
+    "join_ms": {
+      "median": 0.00145,
+      "max_case_median": 0.0611
+    },
+    "regressions": []
+  }
+}

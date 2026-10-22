@@ -36,3 +36,5 @@ scripts/Loads.json
 scripts/*.json.lock
 scripts/*.state.json
 scripts/.*.tmp
+scripts/resource-layout-*.json
+scripts/resource-layout-*.json.tmp

@@ -75,9 +75,19 @@ class SupportWindow:
         self.body = ttk.Frame(self.window, padding=10)
         self.body.grid(sticky="nsew")
         self.status_var = tk.StringVar(value="Stopped")
-        self.status_label = ttk.Label(self.body, textvariable=self.status_var)
+        self.status_label = ttk.Label(self.body, textvariable=self.status_var, wraplength=360)
         self._on_close = on_close
         self.window.protocol("WM_DELETE_WINDOW", self.close)
+        # Tk applies its initial window-manager placement after idle layout.
+        # Move only once the mapped window has settled, otherwise Tk undoes it.
+        self.window.after(250, self._place_controls)
+
+    def _place_controls(self):
+        try:
+            from core.window_placement import move_to_other_screen
+            move_to_other_screen(self.window)
+        except (OSError, ValueError, tk.TclError):
+            pass
 
     def close(self) -> None:
         if not self.owner:

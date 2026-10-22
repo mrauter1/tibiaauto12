@@ -204,3 +204,23 @@ def test_each_focus_loss_gets_a_new_bounded_recovery_window():
         session.tick_once()
         assert not session.is_active(feature.name)
         assert "within 1 seconds" in session.feature_status(feature.name).error
+
+
+def test_error_only_adapter_has_no_tick_or_dispatch_readiness_queries():
+    clock = Clock()
+
+    class ErrorOnlyAdapter(Adapter):
+        availability_policy = "on_error"
+
+        def ready(self):
+            raise AssertionError("normal operation must not poll availability")
+
+    adapter = ErrorOnlyAdapter(clock)
+    feature = Feature(Step((press("F1"), press("F2"))))
+    with ClientSession(adapter, clock=clock, autostart=False) as session:
+        session.start_feature(feature)
+        session.tick_once()
+        clock.value += 0.01
+        session.tick_once()
+    assert [action.key for action in adapter.actions] == ["F1", "F2"]
+    assert adapter.ready_calls == 0

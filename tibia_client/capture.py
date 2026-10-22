@@ -8,6 +8,7 @@ This module deliberately has no native imports or import-time side effects.
 from __future__ import annotations
 
 import math
+import json
 import multiprocessing
 from multiprocessing.connection import Connection
 from multiprocessing.shared_memory import SharedMemory
@@ -19,6 +20,11 @@ from typing import Any, Callable
 import numpy as np
 
 from core.perception import CaptureError, Frame, as_frame
+from tibia_client.models import TransientObservationError
+
+
+class TransientCaptureError(CaptureError, TransientObservationError):
+    """A stopped capture worker can be restarted on the next observation."""
 
 
 DEFAULT_MAX_PIXEL_BYTES = 64 * 1024 * 1024
@@ -32,6 +38,18 @@ _quarantined: set["CaptureProcess"] = set()
 def _invoke(provider: Any) -> Any:
     method = getattr(provider, "capture", None)
     return method() if callable(method) else provider()
+
+
+def _bounded_diagnostic(value):
+    if value is None:
+        return None
+    try:
+        payload = json.dumps(value, default=str)
+        if len(payload) <= _MAX_ERROR_TEXT:
+            return json.loads(payload)
+    except Exception:
+        pass
+    return {"diagnostic_error": "availability diagnostic exceeds the capture metadata limit"}
 
 
 def _validate_size(value: object | None) -> tuple[int, int] | None:
@@ -59,6 +77,7 @@ def _worker(
     pixels = None
     try:
         pixels = SharedMemory(name=shared_memory_name, create=False)
+        connection.send(("ready",))
         while True:
             try:
                 message = connection.recv()
@@ -114,7 +133,13 @@ def _worker(
                 # class is included for diagnostics, never reconstructed.
                 detail = f"{type(exc).__name__}: {exc}"[:_MAX_ERROR_TEXT]
                 try:
-                    connection.send(("error", request_id, detail))
+                    diagnostic = getattr(exc, "client_availability", None)
+                    cause, seen = exc.__cause__, {id(exc)}
+                    while diagnostic is None and cause is not None and id(cause) not in seen:
+                        seen.add(id(cause))
+                        diagnostic = getattr(cause, "client_availability", None)
+                        cause = cause.__cause__
+                    connection.send(("error", request_id, detail, _bounded_diagnostic(diagnostic)))
                 except (BrokenPipeError, EOFError, OSError):
                     return
     finally:
@@ -131,6 +156,7 @@ class CaptureProcess:
         provider: Callable[[], Any] | Any | None = None,
         *,
         timeout: float = 2.0,
+        startup_timeout: float | None = None,
         max_restarts: int = 1,
         max_pixel_bytes: int = DEFAULT_MAX_PIXEL_BYTES,
         capture_size: object | None = None,
@@ -140,6 +166,13 @@ class CaptureProcess:
         self.timeout = float(timeout)
         if not math.isfinite(self.timeout) or self.timeout <= 0:
             raise ValueError("capture timeout must be finite and positive")
+        if startup_timeout is not None:
+            if isinstance(startup_timeout, bool) or not isinstance(startup_timeout, Real):
+                raise TypeError("capture startup_timeout must be a real number or None")
+            startup_timeout = float(startup_timeout)
+            if not math.isfinite(startup_timeout) or not 0 < startup_timeout <= 60:
+                raise ValueError("capture startup_timeout must be finite and between 0 and 60 seconds")
+        self.startup_timeout = startup_timeout
         if isinstance(max_restarts, bool) or not isinstance(max_restarts, int) or not 0 <= max_restarts <= 3:
             raise ValueError("max_restarts must be an integer from 0 through 3")
         if (
@@ -164,6 +197,8 @@ class CaptureProcess:
         self._context = multiprocessing.get_context("spawn")
         self._process: multiprocessing.Process | None = None
         self._connection: Connection | None = None
+        self._awaiting_startup = False
+        self._startup_started_at: float | None = None
         self._next_request_id = 1
         self._closed = False
         self._capture_guard = threading.Lock()
@@ -216,6 +251,7 @@ class CaptureProcess:
             name="tibia-capture",
         )
         process.daemon = False
+        startup_started_at = time.monotonic()
         try:
             process.start()
         except BaseException as exc:
@@ -237,6 +273,8 @@ class CaptureProcess:
         self._process = process
         self._connection = parent
         self._shared_memory = shared_pixels
+        self._awaiting_startup = True
+        self._startup_started_at = startup_started_at
         self._starts += 1
 
     def _reject_quarantined_worker(self) -> None:
@@ -265,6 +303,8 @@ class CaptureProcess:
     def _reap(self) -> bool:
         connection, process = self._connection, self._process
         self._connection = None
+        self._awaiting_startup = False
+        self._startup_started_at = None
         if connection is not None:
             try:
                 connection.close()
@@ -347,8 +387,11 @@ class CaptureProcess:
             raise CaptureError(
                 f"capture worker returned response {response_id!r} for request {request_id}"
             )
-        if kind == "error" and len(response) == 3:
-            raise CaptureError(f"capture provider failed: {response[2]}")
+        if kind == "error" and len(response) in (3, 4):
+            failure = CaptureError(f"capture provider failed: {response[2]}")
+            if len(response) == 4 and response[3] is not None:
+                failure.client_availability = response[3]
+            raise failure
         if kind != "frame" or len(response) != 7:
             raise CaptureError("capture worker returned a malformed response")
         _, _, width, height, captured_at, source, observed_at = response
@@ -389,7 +432,12 @@ class CaptureProcess:
         return frame
 
     def capture(self, token: Any | None = None, *, timeout: float | None = None) -> Frame:
-        """Capture one frame, terminating the worker on deadline/cancellation."""
+        """Capture one frame, terminating the worker on deadline/cancellation.
+
+        An explicit startup_timeout budgets a cold spawn separately. Once the
+        worker reports its shared buffer ready, the ordinary capture deadline
+        begins. Omitting it preserves the original single overall deadline.
+        """
 
         if timeout is not None and (isinstance(timeout, bool) or not isinstance(timeout, Real)):
             raise TypeError("capture timeout must be a real number")
@@ -409,9 +457,18 @@ class CaptureProcess:
                     connection, process = self._connection, self._process
                     if connection is None or process is None:
                         raise CaptureError("capture worker did not start")
+                    if self._awaiting_startup and self.startup_timeout is not None:
+                        started_at = self._startup_started_at
+                        if started_at is None:
+                            raise CaptureError("capture worker has no startup timestamp")
+                        deadline = started_at + self.startup_timeout
                     request_id = self._next_request_id
                     self._next_request_id += 1
-                    connection.send(("capture", request_id))
+                    self._checkpoint(token)
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError
+                    if not self._awaiting_startup:
+                        connection.send(("capture", request_id))
                     while True:
                         self._checkpoint(token)
                         remaining = deadline - time.monotonic()
@@ -422,6 +479,21 @@ class CaptureProcess:
                                 response = connection.recv()
                             except EOFError:
                                 raise BrokenPipeError("capture worker exited") from None
+                            if (isinstance(response, tuple) and response
+                                    and response[0] == "ready"):
+                                if response != ("ready",) or not self._awaiting_startup:
+                                    raise CaptureError("capture worker returned a malformed startup handshake")
+                                if time.monotonic() >= deadline:
+                                    raise TimeoutError
+                                self._checkpoint(token)
+                                self._awaiting_startup = False
+                                self._startup_started_at = None
+                                if self.startup_timeout is not None:
+                                    deadline = time.monotonic() + limit
+                                connection.send(("capture", request_id))
+                                continue
+                            if self._awaiting_startup:
+                                raise CaptureError("capture worker did not signal readiness")
                             # Only bounded metadata crosses the pipe.  Pixels
                             # were published into this worker's shared buffer.
                             return self._decode(response, request_id, deadline)
@@ -430,8 +502,15 @@ class CaptureProcess:
                                 f"capture worker exited with code {process.exitcode}"
                             )
                 except TimeoutError:
+                    startup_expired = self._awaiting_startup and self.startup_timeout is not None
                     self._reap()
-                    raise CaptureError(f"capture timed out after {limit:g} seconds") from None
+                    if self._terminal_error is not None:
+                        raise CaptureError(self._terminal_error) from None
+                    if startup_expired:
+                        raise TransientCaptureError(
+                            f"capture startup timed out after {self.startup_timeout:g} seconds"
+                        ) from None
+                    raise TransientCaptureError(f"capture timed out after {limit:g} seconds") from None
                 except CaptureError:
                     # A valid error response or malformed child data fails
                     # closed.  Do not repeatedly spawn on unavailable input.
@@ -442,7 +521,9 @@ class CaptureProcess:
                     self._reap()
                     if attempt >= self.max_restarts or time.monotonic() >= deadline:
                         break
-            raise CaptureError(
+            if self._terminal_error is not None:
+                raise CaptureError(self._terminal_error)
+            raise TransientCaptureError(
                 f"capture worker failed after {self.max_restarts + 1} bounded attempt(s): {last_failure}"
             )
         except BaseException:

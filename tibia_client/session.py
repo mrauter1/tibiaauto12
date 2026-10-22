@@ -35,6 +35,8 @@ from tibia_client.models import (
     FeatureStatus,
     Observation,
     ObservationBatch,
+    ObservationUnavailable,
+    TransientObservationError,
     Priority,
     Quality,
     Reading,
@@ -42,6 +44,7 @@ from tibia_client.models import (
     Requirement,
     ResultState,
     Sensor,
+    SensorKind,
     Snapshot,
     Step,
 )
@@ -173,7 +176,8 @@ class ClientSession:
     """Coordinate features over one capture and one serialized action stream.
 
     ``autostart=False`` leaves scheduling entirely under the caller's control;
-    each :meth:`tick_once` performs at most one capture and one action.
+    each :meth:`tick_once` performs at most one capture, one health hotkey,
+    one mana hotkey, and one other action, in that order.
     """
 
     # Feature hooks are required to be short, but a broken hook must not hang a
@@ -259,6 +263,7 @@ class ClientSession:
         self._capture_visual_valid: bool | None = None
         self._capture_at: float | None = None
         self._capture_reasons: tuple[str, ...] = ()
+        self._capture_retry_at = 0.0
         self._last_action: ActionDiagnostic | None = None
         self._last_result: ResultDiagnostic | None = None
         self._preview_frame: Frame | None = None
@@ -799,6 +804,12 @@ class ClientSession:
                     raise RuntimeError("compatibility probes require all automation to be stopped")
             return self._start_feature(feature, stop_epoch=stop_epoch)
 
+    def _activate_input(self) -> None:
+        """Optional desktop lifecycle action, never a per-tick availability guard."""
+        activate = getattr(self._adapter, "activate_input", None)
+        if callable(activate):
+            activate()
+
     def _start_feature(self, feature: Feature, *, stop_epoch: int) -> int:
         name = getattr(feature, "name", None)
         if not isinstance(name, str) or not name.strip():
@@ -845,6 +856,7 @@ class ClientSession:
         except Exception as exc:
             self._fatal(exc, self._failure_time())
             raise
+        self._activate_input()
         with self._lock:
             if self._closed:
                 detail = f": {self._closed_reason}" if self._closed_reason else ""
@@ -1172,6 +1184,7 @@ class ClientSession:
                 self._call_feature_hook(
                     record.feature, "on_resume", at=now, paused_for=paused_for
                 )
+                self._activate_input()
         except Exception:
             with self._lock:
                 if self._records.get(record.name) is record and record.active:
@@ -1316,6 +1329,8 @@ class ClientSession:
             return self.snapshot
 
         now = self._now()
+        if now < self._capture_retry_at:
+            return self.snapshot
         self._record("tick", now)
         if not self._ensure_ready(now):
             return self.snapshot
@@ -1335,18 +1350,25 @@ class ClientSession:
         for record in due:
             if self._run_feature(record, snapshot, now):
                 finished.append(record)
-        dispatch_at = self._now()
-        self._dispatch_one(dispatch_at)
+        # Resource hotkeys do not consume the combat/loot slot. Native input
+        # remains serialized, with freshness/cancellation checked for each call.
+        for kind in (SensorKind.HEALTH, SensorKind.MANA):
+            self._dispatch_one(self._now(), eligible=lambda item, kind=kind: self._resource_kind(item) is kind)
+        self._dispatch_one(self._now(), eligible=lambda item: self._resource_kind(item) is None)
         for record in finished:
             self._invalidate_record(record, "finished", self._now())
         return self.snapshot
 
     def _ensure_ready(self, now: float) -> bool:
-        # Readiness is a current condition, not a successful-startup latch.
-        # Native backends still recheck their target at the input boundary.
+        # Desktop availability is diagnosed after a failed operation. Keep the
+        # optional readiness contract for external adapters that request it.
         with self._lock:
             if self._closed:
                 return False
+            if getattr(self._adapter, "availability_policy", None) == "on_error":
+                self._ready = True
+                self._readiness_reason = "availability is diagnosed only after an operation error"
+                return True
         try:
             ready = bool(self._adapter.ready())
         except runtime.CancelledError:
@@ -1472,6 +1494,38 @@ class ClientSession:
             valid_due.append(record)
         return valid_due, tuple(sorted(sensors, key=lambda sensor: (sensor.kind.value, sensor.name, sensor.region)))
 
+    def _capture_unavailable(self, exc: TransientObservationError, now: float) -> None:
+        """Discard unexecuted intents but retain enabled policies for recovery."""
+        message = f"{type(exc).__name__}: {exc}"
+        phase = f"Waiting for capture; retrying: {exc}"
+        with self._lock:
+            if self._closed:
+                return
+            self._capture_transport_ok = False
+            self._capture_visual_valid = False
+            self._capture_at = None
+            self._capture_reasons = (message,)
+            self._failure_reasons.append(message)
+            self._capture_retry_at = now + 0.25
+            self._epoch += 1
+            self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
+            self._preview_frame = None
+            self._preview_frame_id = None
+            removed = list(self._queue)
+            self._queue.clear()
+            statuses = []
+            for record in self._records.values():
+                if self._is_current_locked(record):
+                    record.phase = phase
+                    record.next_due = min(record.next_due, now)
+                    statuses.append(FeatureStatus(record.name, record.generation, True, phase))
+        # An executed request awaiting confirmation stays pending. Recovery
+        # must check its real outcome, never silently replay the action.
+        for item in removed:
+            self._terminal(item, ResultState.REJECTED, now, "capture unavailable; decide again after recovery")
+        for status in statuses:
+            self._record("status", now, status.name, status=status, reason=message)
+
     def _observe(self, sensors: tuple[Sensor, ...], now: float) -> bool:
         token = self._session_token()
         try:
@@ -1485,6 +1539,9 @@ class ClientSession:
             if not math.isfinite(adapter_timestamp):
                 raise ValueError("observation timestamp must be finite")
         except runtime.CancelledError:
+            return False
+        except TransientObservationError as exc:
+            self._capture_unavailable(exc, self._now())
             return False
         except Exception as exc:
             with self._lock:
@@ -1567,6 +1624,7 @@ class ClientSession:
                 snapshot = Snapshot(observations, frame_id, epoch, published_at)
                 self._snapshot = snapshot
                 self._capture_transport_ok = True
+                self._capture_retry_at = 0.0
                 self._capture_at = observed_at
                 self._capture_visual_valid = not visual_reasons
                 self._capture_reasons = visual_reasons
@@ -1607,6 +1665,11 @@ class ClientSession:
                 step = record.feature.tick(FeatureContext(snapshot, now))
                 if not isinstance(step, Step):
                     raise TypeError("feature.tick() must return Step")
+        except ObservationUnavailable as exc:
+            # A late/obscured frame forbids input for this tick, but must not
+            # permanently disable healing. Keep requesting fresh observations;
+            # queued input still passes the normal freshness checks below.
+            step = Step(phase=f"Waiting for fresh observation: {exc}")
         except Exception as exc:
             self._fail_feature(record, exc, now)
             return False
@@ -1730,7 +1793,16 @@ class ClientSession:
         for item in queued + [value.queued for value in pending]:
             self._terminal(item, ResultState.CANCELLED, now, "cancelled by feature")
 
-    def _dispatch_one(self, now: float) -> None:
+    @staticmethod
+    def _resource_kind(item: _Queued) -> SensorKind | None:
+        if item.request.action.kind is ActionKind.PRESS:
+            kinds = {binding.requirement.sensor.kind for binding in item.bindings}
+            for kind in (SensorKind.HEALTH, SensorKind.MANA):
+                if kind in kinds:
+                    return kind
+        return None
+
+    def _dispatch_one(self, now: float, *, eligible: Callable[[_Queued], bool] | None = None) -> None:
         with self._lock:
             recorder_error = self._recorder_error
         if recorder_error is not None:
@@ -1753,8 +1825,11 @@ class ClientSession:
             with self._lock:
                 if not self._queue or self._closed:
                     return
-                self._queue.sort(key=lambda item: (-item.effective_priority, item.deadline, item.order))
-                item = self._queue.pop(0)
+                candidates = [item for item in self._queue if eligible is None or eligible(item)]
+                if not candidates:
+                    return
+                item = min(candidates, key=lambda item: (-item.effective_priority, item.deadline, item.order))
+                self._queue.remove(item)
                 record = self._records.get(item.owner)
                 snapshot = self._snapshot
             attempts += 1

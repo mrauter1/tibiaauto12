@@ -244,7 +244,11 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
     import modules.CaveBot as cavebot_module
     # Full Tk event processing exercises scheduled hotkey polls too. Keep this
     # GUI-only test independent of native global hooks on headless CI desktops.
-    monkeypatch.setattr(root_module, "poll_hotkey", lambda _key: False)
+    class NoShortcut:
+        def __init__(self, _key): pass
+        def consume(self): return False
+        def close(self): pass
+    monkeypatch.setattr(root_module, "HotkeyLatch", NoShortcut)
     monkeypatch.setattr(cavebot_module, "poll_hotkey", lambda _key: False)
     try:
         root_module.root("Smoke Client", "Smoke.json")

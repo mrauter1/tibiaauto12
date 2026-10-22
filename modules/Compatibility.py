@@ -338,7 +338,9 @@ class Compatibility:
             ("client_build", ""), ("ot_server", ""), ("windows_version", ""),
             ("renderer", ""), ("obs_version", ""), ("obs_configuration", ""),
             ("dpi_scaling", "100%"), ("layout", "default"), ("input_mode", "physical"),
-            ("capture_mode", "obs_projector"), ("battleye_state", "unknown"),
+            ("capture_mode", "sandbox_screen" if
+             ConfManager.get("conf.json").get("window_target", {}).get("kind") == "sandbox"
+             else "obs_projector"), ("battleye_state", "unknown"),
             ("battleye_provenance", "operator-reported"),
             ("test_date", date.today().isoformat()),
         )
@@ -349,7 +351,7 @@ class Compatibility:
             ttk.Label(self.metadata, text=name.replace("_", " ").title()).grid(
                 row=row * 2, column=column, sticky="w", padx=3)
             choices = {"input_mode": ("physical", "messages"),
-                       "capture_mode": ("obs_projector", "direct_client"),
+                       "capture_mode": ("obs_projector", "direct_client", "sandbox_screen"),
                        "battleye_state": ("unknown", "enabled", "disabled")}.get(name)
             widget = (ttk.Combobox(self.metadata, textvariable=variable, values=choices,
                                    state="readonly", width=18) if choices else

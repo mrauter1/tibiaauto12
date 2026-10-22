@@ -18,7 +18,8 @@ def main(argv=None) -> int:
     from modules.ResourceMonitor import ResourceMonitorWindow
     from tibia_client.resource_monitor import ResourceMonitor, create_capture
 
-    monitor = ResourceMonitor(capture_factory=partial(create_capture, args.hwnd))
+    monitor = (ResourceMonitor() if args.hwnd is None else
+               ResourceMonitor(capture_factory=partial(create_capture, args.hwnd)))
     window = ResourceMonitorWindow(monitor=monitor)
     try:
         window.window.mainloop()

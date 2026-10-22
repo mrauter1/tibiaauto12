@@ -119,4 +119,38 @@ def poll_hotkey(key: str) -> bool:
     return bool(keyboard.is_pressed(key.replace(" ", "").lower()))
 
 
+class HotkeyLatch:
+    """Retain even brief shortcuts between Tk polls; the hook never touches Tk."""
+
+    def __init__(self, key: str, *, keyboard_backend=None):
+        self._native = None
+        self._pending = threading.Event()
+        import os
+        if keyboard_backend is None and os.name == "nt" and key.replace(" ", "").lower() == "ctrl+shift+f11":
+            from core.global_stop import WindowsStopHotkey
+            self._native = WindowsStopHotkey(self._pending.set)
+            return
+        if keyboard_backend is None:
+            import keyboard as keyboard_backend
+        self._keyboard = keyboard_backend
+        self._handle = self._keyboard.add_hotkey(
+            key.replace(" ", "").lower(), self._pending.set, suppress=False)
+
+    def consume(self) -> bool:
+        if not self._pending.is_set():
+            return False
+        self._pending.clear()
+        return True
+
+    def close(self) -> None:
+        if self._native is not None:
+            self._native.close()
+            self._pending.clear()
+            return
+        if self._handle is not None:
+            self._keyboard.remove_hotkey(self._handle)
+            self._handle = None
+        self._pending.clear()
+
+
 atexit.register(close_client)

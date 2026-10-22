@@ -108,11 +108,8 @@ class Target:
     priority: int
 
     def __post_init__(self) -> None:
-        name = _asset_name(self.name, "target name")
+        name = _plain_text(self.name, "target name")
         _integer(self.priority, "target priority", 0, 100)
-        asset = project_path(Path("images") / "Targets" / "Names" / f"{name}.png")
-        if not asset.is_file():
-            raise HuntPackError(f"target uses an unknown bundled template: {name}")
         object.__setattr__(self, "name", name)
 
     def as_dict(self) -> dict[str, Any]:

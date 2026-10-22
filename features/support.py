@@ -7,9 +7,11 @@ remain responsibilities of the runtime and its client adapter.
 from __future__ import annotations
 
 import math
+from dataclasses import replace
 from typing import Sequence
 
 from engine.support import EquipmentPolicy, Threshold, TimedSpell, choose_threshold
+from tibia_client.freshness import get_stale_seconds
 from tibia_client.models import (
     Action,
     ActionKind,
@@ -26,7 +28,6 @@ from tibia_client.models import (
 )
 
 
-_MAX_AGE = 0.5
 _TTL = 0.5
 
 
@@ -155,7 +156,7 @@ class _ActionFeature:
 
     def _read(self, context: FeatureContext, sensor: Sensor, label: str) -> object:
         try:
-            return context.require(sensor, _MAX_AGE)
+            return context.require(sensor, get_stale_seconds())
         except ObservationUnavailable as exc:
             raise ObservationUnavailable(
                 f"{self.name} cannot act: {label} observation unavailable; "
@@ -187,14 +188,17 @@ class _ThresholdFeature(_ActionFeature):
     def tick(self, context: FeatureContext) -> Step:
         value = _percentage(self._read(context, self.sensor, self.sensor_kind.value), self.name)
         rule = choose_threshold(value, self.rules)
+        self.phase = f"{self.sensor_kind.value.title()}: {value}% — " + (
+            "above enabled thresholds" if rule is None else
+            f"threshold {rule.percent}% → {rule.hotkey}")
         if rule is None or not self._ready(context.now):
-            return Step()
-        return self._request(
+            return Step(phase=self.phase)
+        return replace(self._request(
             Action(ActionKind.PRESS, key=rule.hotkey),
             priority=self.priority,
-            requirements=(Requirement(self.sensor, _MAX_AGE),),
+            requirements=(Requirement(self.sensor, get_stale_seconds()),),
             reason=f"{self.sensor_kind.value} is {value}% (threshold {rule.percent}%)",
-        )
+        ), phase=self.phase)
 
 
 class HealFeature(_ThresholdFeature):
@@ -234,18 +238,19 @@ class _StatusFeature(_ActionFeature):
 
     def tick(self, context: FeatureContext) -> Step:
         value = _flag(self._read(context, self.sensor, self.sensor_kind.value), self.name)
+        phase = f"{self.sensor_kind.value.title()}: {value}"
         if value is not self.trigger_value or not self._ready(context.now):
-            return Step()
-        return self._request(
+            return Step(phase=phase)
+        return replace(self._request(
             Action(ActionKind.PRESS, key=self.hotkey),
             priority=Priority.SUPPORT,
-            requirements=(Requirement(self.sensor, _MAX_AGE),),
+            requirements=(Requirement(self.sensor, get_stale_seconds()),),
             reason=(
                 "haste status is absent"
                 if self.sensor_kind is SensorKind.HASTED
                 else "character is hungry"
             ),
-        )
+        ), phase=phase)
 
 
 class HasteFeature(_StatusFeature):
@@ -334,9 +339,9 @@ class EquipmentFeature(_ActionFeature):
         if not self.policy.should_equip(empty, life) or not self._ready(context.now):
             return Step()
 
-        requirements = [Requirement(self.empty_sensor, _MAX_AGE)]
+        requirements = [Requirement(self.empty_sensor, get_stale_seconds())]
         if self.health_sensor is not None:
-            requirements.append(Requirement(self.health_sensor, _MAX_AGE))
+            requirements.append(Requirement(self.health_sensor, get_stale_seconds()))
         if self.hotkey is not None:
             action = Action(ActionKind.PRESS, key=self.hotkey)
         else:
