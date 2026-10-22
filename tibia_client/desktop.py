@@ -91,6 +91,8 @@ class DesktopAdapter:
         from tibia_client.battle_text import BattleTextReader
         self._battle_text = BattleTextReader()
         self._follow_matches = {}
+        from tibia_client.visual_readings import MarkerReader
+        self._markers = MarkerReader()
         native_hotkey = hotkey is None
         self.hotkey = hotkey if hotkey is not None else Hotkey(self.mouse_mode)
         if capture_provider is None:
@@ -292,11 +294,13 @@ class DesktopAdapter:
         return read_target(frame, region, sensor.name, self.ui_scale, self._battle_text)
 
     @staticmethod
-    def _marker(sensor: Sensor, frame: Frame, scale: float = 1.0) -> Reading:
+    def _marker(sensor: Sensor, frame: Frame, scale: float = 1.0, reader=None) -> Reading:
         region = _region(sensor, 4)
         if not sensor.name.strip():
             raise ValueError("marker sensor needs a marker name")
         from tibia_client.visual_readings import read_marker
+        if reader is not None:
+            return reader.read(frame, region, sensor.name, scale)
         return read_marker(frame, region, sensor.name, scale)
 
     @staticmethod
@@ -368,7 +372,7 @@ class DesktopAdapter:
         if sensor.kind is SensorKind.TARGET:
             return self._target(sensor, frame)
         if sensor.kind is SensorKind.MARKER:
-            return self._marker(sensor, frame, self.ui_scale)
+            return self._marker(sensor, frame, self.ui_scale, self._markers)
         if sensor.kind is SensorKind.FOLLOW:
             return self._follow(sensor, frame, self.ui_scale, follow_matches)
         if sensor.kind is SensorKind.VISUAL:
@@ -676,6 +680,7 @@ class DesktopAdapter:
     def close(self) -> None:
         self._closed = True
         self._battle_text.close()
+        self._markers.close()
         controls = self._follow_matches.get("controls")
         if controls is not None:
             controls.close()

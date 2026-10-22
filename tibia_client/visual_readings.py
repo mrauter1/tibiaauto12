@@ -5,10 +5,14 @@ from collections import Counter, OrderedDict
 import hashlib
 import json
 import math
+import threading
+import time
+
+import cv2
 
 from conf.MarksConf import NameMarks
 from core.paths import scripts_path
-from core.perception import locate_match, locate_matches, validate_region
+from core.perception import load_template, locate_match, locate_matches, validate_region
 from engine.ScanStages import read_bar_region
 from tibia_client.battle_text import BattleTextReader, name_key, read_target
 from tibia_client.models import Marker, Quality, Reading
@@ -32,6 +36,126 @@ def read_marker(frame, region, name, scale=1.0):
         "score": None if arrival is None else arrival.score, "count": len(clicks),
         "boxes": [(region[0]+m.x, region[1]+m.y, region[0]+m.x+m.width, region[1]+m.y+m.height)
                   for m in clicks]})
+
+
+class MarkerReader:
+    """Retain a minimap-specific scale; learn it from colored marker evidence."""
+    def __init__(self):
+        self._context = None
+        self._scale = None
+        self._anchors = ()
+        self._candidate = None
+        self._worker = None
+        self._closed = False
+        self._last_scan = None
+        self._last_started = float('-inf')
+        self._cache = OrderedDict()
+        self._templates = {}
+        self._frame = self._fingerprint = None
+        self._error = ''
+
+    def read(self, frame, region, name, configured_scale=1.0):
+        region = tuple(validate_region(region, frame.size))
+        context = (frame.size, region, configured_scale)
+        if context != self._context:
+            self._context, self._scale, self._anchors = context, None, ()
+            self._cache.clear()
+            self._frame = None
+        candidate = self._candidate
+        if candidate is not None:
+            self._candidate = None
+            if candidate[0] == context:
+                _, self._scale, self._anchors = candidate
+                self._cache.clear()
+        scale = self._scale if self._scale is not None else configured_scale
+        if frame is not self._frame:
+            l, t, r, b = region
+            self._fingerprint = hashlib.blake2b(frame.pixels[t:b, l:r].tobytes(), digest_size=16).digest()
+            self._frame = frame
+        key = (context, scale, self._fingerprint)
+        cached = self._cache.setdefault(key, {})
+        self._cache.move_to_end(key)
+        while len(self._cache) > 4:
+            self._cache.popitem(last=False)
+
+        def read(name):
+            if name not in cached:
+                cached[name] = read_marker(frame, region, name, scale)
+            return cached[name]
+
+        result = read(name)
+        # An absent waypoint is normal. Keep the scale while another previously
+        # recognized marker still confirms it, instead of rescanning all scales.
+        confirmed = result.value.position is not None
+        if not confirmed and self._scale is not None:
+            confirmed = any(read(anchor).value.position is not None for anchor in self._anchors)
+        scan_key = (context, self._fingerprint)
+        if (not self._closed and (self._scale is None or not confirmed)
+                and (self._worker is None or not self._worker.is_alive())
+                and scan_key != self._last_scan and time.monotonic()-self._last_started >= 1):
+            self._last_scan, self._last_started = scan_key, time.monotonic()
+            l, t, r, b = region
+            pixels = frame.pixels[t:b, l:r].copy()
+            self._worker = threading.Thread(target=self._discover,
+                args=(pixels, context), name='marker-scale', daemon=True)
+            self._worker.start()
+        return Reading(result.value, result.quality, result.detail, {
+            **result.diagnostics, 'configured_scale': configured_scale,
+            'scale_source': 'detected' if self._scale is not None else 'configured',
+            'scale_anchors': self._anchors, 'scale_search_error': self._error,
+        })
+
+    def _discover(self, pixels, context):
+        configured_scale = context[2]
+        scales = sorted({configured_scale, *(n/4 for n in range(2, 13))},
+                        key=lambda scale: abs(scale-configured_scale))
+        best = None
+        try:
+            for scale in scales:
+                ranked = []
+                for name in NameMarks:
+                    if self._closed:
+                        return
+                    key = (name, scale)
+                    if key not in self._templates:
+                        template = load_template(f'images/MapSettings/{name}.png')
+                        self._templates[key] = cv2.resize(template, None, fx=scale, fy=scale,
+                                                         interpolation=cv2.INTER_LINEAR)
+                    template = self._templates[key]
+                    h, w = template.shape[:2]
+                    if h > pixels.shape[0] or w > pixels.shape[1]:
+                        continue
+                    # RGB rejects tiny grayscale coincidences on map terrain.
+                    scores = cv2.matchTemplate(pixels, template, cv2.TM_CCOEFF_NORMED)
+                    _, score, _, (x, y) = cv2.minMaxLoc(scores)
+                    if score >= .8:
+                        ranked.append((score, name, x+w/2, y+h/2, w, h))
+                distinct = []
+                for match in sorted(ranked, reverse=True):
+                    if all(abs(match[2]-old[2]) > max(match[4], old[4])*.65 or
+                           abs(match[3]-old[3]) > max(match[5], old[5])*.65 for old in distinct):
+                        distinct.append(match)
+                    if len(distinct) == 2:
+                        break
+                if not distinct:
+                    continue
+                confidence = sum(m[0] for m in distinct)/len(distinct)
+                # One exceptionally clear icon or agreement between two icons.
+                threshold = .93 if len(distinct) == 1 else .85
+                if confidence >= threshold and (best is None or confidence > best[0]):
+                    best = (confidence, scale, tuple(m[1] for m in distinct))
+                if len(distinct) == 2 and min(m[0] for m in distinct) >= .93:
+                    break
+            self._error = ''
+            if best is not None and not self._closed:
+                self._candidate = (context, best[1], best[2])
+        except Exception as exc:
+            self._error = f'{type(exc).__name__}: {exc}'
+
+    def close(self):
+        self._closed = True
+        self._candidate = self._frame = None
+        self._cache.clear()
 
 
 def load_visual_config():
@@ -64,12 +188,12 @@ class VisualReadings:
         self.battle = BattleTextReader()
         from tibia_client.follow_controls import FollowControls
         self.follow = FollowControls()
-        self._marker_cache = OrderedDict()
+        self.markers = MarkerReader()
 
     def close(self):
         self.battle.close()
         self.follow.close()
-        self._marker_cache.clear()
+        self.markers.close()
 
     def _region(self, key, frame):
         size = self.profile.get('calibration_size')
@@ -148,28 +272,17 @@ class VisualReadings:
             out['target:'+name_key(name)] = Reading(reading.value, reading.quality, reading.detail,
                 {**reading.diagnostics, 'label': name, 'group': 'Targets', 'effective_region': region})
 
-        _, map_region = put('minimap', 'Minimap region', 'Map', 'MapBox',
+        put('minimap', 'Minimap region', 'Map', 'MapBox',
             lambda box: Reading(f'{box[2]-box[0]} × {box[3]-box[1]} px',
                                 detail='Calibrated map region; location is not rediscovered each frame',
                                 diagnostics={'reader': 'calibration'}))
-        marker_cache = {}
-        if map_region is not None:
-            l, t, r, b = map_region
-            key = (map_region, self.scale,
-                   hashlib.blake2b(frame.pixels[t:b, l:r].tobytes(), digest_size=16).digest())
-            marker_cache = self._marker_cache.setdefault(key, {})
-            self._marker_cache.move_to_end(key)
-            while len(self._marker_cache) > 4:
-                self._marker_cache.popitem(last=False)
         for name in NameMarks:
             def marker(box, name=name):
-                result = marker_cache.get(name)
-                if result is None:
-                    result = read_marker(frame, box, name, self.scale)
-                    marker_cache[name] = result
+                result = self.markers.read(frame, box, name, self.scale)
                 detail = ('Center overlap at threshold 0.70' if result.value.reached else 'Away from map center')
                 if not result.diagnostics['count']:
                     detail = 'No click match above 0.80'+(' · center candidate at 0.70' if result.value.reached else '')
+                detail += f" · scale {result.diagnostics['ui_scale']:g}× ({result.diagnostics['scale_source']})"
                 return Reading(result.value, detail=detail, diagnostics=result.diagnostics)
             put('marker:'+name, name, 'Markers', 'MapBox', marker)
 
