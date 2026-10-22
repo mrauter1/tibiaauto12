@@ -90,6 +90,7 @@ class DesktopAdapter:
         self.ui_scale = float(ui_scale)
         from tibia_client.battle_text import BattleTextReader
         self._battle_text = BattleTextReader()
+        self._follow_matches = {}
         native_hotkey = hotkey is None
         self.hotkey = hotkey if hotkey is not None else Hotkey(self.mouse_mode)
         if capture_provider is None:
@@ -300,51 +301,8 @@ class DesktopAdapter:
 
     @staticmethod
     def _follow(sensor: Sensor, frame: Frame, scale: float = 1.0, matches=None) -> Reading:
-        if sensor.region:
-            raise ValueError("follow sensor does not take a region")
-        if sensor.name not in ("", "disable"):
-            raise ValueError("follow sensor name must be empty (enable) or 'disable'")
-        # Enable/disable requests share these template matches within one frame.
-        matches = {} if matches is None else matches
-
-        def match(name):
-            if name not in matches:
-                matches[name] = LocateMatch(
-                    f"images/TibiaSettings/{name}.png", Precision=0.7, frame=frame, Scale=scale)
-            return matches[name]
-
-        def active(name):
-            found = match(name)
-            if found is None:
-                return False
-            # Matching is grayscale: inactive gray buttons can match the same
-            # glyph. Require the active red standing / green following colour.
-            pixels = frame.pixels[found.y:found.y+found.height,
-                                  found.x:found.x+found.width].astype("int16")
-            red, green, blue = pixels[:, :, 0], pixels[:, :, 1], pixels[:, :, 2]
-            coloured = ((red > 100) & (red > green+35) & (red > blue+35) if name == "Idle" else
-                        (green > 100) & (green > red+35) & (green > blue+25))
-            return int(coloured.sum()) >= max(3, round(5*scale*scale))
-
-        disabling = sensor.name == "disable"
-        desired, opposite, button_name = (("Idle", "Following", "NotIdle") if disabling else
-                                          ("Following", "Idle", "NotFollow"))
-        diagnostics = {"reader": "follow-controls", "ui_scale": scale,
-                       "desired_follow": not disabling}
-        desired_active, opposite_active = active(desired), active(opposite)
-        if desired_active and not opposite_active:
-            return Reading(None, diagnostics=diagnostics)
-        if desired_active == opposite_active:
-            return Reading(None, Quality.UNKNOWN, "follow mode is unreadable", diagnostics)
-        button = match(button_name)
-        if button is None:
-            return Reading(
-                None,
-                Quality.UNKNOWN,
-                f"follow change is needed but the {button_name} button is unreadable",
-                diagnostics,
-            )
-        return Reading(button.center, diagnostics=diagnostics)
+        from tibia_client.follow_controls import follow_action
+        return follow_action(sensor, frame, scale, matches)
 
     def _validate_sensor(self, sensor: Sensor, frame: Frame) -> None:
         """Validate every requested geometry before any detector executes."""
@@ -498,7 +456,7 @@ class DesktopAdapter:
 
         readings: dict[Sensor, Reading] = {}
         cache: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
-        follow_matches = {}
+        follow_matches = self._follow_matches
         invalid: dict[tuple[SensorKind, tuple[int, ...], str], Reading] = {}
         visual_work = 0
         budgeted_visual: set[tuple[SensorKind, tuple[int, ...], str]] = set()
@@ -718,6 +676,10 @@ class DesktopAdapter:
     def close(self) -> None:
         self._closed = True
         self._battle_text.close()
+        controls = self._follow_matches.get("controls")
+        if controls is not None:
+            controls.close()
+        self._follow_matches.clear()
         self._adaptive_tracker.close()
         close = getattr(self.capture_provider, "close", None)
         if callable(close):

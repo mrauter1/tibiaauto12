@@ -62,10 +62,13 @@ class VisualReadings:
         if not math.isfinite(self.scale) or not .5 <= self.scale <= 3:
             raise ValueError('Calibration ui_scale must be between 0.5 and 3')
         self.battle = BattleTextReader()
+        from tibia_client.follow_controls import FollowControls
+        self.follow = FollowControls()
         self._marker_cache = OrderedDict()
 
     def close(self):
         self.battle.close()
+        self.follow.close()
         self._marker_cache.clear()
 
     def _region(self, key, frame):
@@ -184,4 +187,9 @@ class VisualReadings:
                                diagnostics={'reader': 'template', 'ui_scale': self.scale,
                                             'score': None if match is None else match.score})
             put('status:'+key, label, 'Status / equipment', box_key, present)
+        follow = self.follow.read(frame, self.scale)
+        out['status:follow'] = Reading(
+            ('Following' if follow.value else 'Standing') if follow.quality is Quality.KNOWN else None,
+            follow.quality, follow.detail,
+            {**follow.diagnostics, 'label': 'Follow mode', 'group': 'Status / equipment'})
         return out

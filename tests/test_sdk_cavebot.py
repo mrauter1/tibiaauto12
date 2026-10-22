@@ -409,6 +409,25 @@ def test_partial_count_drop_attacks_next_target_before_loot_then_restores_follow
     assert not restored.finished and not feature.failed
 
 
+def test_unreadable_follow_does_not_block_next_target_after_a_kill():
+    feature = bot(
+        targets=(TargetSpec(1, "Lizard *"),),
+        config=SessionConfig(walking=False, count_stable_samples=1, loot_button="right"),
+        loot_points=((10, 10),),
+    )
+    feature.tick(context(feature, 0, targets={"Lizard *": Target(3, (5, 5), True)}))
+    killed = context(feature, 0.2, frame=2,
+                     targets={"Lizard *": Target(2, (6, 6), False)})
+    observations = dict(killed.snapshot.observations)
+    for sensor in observations:
+        if sensor.kind is SensorKind.FOLLOW:
+            observations[sensor] = Observation(sensor, None, 0.2, 2, 1, Quality.UNKNOWN)
+    step = feature.tick(FeatureContext(Snapshot(observations, 2, 1, 0.2), 0.2))
+    assert not step.finished and not feature.failed
+    assert [request.action for request in step.requests] == [Action(ActionKind.LEFT_CLICK, point=(6, 6))]
+    assert step.requests[0].requirements[0].sensor.kind is SensorKind.TARGET
+
+
 def test_loot_disabled_never_requests_a_loot_click():
     feature = bot(
         targets=(TargetSpec(1, "dragon"),),

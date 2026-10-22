@@ -839,15 +839,17 @@ class CaveBotFeature:
             # the sweep or start it over from the first square.
             self._loot_started = context.now
             self._set_status("Loot timeout; retrying", "loot_timeout_retry")
-        hold = self._require_loot_hold(context)
-        if hold is not None:
-            return hold
         if spec is not None and target is not None:
             selection = self._maintain_attack(context, spec, target)
             if selection is not None:
                 return selection
         else:
             self._selected_wait = None
+        # Follow controls only govern the loot sweep. An unreadable button must
+        # never prevent selecting the next visible creature.
+        hold = self._require_loot_hold(context)
+        if hold is not None:
+            return hold
         if self._loot_sensor is None:
             return self._fail("loot_evidence_missing")
         # Requiring a fresh battle-list observation prevents an old count drop
