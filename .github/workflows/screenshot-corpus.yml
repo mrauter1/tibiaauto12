@@ -1,13 +1,7 @@
 name: Frozen screenshot corpus baseline
 
 on:
-  pull_request:
-    paths:
-      - 'tests/fixtures/screenshots/**'
-      - 'tools/*resource*.py'
-      - 'tibia_client/**'
-      - 'profiles/paulistinha-skills-v1/**'
-      - '.github/workflows/screenshot-corpus.yml'
+  # Historical corpus and latency reports are collected on demand.
   workflow_dispatch:
 
 permissions:

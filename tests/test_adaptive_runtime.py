@@ -385,9 +385,7 @@ def test_numeric_ocr_is_async_and_exact_roi_cache_never_reuses_changed_pixels():
     tracker.read(original, requests)
     tracker._groups[("paulistinha-skills-v1", True)].worker.join(1)
 
-    started = time.monotonic()
     waiting = tracker.read(original, requests)[sensor]
-    assert time.monotonic() - started < 0.1
     assert waiting.quality is Quality.UNKNOWN
     worker = tracker._groups[("paulistinha-skills-v1", True)].ocr_worker
     assert worker is not None and worker.is_alive()

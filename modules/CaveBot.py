@@ -99,7 +99,15 @@ class CaveBot:
         self._update_controls()
         self._poll()
         self.CaveBot.Protocol(self._close)
+        self.window.after(250, self._place_controls)
         self.CaveBot.loop()
+
+    def _place_controls(self):
+        from core.window_placement import move_to_other_screen
+        try:
+            move_to_other_screen(self.window)
+        except (OSError, ValueError, tk.TclError):
+            pass
 
     def _variables(self):
         variables = self.Setter.Variables
@@ -123,8 +131,6 @@ class CaveBot:
             monster, initial_monster = variables.Str(
                 "SelectedMonster" + ("" if number == 1 else str(number))
             )
-            if monster.get() not in AVAILABLE_MONSTERS and AVAILABLE_MONSTERS:
-                monster.set(AVAILABLE_MONSTERS[0])
             priority, initial_priority = variables.Int("Priority" + suffix)
             self.attack_enabled.append((enabled, initial_enabled, "Attack" + suffix))
             self.monster_names.append(
@@ -134,7 +140,7 @@ class CaveBot:
 
     def _build_ui(self):
         add_label = self.CaveBot.addLabel
-        add_label("Targets (lower number attacks first)", [20, 12])
+        add_label("Name or wildcard (Lizard *); lower number first", [20, 12])
         for row in range(4):
             y = 42 + row * 38
             self.CaveBot.addCheck(
@@ -143,15 +149,18 @@ class CaveBot:
                 self.attack_enabled[row][1],
                 "Target {}".format(row + 1),
             )
-            self.CaveBot.addOption(self.monster_names[row][0], AVAILABLE_MONSTERS, [135, y - 5], 16)
+            ttk.Combobox(
+                self.window, textvariable=self.monster_names[row][0],
+                values=AVAILABLE_MONSTERS, state="normal", width=21,
+            ).place(x=135, y=y)
             self.CaveBot.addOption(self.priorities[row][0], Priority, [300, y - 5], 3)
 
         self.CaveBot.addCheck(
-            self.follow, [20, 205], self.initial_follow, "Enable follow while fighting"
+            self.follow, [20, 205], self.initial_follow, "Follow while fighting, except during loot"
         )
         self.CaveBot.addCheck(
             self.loot_enabled, [20, 230], self.initial_loot_enabled,
-            "Loot on stable target-count decrease (heuristic)"
+            "Loot after kills while continuing to attack (heuristic)"
         )
         add_label(
             "Attack stance, player safety, range and unreachable rules: unavailable until verified",
@@ -679,26 +688,28 @@ class CaveBot:
         self._validate_pack_activation()
         route_name = self._route_name()
         candidate = Route(route_name, self._route.waypoints)
-        if not route_file(route_name).is_file():
+        walking = bool(self.walk_enabled.get())
+        if walking and not route_file(route_name).is_file():
             raise RouteError("route has unsaved changes; press Save before starting CaveBot")
-        route = load_route(route_name)
-        if route != candidate:
+        route = load_route(route_name) if walking else Route(route_name, ())
+        if walking and route != candidate:
             raise RouteError("route has unsaved changes; press Save before starting CaveBot")
-        if not route.waypoints:
+        if walking and not route.waypoints:
             raise RouteError("route has no waypoints")
-        if not self.walk_enabled.get():
-            raise RouteError("route walking must be enabled")
         targets = []
         for enabled, monster, priority in zip(
             self.attack_enabled, self.monster_names, self.priorities
         ):
             if enabled[0].get():
-                name = monster[0].get()
-                asset = Path(project_path(Path("images") / "Targets" / "Names" / (name + ".png")))
-                if not asset.is_file():
-                    raise RouteError("missing target image: {}".format(name))
+                name = monster[0].get().strip()
+                if not name or len(name) > 160 or any(ord(char) < 32 for char in name):
+                    raise RouteError("enter a creature name or pattern of 1–160 characters")
                 targets.append(TargetSpec(int(priority[0].get()), name))
-        if checkpoint_file(route_name).exists():
+        if not walking and not targets:
+            raise RouteError("enable at least one target for stationary combat")
+        if not walking:
+            start_index = 0
+        elif checkpoint_file(route_name).exists():
             start_index = load_checkpoint(route)
         else:
             start_index = import_legacy_active_index(self._read_legacy_data(route_name), route)
@@ -707,6 +718,7 @@ class CaveBot:
             "start_index": start_index,
             "targets": tuple(targets),
             "follow": bool(self.follow.get()),
+            "walking": walking,
             "loot": bool(self.loot_enabled.get()),
             "stand": max(0.0, float(self.stand.get())),
         }
@@ -728,6 +740,7 @@ class CaveBot:
                 config=SessionConfig(
                     stand_seconds=snapshot["stand"],
                     follow=snapshot["follow"],
+                    walking=snapshot["walking"],
                     loot=snapshot["loot"],
                 ),
                 start_index=snapshot["start_index"],
@@ -857,7 +870,7 @@ class CaveBot:
             suffix = "" if index == 0 else str(index + 1)
             self.attack_enabled[index][0].set(bool(saved.get("Attack" + word, False)))
             monster = saved.get("SelectedMonster" + suffix)
-            if monster in AVAILABLE_MONSTERS:
+            if isinstance(monster, str):
                 self.monster_names[index][0].set(monster)
             self.priorities[index][0].set(int(saved.get("Priority" + word, index + 1)))
 

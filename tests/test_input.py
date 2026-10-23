@@ -164,7 +164,7 @@ class InputTests(unittest.TestCase):
 
     def test_physical_coordinates_are_client_local(self):
         backend = FakePhysicalBackend()
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         self.assertEqual(mouse.Position(), (30, 60))
         mouse.LeftClick((7, 9))
@@ -180,7 +180,7 @@ class InputTests(unittest.TestCase):
         positions = ((99, 260), (900, 260), (130, 199), (130, 800))
         for position in positions:
             backend = FakePhysicalBackend()
-            mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+            mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
             backend.cursor = position
             snapshot = mouse.ScreenPosition()
             backend.origin = (400, 500)
@@ -193,7 +193,7 @@ class InputTests(unittest.TestCase):
 
     def test_screen_cursor_restore_rechecks_focus_before_moving(self):
         backend = FakePhysicalBackend()
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         snapshot = mouse.ScreenPosition()
         backend.foreground = 99
 
@@ -240,7 +240,7 @@ class InputTests(unittest.TestCase):
     def test_physical_input_rejects_unfocused_window_without_side_effects(self):
         backend = FakePhysicalBackend()
         backend.foreground = 99
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         with self.assertRaises(InputUnavailableError):
             mouse.Press("F1")
@@ -250,7 +250,7 @@ class InputTests(unittest.TestCase):
         backend = FakePhysicalBackend()
         backend.foreground = 99
         hotkey = Hotkey(
-            1, backend=MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+            1, preflight=True, backend=MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         )
         waiting = threading.Event()
         ready = threading.Event()
@@ -280,7 +280,7 @@ class InputTests(unittest.TestCase):
         backend = FakePhysicalBackend()
         backend.foreground = 99
         hotkey = Hotkey(
-            1, backend=MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+            1, preflight=True, backend=MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         )
 
         with self.assertRaises(TimeoutError):
@@ -298,7 +298,7 @@ class InputTests(unittest.TestCase):
     def test_message_readiness_only_validates_target(self):
         backend = FakeMessageBackend()
         hotkey = Hotkey(
-            0, backend=SendToClient(backend=backend, hwnd_resolver=lambda: 41)
+            0, backend=SendToClient(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         )
 
         self.assertTrue(hotkey.wait_until_ready(timeout=0))
@@ -313,7 +313,7 @@ class InputTests(unittest.TestCase):
 
     def test_key_and_modifier_names_are_validated_before_input(self):
         backend = FakePhysicalBackend()
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         with self.assertRaises(ValueError):
             mouse.Press("not-a-key")
@@ -323,7 +323,7 @@ class InputTests(unittest.TestCase):
 
     def test_physical_resize_rejects_keys_before_any_input(self):
         backend = FakePhysicalBackend()
-        mouse = MoveMouse(
+        mouse = MoveMouse(preflight=True,
             backend=backend,
             hwnd_resolver=lambda: 41,
             expected_size_resolver=lambda: (800, 600),
@@ -337,7 +337,7 @@ class InputTests(unittest.TestCase):
     def test_physical_modifier_is_released_on_cancellation(self):
         backend = FakePhysicalBackend()
         backend.cancel_on_first_down = True
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         name = "cancel-input"
 
         thread = runtime.start(name, lambda: mouse.PressHotkey("ctrl", "F1"))
@@ -350,7 +350,7 @@ class InputTests(unittest.TestCase):
 
     def test_physical_drag_validates_destination_before_any_input(self):
         backend = FakePhysicalBackend()
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         with self.assertRaises(ValueError):
             mouse.DragTo((1, 2), (900, 2))
@@ -359,7 +359,7 @@ class InputTests(unittest.TestCase):
     def test_physical_click_rechecks_focus_before_button_down(self):
         backend = FakePhysicalBackend()
         backend.lose_focus_after_move = True
-        mouse = MoveMouse(backend=backend, hwnd_resolver=lambda: 41)
+        mouse = MoveMouse(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         with self.assertRaises(InputUnavailableError):
             mouse.LeftClick((7, 9))
@@ -367,7 +367,7 @@ class InputTests(unittest.TestCase):
 
     def test_message_click_uses_local_coordinates_and_bounded_send(self):
         backend = FakeMessageBackend()
-        client = SendToClient(
+        client = SendToClient(preflight=True,
             backend=backend, hwnd_resolver=lambda: 41, timeout_ms=123
         )
         client.LeftClick((7, 9))
@@ -381,7 +381,7 @@ class InputTests(unittest.TestCase):
 
     def test_message_button_release_is_attempted_after_down_timeout(self):
         backend = FakeMessageBackend()
-        client = SendToClient(backend=backend, hwnd_resolver=lambda: 41)
+        client = SendToClient(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
         backend.fail_down_message = client.WM_LBUTTONDOWN
 
         with self.assertRaises(TimeoutError):
@@ -393,7 +393,7 @@ class InputTests(unittest.TestCase):
 
     def test_message_drag_validates_destination_before_any_input(self):
         backend = FakeMessageBackend()
-        client = SendToClient(backend=backend, hwnd_resolver=lambda: 41)
+        client = SendToClient(preflight=True, backend=backend, hwnd_resolver=lambda: 41)
 
         for destination in ((800, 2), (-1, 2), (True, 2), (1.5, 2)):
             with self.assertRaises(ValueError):
@@ -403,7 +403,7 @@ class InputTests(unittest.TestCase):
 
     def test_message_resize_rejects_keys_before_any_input(self):
         backend = FakeMessageBackend()
-        client = SendToClient(
+        client = SendToClient(preflight=True,
             backend=backend,
             hwnd_resolver=lambda: 41,
             expected_size_resolver=lambda: [800, 600],
@@ -418,7 +418,7 @@ class InputTests(unittest.TestCase):
     def test_hwnd_is_resolved_for_each_action(self):
         backend = FakeMessageBackend()
         handles = iter((41, 42))
-        client = SendToClient(backend=backend, hwnd_resolver=lambda: next(handles))
+        client = SendToClient(preflight=True, backend=backend, hwnd_resolver=lambda: next(handles))
 
         client.Press("F1")
         client.Press("F2")

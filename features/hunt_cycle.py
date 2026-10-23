@@ -20,6 +20,7 @@ from types import MappingProxyType
 from typing import Any, Iterable, Mapping
 
 from features.cavebot import CaveBotFeature, SessionConfig, TargetSpec
+from tibia_client.freshness import get_stale_seconds
 from tibia_client.hunt_plan import (
     ConditionField,
     ConditionOp,
@@ -125,8 +126,11 @@ class HuntCycleFeature:
 
     name = "CaveBot"
     interval = 0.2
-    _MAX_AGE = 0.5
     _CHECKPOINT_VERSION = 1
+
+    @property
+    def _MAX_AGE(self):
+        return get_stale_seconds()
 
     def __init__(
         self,
@@ -618,7 +622,7 @@ class HuntCycleFeature:
         self._set_status("dispatching_guarded_action")
         self._save_checkpoint()  # Persist intent before the session can dispatch it.
         requirements = tuple(Requirement(self.bindings[item], self._MAX_AGE) for item in sorted(ids))
-        return self._step(Request(key, native, Priority.LOOT if loot_item else Priority.NAVIGATION, self._MAX_AGE, requirements, reason=f"hunt lifecycle action {action.id}"))
+        return self._step(Request(key, native, Priority.LOOT if loot_item else Priority.NAVIGATION, 0.5, requirements, reason=f"hunt lifecycle action {action.id}"))
 
     def _pending_confirmed(self, context: FeatureContext, pending: _PendingAction) -> bool | None:
         if context.snapshot.frame_id <= pending.baseline_frame:

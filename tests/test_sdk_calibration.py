@@ -17,8 +17,9 @@ def test_production_calibration_captures_once_in_process_and_scopes_all_getters(
     seen = []
 
     class FakeCaptureProcess:
-        def __init__(self, *, capture_size):
+        def __init__(self, *, capture_size, startup_timeout):
             assert capture_size == (800, 600)
+            assert startup_timeout == 15.0
 
         def capture(self):
             captures.append(True)

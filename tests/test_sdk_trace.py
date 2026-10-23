@@ -232,15 +232,21 @@ def test_replay_adapter_runs_real_runtime_without_native_input(tmp_path):
     ]
 
 
-def test_old_replay_frame_remains_stale_and_cannot_create_input():
+@pytest.mark.parametrize("stale_ms,age,should_act", [
+    (2000, 1.0, True), (2000, 1.9, True), (2000, 2.1, False),
+    (3500, 3.0, True), (3500, 4.0, False),
+])
+def test_replay_respects_reading_age_window_without_disabling_healing(stale_ms, age, should_act):
+    from tibia_client.freshness import set_stale_ms
+    set_stale_ms(stale_ms)
     clock = ReplayClock(10)
-    snapshot = Snapshot({HEALTH: Observation(HEALTH, 20, 9, 1, 1)}, 1, 1, 10)
+    snapshot = Snapshot({HEALTH: Observation(HEALTH, 20, 10-age, 1, 1)}, 1, 1, 10)
     adapter = ReplayAdapter((snapshot,), clock)
     with ClientSession(adapter, clock=clock, autostart=False) as session:
         session.start_feature(factory("AutoHeal", 1))
         session.tick_once()
-        assert not session.feature_status("AutoHeal").active
-    assert adapter.actions == []
+        assert session.feature_status("AutoHeal").active
+    assert adapter.actions == ([(10, Action(ActionKind.PRESS, key="F1"))] if should_act else [])
 
 
 @pytest.mark.parametrize(

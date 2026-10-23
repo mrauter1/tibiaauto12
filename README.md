@@ -6,6 +6,26 @@ TibiaAuto12 is a Windows desktop automation project built around captured client
 
 ## Install and start
 
+The draft host integration includes **Local Tibia** and **Windows Sandbox** targets.
+Before choosing a backend, run the separate [experimental desktop probe](docs/desktop-probe.md)
+with `probe.bat`. It measures the actual capture and input paths without starting bot
+modules or changing profiles.
+The [live probe results](docs/desktop-probe-live-results.md) record accepted basic
+host and Sandbox input, rejected alternatives, and remaining untested operations.
+Local mode keeps the client/OBS integration. Sandbox mode selects a calibrated
+guest game viewport in the host Sandbox window and uses foreground physical
+input. Use **Configure Sandbox area**
+in window selection, then calibrate and complete **Test client** for that target.
+See [Windows Sandbox setup](docs/windows-sandbox.md) for the supported layout,
+coordinate mapping and measured live results. Sandbox setup needs only one capture
+and a viewport rectangle; paired focus samples are optional legacy probe data.
+
+The default availability policy is **on error**. Input goes directly to its native
+backend without a pre-action screenshot, focus/template check or dialog search.
+When capture or input returns an error, the adapter inspects client availability
+and adds diagnostics to the error result. The probe defaults to `error_only_physical`
+and `direct_visible_region_gdi`; its older guarded backends remain explicit experiments.
+
 Use Windows and Python 3.10–3.12 for the desktop app. Linux can run the headless checks and tests; Linux desktop automation is unsupported.
 
 ```powershell
@@ -20,10 +40,10 @@ python -m venv .venv
 1. Select the input client window. Select the capture window separately when using an OBS projector.
 2. A separate capture window must show the same content at the same client-area size, without scaling, letterboxing, or cropping. Equal dimensions are necessary, but do not prove that pixels and input coordinates align.
 3. Create or load a calibration profile. Older profiles require **Recalibrate existing profile** once to bind their geometry to the configured capture dimensions. Failed calibration preserves the previous profile. Resizing the client requires recalibration.
-4. Open a module, review its settings, and start it explicitly. Physical-input mode waits for the selected game window to have focus and never steals focus. Window-message mode checks that its target is ready.
+4. Open a module, review its settings, and start it explicitly. Physical input uses the host keyboard and mouse; keep the intended game selected. Neither physical nor message input performs a client-availability preflight under the default policy.
 5. Stop a feature before changing its settings. Closing a standalone feature window stops that feature before saving its settings. The Hunt workflow panel hides on close and preserves its draft and running workflow; use **Stop workflow** or **STOP ALL** to stop it. Closing the application closes the shared client session and its adapter.
 
-Capture, readiness, invalid geometry, stale evidence, and adapter errors fail closed and appear in feature status. A native OS call cannot always be interrupted after it has entered the operating system; capture and input boundaries use bounded waits and do not respond to uncertainty with speculative actions.
+Capture, invalid geometry, stale observations, and adapter errors appear in feature status. Availability is diagnosed after a reported capture or input error, without automatically replaying the action. A native OS call cannot always be interrupted after it has entered the operating system; capture and input retain bounded waits and cancellation.
 
 ## Available behavior
 
@@ -56,9 +76,13 @@ for native capture evidence. Acceptance uses unchanged real screenshots with
 documented visual equivalence. The [latency benchmark](tools/benchmark_resource_latency.py)
 measures full-frame discovery and every cached read separately.
 
+The [expanded visual benchmark](docs/visual-detection-benchmark.md) includes
+health/mana bars, battle-list names/counts/selection, automatic minimap location
+and map markers, with a reviewable annotation overlay for the original images.
+
 The standalone CaveBot retains its optional bounded target-count-drop loot heuristic over calibrated surrounding tiles; that legacy option is not corpse recognition. The new workflow disables that heuristic and offers a separate recognized-container transfer policy. Generic Rope/Shovel waypoint execution, fishing and reconnect/login remain unavailable. Travel interactions can instead be configured between finite route segments with their own visual postconditions. Retired placeholder modules remain disabled in the launcher.
 
-The health and mana reader retains the existing 100-pixel bar calibration and five-percent steps. A missing or unreadable fill is unknown rather than zero. It does not infer death or reliably distinguish a truly empty bar from failed observation.
+Health and mana sensors support calibrated bar rectangles and retain the legacy 100-pixel, five-percent-step path for two-coordinate calibration. A missing or unreadable fill is unknown rather than zero. They do not infer death or reliably distinguish a truly empty bar from failed observation.
 
 ## Offline checks
 
@@ -74,12 +98,13 @@ On Linux use `.venv/bin/python`. The doctor never captures a window or sends inp
 
 For live resource inspection, open **Readings** in the launcher or run
 `.venv\Scripts\python.exe -m tools.resource_monitor`, then press **Start monitoring**.
-The [observation-only monitor](docs/resource-monitor.md) uses the benchmark-selected
-reader and shows HP, Mana, Soul and Capacity, N/A/stale states, local age,
+The [observation-only monitor](docs/resource-monitor.md) uses `RetainedResourceReader`
+and shows HP, Mana, Soul and Capacity, N/A/stale states, local age,
 matching image crops and capture-to-result timing against the 100 ms budget.
 It sends no game input. Adaptive resource tracking, profile setup, direct visual
-reads and the selected benchmark share `tibia_client.resource_reader.ResourceReader`
-as their default. Existing adaptive profiles use it automatically. Health/mana
+reads use `tibia_client.resource_reader.ResourceReader` as their default; the
+expanded benchmark evaluates both production reader paths separately.
+Existing adaptive profiles use the SDK default automatically. Health/mana
 percentage sensors remain distinct from these absolute resource values.
 
 CI runs the offline suite and syntax/undefined-name checks on Windows and Linux with Python 3.10 and 3.12. GUI tests require a display and skip when one is unavailable.
@@ -102,7 +127,7 @@ flowchart TD
 
 The application creates one `ClientSession` for the selected client. Every active feature shares that session, its coherent snapshots, its bounded request queue, and its serialized action stream. Starting a feature with an existing name supersedes its previous generation; stopping it invalidates queued work owned by that generation.
 
-A scheduler tick collects the sensors needed by due features, asks the adapter for one observation batch, builds an immutable `Snapshot`, calls each feature's `tick(FeatureContext)`, and accepts the returned `Step`. A `Request` contains one `Action`, a priority, a time-to-live, and optional fresh-observation requirements or confirmation. The session rejects expired or stale requests and dispatches at most one action per tick. Features receive `ActionResult` values through `on_result` and never capture or send input themselves.
+A scheduler tick collects the sensors needed by due features, asks the adapter for one observation batch, builds an immutable `Snapshot`, calls each feature's `tick(FeatureContext)`, and accepts the returned `Step`. A `Request` contains one `Action`, a priority, a time-to-live, and optional fresh-observation requirements or confirmation. The session rejects expired or stale requests. Each tick can dispatch one health hotkey, one mana hotkey, one follow control, then one other action, with validation before each native call. Healing, mana refill and follow therefore do not consume CaveBot's combat/loot slot. Follow has no added cooldown and does not wait for attack-selection confirmation. Features receive `ActionResult` values through `on_result` and never capture or send input themselves.
 
 `DesktopAdapter` is the production native boundary. It converts calibrated sensors into readings from one captured frame and translates validated SDK actions to the existing physical or window-message backend. Tk modules only build features, call the shared session, and poll `FeatureStatus` with `after`; they do not import scanners, native hotkeys, or worker/runtime modules.
 
@@ -147,7 +172,7 @@ class EmergencyHeal:
 
     def tick(self, context: FeatureContext):
         try:
-            health = context.require(self.health, max_age=0.5)
+            health = context.require(self.health)
         except ObservationUnavailable:
             return Step(phase="Waiting for health")
         if health > 35:
@@ -161,7 +186,7 @@ class EmergencyHeal:
             action=Action(ActionKind.PRESS, key=self.hotkey),
             priority=Priority.HEAL,
             ttl=0.25,
-            requirements=(Requirement(self.health, max_age=0.5),),
+            requirements=(Requirement(self.health),),
             reason=f"health is {health}%",
         )
         return Step(requests=(request,), phase="Heal requested")

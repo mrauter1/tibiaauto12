@@ -6,9 +6,10 @@ import os
 from numbers import Integral
 from typing import Callable, Optional
 
-from conf.HexMapKeys import KeyToHex
+from conf.HexMapKeys import KEY_CODES_CASEFOLDED
 from conf.conf_manager import ConfManager
 from core.MoveMouse import InputUnavailableError
+from core.input_diagnostics import InputDiagnostics
 from core.runtime import checkpoint, input_transaction
 
 
@@ -79,8 +80,14 @@ class _WindowsMessageBackend:
     def make_long(x: int, y: int) -> int:
         return (int(x) & 0xFFFF) | ((int(y) & 0xFFFF) << 16)
 
+    @staticmethod
+    def availability_diagnostic(hwnd):
+        from tibia_client.direct_capture import diagnose_client_availability
 
-class SendToClient:
+        return diagnose_client_availability(hwnd)
+
+
+class SendToClient(InputDiagnostics):
     WM_KEYDOWN = _WindowsMessageBackend.WM_KEYDOWN
     WM_KEYUP = _WindowsMessageBackend.WM_KEYUP
     WM_MOUSEMOVE = _WindowsMessageBackend.WM_MOUSEMOVE
@@ -93,7 +100,12 @@ class SendToClient:
 
     def __init__(self, backend=None, hwnd_resolver: Optional[Callable[[], int]] = None,
                  timeout_ms: int = 250,
-                 expected_size_resolver: Optional[Callable[[], object]] = None):
+                 expected_size_resolver: Optional[Callable[[], object]] = None,
+                 *, preflight=False, error_diagnostic=None):
+        if type(preflight) is not bool:
+            raise TypeError("preflight must be a boolean")
+        self.preflight = preflight
+        self._init_diagnostics(error_diagnostic)
         native_resolution = backend is None and hwnd_resolver is None
         self._backend = backend
         self._hwnd_resolver = hwnd_resolver or _configured_input_hwnd
@@ -119,6 +131,11 @@ class SendToClient:
 
     def _window(self) -> int:
         hwnd = self.hwnd
+        self._operation_hwnd = hwnd
+        if not self.preflight:
+            if hwnd <= 0:
+                raise ValueError("configured input_hwnd must be a positive integer")
+            return hwnd
         if not hwnd or not self.backend.is_window(hwnd):
             raise InputUnavailableError("configured input_hwnd is not a valid window")
         self._validate_expected_size(hwnd)
@@ -145,14 +162,18 @@ class SendToClient:
     @staticmethod
     def _key_code(key: str) -> int:
         try:
-            return KeyToHex[key]
-        except (KeyError, TypeError):
+            return KEY_CODES_CASEFOLDED[key.casefold()]
+        except (KeyError, TypeError, AttributeError):
             raise ValueError(f"unsupported key: {key!r}") from None
 
     def _send(self, hwnd: int, message: int, wparam: int = 0, lparam: int = 0):
-        return self.backend.send_message(
+        return self._call("send_message",
             hwnd, message, wparam, lparam, timeout_ms=self.timeout_ms
         )
+
+    def _release_message(self, hwnd, message, wparam=0, lparam=0):
+        return self._release("send_message", hwnd, message, wparam, lparam,
+                             timeout_ms=self.timeout_ms)
 
     def _validate_position(self, hwnd: int, position):
         if (not isinstance(position, (tuple, list)) or len(position) != 2
@@ -160,7 +181,18 @@ class SendToClient:
                        for value in position)):
             raise ValueError("client position must contain two integral coordinates")
         x, y = int(position[0]), int(position[1])
-        width, height = self.backend.client_size(hwnd)
+        if self.preflight:
+            size = self.backend.client_size(hwnd)
+        else:
+            size = self._expected_size_resolver() if self._expected_size_resolver else None
+        if size is None:
+            width = height = 0x8000
+        else:
+            if (not isinstance(size, (tuple, list)) or len(size) != 2
+                    or any(isinstance(value, bool) or not isinstance(value, Integral)
+                           or value <= 0 for value in size)):
+                raise ValueError("configured capture_size is invalid")
+            width, height = size
         if (not (0 <= x < int(width) and 0 <= y < int(height))
                 or x > 0x7FFF or y > 0x7FFF):
             raise ValueError(
@@ -192,13 +224,13 @@ class SendToClient:
         return True
 
     def Position(self):
-        with input_transaction("message cursor position"):
+        with self._operation("message cursor position"):
             hwnd = self._window()
-            return self.backend.screen_to_client(hwnd, self.backend.cursor_position())
+            return self._call("screen_to_client", hwnd, self._call("cursor_position"))
 
     def Press(self, Key):
         code = self._key_code(Key)
-        with input_transaction(f"message key {Key}"):
+        with self._operation(f"message key {Key}"):
             hwnd = self._window()
             key_down = False
             try:
@@ -207,14 +239,14 @@ class SendToClient:
                 checkpoint()
             finally:
                 if key_down:
-                    self._send(hwnd, self.WM_KEYUP, code, 0)
+                    self._release_message(hwnd, self.WM_KEYUP, code, 0)
 
     def PressHotkey(self, Option, Key):
         if Option not in {"ctrl", "shift", "alt"}:
             raise ValueError(f"unsupported modifier: {Option!r}")
         modifier = self._key_code(Option)
         key = self._key_code(Key)
-        with input_transaction(f"message hotkey {Option}+{Key}"):
+        with self._operation(f"message hotkey {Option}+{Key}"):
             hwnd = self._window()
             modifier_down = False
             key_down = False
@@ -228,26 +260,26 @@ class SendToClient:
             finally:
                 try:
                     if key_down:
-                        self._send(hwnd, self.WM_KEYUP, key, 0)
+                        self._release_message(hwnd, self.WM_KEYUP, key, 0)
                 finally:
                     if modifier_down:
-                        self._send(hwnd, self.WM_KEYUP, modifier, 0)
+                        self._release_message(hwnd, self.WM_KEYUP, modifier, 0)
 
     def MoveTo(self, X, Y):
-        with input_transaction("message cursor move"):
+        with self._operation("message cursor move"):
             hwnd = self._window()
             position = self._validate_position(hwnd, (X, Y))
-            self.backend.post_message(
+            self._call("post_message",
                 hwnd, self.WM_MOUSEMOVE, 0, self._position_param(position)
             )
 
     def _click(self, position, down_message: int, up_message: int,
                button_flag: int, reason: str) -> None:
-        with input_transaction(reason):
+        with self._operation(reason):
             hwnd = self._window()
             position = self._validate_position(hwnd, position)
             parameter = self._position_param(position)
-            self.backend.post_message(hwnd, self.WM_MOUSEMOVE, 0, parameter)
+            self._call("post_message", hwnd, self.WM_MOUSEMOVE, 0, parameter)
             down = False
             try:
                 down = True
@@ -255,7 +287,7 @@ class SendToClient:
                 checkpoint()
             finally:
                 if down:
-                    self._send(hwnd, up_message, 0, parameter)
+                    self._release_message(hwnd, up_message, 0, parameter)
 
     def LeftClick(self, Position):
         self._click(Position, self.WM_LBUTTONDOWN, self.WM_LBUTTONUP,
@@ -266,11 +298,11 @@ class SendToClient:
                     self.MK_RBUTTON, "message right click")
 
     def DragTo(self, From, To):
-        with input_transaction("message drag"):
+        with self._operation("message drag"):
             hwnd = self._window()
             start = self._position_param(self._validate_position(hwnd, From))
             end = self._position_param(self._validate_position(hwnd, To))
-            self.backend.post_message(hwnd, self.WM_MOUSEMOVE, 0, start)
+            self._call("post_message", hwnd, self.WM_MOUSEMOVE, 0, start)
             down = False
             try:
                 down = True
@@ -280,14 +312,14 @@ class SendToClient:
                 checkpoint()
             finally:
                 if down:
-                    self._send(hwnd, self.WM_LBUTTONUP, 0, end)
+                    self._release_message(hwnd, self.WM_LBUTTONUP, 0, end)
 
     def UseOn(self, From, To):
-        with input_transaction("message use-on"):
+        with self._operation("message use-on"):
             hwnd = self._window()
             source = self._position_param(self._validate_position(hwnd, From))
             destination = self._position_param(self._validate_position(hwnd, To))
-            self.backend.post_message(hwnd, self.WM_MOUSEMOVE, 0, source)
+            self._call("post_message", hwnd, self.WM_MOUSEMOVE, 0, source)
             right_down = False
             try:
                 right_down = True
@@ -295,9 +327,9 @@ class SendToClient:
                 checkpoint()
             finally:
                 if right_down:
-                    self._send(hwnd, self.WM_RBUTTONUP, 0, source)
+                    self._release_message(hwnd, self.WM_RBUTTONUP, 0, source)
             checkpoint()
-            self.backend.post_message(hwnd, self.WM_MOUSEMOVE, 0, destination)
+            self._call("post_message", hwnd, self.WM_MOUSEMOVE, 0, destination)
             left_down = False
             try:
                 left_down = True
@@ -305,7 +337,7 @@ class SendToClient:
                 checkpoint()
             finally:
                 if left_down:
-                    self._send(hwnd, self.WM_LBUTTONUP, 0, destination)
+                    self._release_message(hwnd, self.WM_LBUTTONUP, 0, destination)
 
     def MainWindowSize(self):
         with input_transaction("message client size"):

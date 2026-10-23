@@ -142,7 +142,6 @@ def test_schema_rejects_a_capability_mask_that_hides_setting_requirements():
     (
         (lambda data: data.update(hwnd=1234), "unknown field"),
         (lambda data: data["route"]["waypoints"][0].update(checkpoint=9), "unknown field"),
-        (lambda data: data["targets"][0].update(name="../Rat"), "asset name"),
         (lambda data: data["supply_policy"].update(state="refill"), "inactive"),
         (lambda data: data.update(required_capabilities="left_click"), "must be a list"),
         (lambda data: data["support"].update(timed_spells_immediate=1), "true or false"),
@@ -215,15 +214,17 @@ def test_duplicate_json_fields_are_rejected():
         hunt_pack_from_json('{"schema":"tibiaauto.hunt-pack","schema":"again"}')
 
 
-def test_only_bundled_marker_and_target_templates_are_accepted():
+def test_waypoints_need_marker_assets_but_creature_names_are_free_text():
     data = pack().as_dict()
     data["route"]["waypoints"][0]["mark"] = "DoesNotExist"
     with pytest.raises(HuntPackError, match="missing waypoint image"):
         hunt_pack_from_data(data)
-    data = pack().as_dict()
-    data["targets"][0]["name"] = "DoesNotExist"
-    with pytest.raises(HuntPackError, match="unknown bundled template"):
-        hunt_pack_from_data(data)
+    for name in ("Lizard Henchman", "Lizard *", "Lizard ?", "../Rat"):
+        data = pack().as_dict()
+        data["targets"][0]["name"] = name
+        restored = hunt_pack_from_data(data)
+        assert restored.targets[0].name == name
+        assert restored.as_dict()["targets"][0]["name"] == name
 
 
 def test_support_settings_apply_to_existing_loader_keys_in_one_document():

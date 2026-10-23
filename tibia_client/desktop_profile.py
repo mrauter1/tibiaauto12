@@ -83,6 +83,11 @@ class DesktopProfileController:
                     and config.get("capture_hwnd") == config.get("input_hwnd")):
                 raise ValueError("OBS projector and input must be separate selected windows")
             calibration = ConfManager.get(self.calibration_profile)
+            from core.target_binding import validate_target_binding
+
+            target = validate_target_binding(config, calibration)
+            if target.kind == "sandbox" and environment.capture_mode != "sandbox_screen":
+                raise ValueError("Sandbox requires sandbox_screen capture metadata")
             expected_mode = "physical" if calibration.get("MouseOption", 1) == 1 else "messages"
             if environment.input_mode != expected_mode:
                 raise ValueError("environment input mode differs from the selected input backend")

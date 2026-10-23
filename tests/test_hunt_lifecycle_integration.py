@@ -69,7 +69,7 @@ def test_immediate_hunt_return_prevents_combat_dispatch_while_support_runs(
                 elif sensor.kind is SensorKind.TARGET:
                     readings[sensor] = Reading(Target(1, (50, 60), False))
                 elif sensor.kind is SensorKind.FOLLOW:
-                    readings[sensor] = Reading((5, 5))
+                    readings[sensor] = Reading(None)  # Already following; isolate return cancellation.
             return ObservationBatch(readings, self.clock.value)
 
         def execute(self, action, token):

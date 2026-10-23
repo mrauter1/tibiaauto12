@@ -5,6 +5,30 @@ import pytest
 from tibia_client.application import close_client, configure_client, get_client
 
 
+def test_brief_stop_shortcut_is_retained_until_ui_poll():
+    from tibia_client.application import HotkeyLatch
+
+    class Keys:
+        def add_hotkey(self, key, callback, *, suppress):
+            assert key == "ctrl+shift+f12" and not suppress
+            self.callback = callback
+            return "hook"
+
+        def remove_hotkey(self, handle):
+            assert handle == "hook"
+            self.removed = True
+
+    keys = Keys()
+    shortcut = HotkeyLatch("Ctrl + Shift + F12", keyboard_backend=keys)
+    assert not shortcut.consume()
+    keys.callback()  # Key-down and release can both happen between UI polls.
+    assert shortcut.consume()
+    assert not shortcut.consume()
+    shortcut.close()
+    shortcut.close()
+    assert keys.removed
+
+
 class Adapter:
     def __init__(self):
         self.closed = 0

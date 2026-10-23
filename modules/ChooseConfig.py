@@ -5,6 +5,8 @@ from copy import deepcopy
 from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Mapping
+import queue
+import threading
 import tkinter as tk
 from tkinter import messagebox
 
@@ -59,7 +61,7 @@ def calibrate_profile(
         from core.HookWindow import frame_scope
         from tibia_client.capture import CaptureProcess
 
-        capture = CaptureProcess(capture_size=frame_size)
+        capture = CaptureProcess(capture_size=frame_size, startup_timeout=15.0)
         try:
             frame = capture.capture()
         except Exception:
@@ -80,6 +82,10 @@ def calibrate_profile(
             player = player_result[:2]
             game_box = player_result[2:]
             sqms = getters.SetSQMs(player, game_box)
+    except CalibrationError as exc:
+        if capture is not None:
+            exc.frame = frame
+        raise
     finally:
         if capture is not None:
             capture.close()
@@ -129,9 +135,17 @@ def _add_runtime_options(profile: dict[str, Any], mouse_mode: int, items_mode: s
 
 
 def prepare_profile(filename: str, frame_size: tuple[int, int], mouse_mode: int,
-                    items_mode: str, *, recalibrate: bool = False, getters=None) -> dict[str, Any]:
+                    items_mode: str, *, recalibrate: bool = False, getters=None,
+                    window_target=None) -> dict[str, Any]:
     """Prepare a profile fully in memory; callers write only after success."""
     filename = profile_filename(filename)
+    from tibia_client.window_target import WindowTarget
+
+    target = WindowTarget.from_config({"window_target": window_target})
+    if target.kind == "sandbox" and mouse_mode != 1:
+        raise CalibrationError("Windows Sandbox requires physical mouse/keyboard input")
+    if target.kind == "sandbox" and frame_size != target.size:
+        raise CalibrationError("capture size differs from the Sandbox viewport")
     path = ConfManager.path(filename)
     if path.exists():
         existing = ConfManager.get(filename)
@@ -142,6 +156,11 @@ def prepare_profile(filename: str, frame_size: tuple[int, int], mouse_mode: int,
         if recalibrate:
             profile = calibrate_profile(existing, frame_size, getters=getters)
         else:
+            if WindowTarget.from_config(existing).fingerprint != target.fingerprint:
+                raise CalibrationError(
+                    "desktop target or Sandbox viewport/focus samples changed; "
+                    "enable 'Recalibrate existing profile'"
+                )
             if existing.get("calibration_size") is None:
                 raise CalibrationError(
                     "legacy profile has no bound capture size; enable "
@@ -158,6 +177,10 @@ def prepare_profile(filename: str, frame_size: tuple[int, int], mouse_mode: int,
         template = ConfManager.get("Json.json")
         profile = calibrate_profile(template, frame_size, getters=getters)
     _add_runtime_options(profile, mouse_mode, items_mode)
+    if target.kind == "sandbox":
+        profile["window_target"] = target.to_dict()
+    else:
+        profile.pop("window_target", None)
     validate_calibration(profile, frame_size)
     return profile
 
@@ -172,18 +195,31 @@ class ChooseConfig:
         mouse_mode = tk.IntVar(master=self.window.windowID, value=1)
         items_mode = tk.StringVar(master=self.window.windowID, value="Frames")
         recalibrate = tk.BooleanVar(master=self.window.windowID, value=False)
+        sandbox = ConfManager.get("conf.json").get("window_target", {}).get("kind") == "sandbox"
+        self._preparing = False
+        self._closed = False
+        self._prepare_generation = 0
+        self._prepare_timer = None
+        self.window.windowID.bind("<Destroy>", self._on_destroy, add="+")
 
-        def open_root(filename):
+        def open_root(filename, generation=None):
+            if not self._is_open(generation):
+                return
             self.window.withdraw()
             from modules.Root import root
             try:
                 root(self.selected_window_name, filename)
             except Exception:
-                self.window.deiconify()
+                if self._is_open(generation):
+                    self.window.deiconify()
                 raise
-            self.window.windowID.destroy()
+            if self._is_open(generation):
+                self._cancel_preparation()
+                self.window.windowID.destroy()
 
         def bootstrap():
+            if self._preparing or not self._is_open():
+                return
             try:
                 filename = profile_filename(name.get())
                 config = ConfManager.get("conf.json")
@@ -191,21 +227,101 @@ class ChooseConfig:
                 if len(frame_size) != 2:
                     raise CalibrationError("capture size is unavailable; return to window selection")
 
-                profile = prepare_profile(
-                    filename, frame_size, mouse_mode.get(), items_mode.get(),
-                    recalibrate=recalibrate.get(),
-                )
+                options = dict(recalibrate=recalibrate.get(),
+                               window_target=deepcopy(config.get("window_target")))
+                selected_mouse, selected_items = mouse_mode.get(), items_mode.get()
+                direct_capture = sandbox or config.get("capture_hwnd") == config.get("input_hwnd")
+                if direct_capture:
+                    self._preparing = True
+                    self._prepare_generation += 1
+                    generation = self._prepare_generation
+                    result = queue.Queue(maxsize=1)
+                    self.window.withdraw()
+                    from core.MoveMouse import MoveMouse
+                    try:
+                        input_hwnd = config.get("input_hwnd", config.get("hwnd"))
+                        MoveMouse(hwnd_resolver=lambda: input_hwnd).Activate()
+                    except RuntimeError:
+                        self._preparing = False
+                        self.window.deiconify()
+                        raise
+
+                    def prepare():
+                        try:
+                            value = prepare_profile(filename, frame_size, selected_mouse,
+                                                    selected_items, **options)
+                            result.put((value, None))
+                        except Exception as exc:
+                            result.put((None, exc))
+
+                    def poll():
+                        self._prepare_timer = None
+                        if not self._is_open(generation):
+                            return
+                        try:
+                            value, error = result.get_nowait()
+                        except queue.Empty:
+                            self._prepare_timer = self.window.windowID.after(50, poll)
+                            return
+                        self._preparing = False
+                        if error:
+                            self.window.deiconify()
+                            if isinstance(error, CalibrationError) and hasattr(error, "frame"):
+                                from modules.ImageCalibration import ImageCalibration
+                                draft = ImageCalibration(self.window.windowID, error.frame, str(error)).run()
+                                if draft is not None and self._is_open(generation):
+                                    _add_runtime_options(draft, selected_mouse, selected_items)
+                                    if options.get("window_target"):
+                                        draft["window_target"] = options["window_target"]
+                                    save_and_open(draft, filename, generation)
+                                return
+                            messagebox.showerror("Calibration could not be completed", error,
+                                                 parent=self.window.windowID)
+                            return
+                        save_and_open(value, filename, generation)
+
+                    def begin():
+                        self._prepare_timer = None
+                        if not self._is_open(generation):
+                            return
+                        try:
+                            threading.Thread(target=prepare, name="sandbox-calibration",
+                                             daemon=True).start()
+                        except RuntimeError as exc:
+                            self._preparing = False
+                            self.window.deiconify()
+                            messagebox.showerror("Calibration could not be completed", str(exc),
+                                                 parent=self.window.windowID)
+                            return
+                        poll()
+
+                    self._prepare_timer = self.window.windowID.after(350, begin)
+                    return
+                profile = prepare_profile(filename, frame_size, selected_mouse, selected_items,
+                                          **options)
+                save_and_open(profile, filename)
+            except (RuntimeError, KeyError, TypeError, ValueError) as exc:
+                if self._is_open():
+                    messagebox.showerror("Calibration could not be completed", str(exc), parent=self.window.windowID)
+
+        def save_and_open(profile, filename, generation=None):
+            if not self._is_open(generation):
+                return
+            try:
                 # Failed detection never reaches this atomic replacement, preserving any old profile.
                 ConfManager.set(profile, filename)
+                if not self._is_open(generation):
+                    return
 
                 def activate(current):
                     current["configured"] = True
                     current["preferences_name"] = filename
 
                 ConfManager.update("conf.json", activate)
-                open_root(filename)
+                open_root(filename, generation)
             except (RuntimeError, KeyError, TypeError, ValueError) as exc:
-                messagebox.showerror("Calibration could not be completed", str(exc), parent=self.window.windowID)
+                if self._is_open(generation):
+                    messagebox.showerror("Calibration could not be completed", str(exc), parent=self.window.windowID)
 
         self.window.addEntry([165, 35], name, 28)
         self.window.addLabel("Name Of The Json Conf", [24, 35])
@@ -215,6 +331,12 @@ class ChooseConfig:
         movement.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
         messages = self.window.addRadio("Window messages (compatible clients)", mouse_mode, 0, [10, 114])
         messages.configure(bg=rgb((114, 94, 48)), activebackground=rgb((114, 94, 48)), selectcolor=rgb((114, 94, 48)))
+        if sandbox:
+            messages.configure(state="disabled")
+            self.window.windowID.geometry("414x245")
+            tk.Label(self.window.windowID, text="Create / Load brings Sandbox forward automatically.\n"
+                     "Keep Tibia active in the guest and its window layout fixed.",
+                     wraplength=400).place(x=8, y=203)
 
         items_label = self.window.addLabel("Item images", [290, 76])
         items_label.configure(bg=rgb((114, 94, 48)), fg="black")
@@ -229,7 +351,23 @@ class ChooseConfig:
                             selectcolor=rgb((114, 94, 48)))
 
         self.window.addButton("Create / Load", bootstrap, [95, 23], [290, 166])
+
+        def open_keyboard_modules():
+            if self._preparing or not self._is_open():
+                return
+            self.window.withdraw()
+            from modules.Root import root
+            try:
+                root(self.selected_window_name, None, keyboard_only=True)
+            except Exception:
+                self.window.deiconify()
+                raise
+
+        self.window.windowID.geometry("414x285")
+        self.window.addButton("Open keyboard modules (no image calibration)",
+                              open_keyboard_modules, [390, 28], [10, 245])
         def close():
+            self._cancel_preparation()
             from core.GUI import application_root, shutdown
             host = application_root()
             if host is self.window.windowID:
@@ -241,3 +379,28 @@ class ChooseConfig:
 
         self.window.Protocol(close)
         self.window.loop()
+
+    def _is_open(self, generation=None) -> bool:
+        if self._closed or (generation is not None and generation != self._prepare_generation):
+            return False
+        try:
+            return bool(self.window.windowID.winfo_exists())
+        except tk.TclError:
+            return False
+
+    def _cancel_preparation(self) -> None:
+        """Invalidate countdowns and results; native work may finish without saving."""
+        self._closed = True
+        self._preparing = False
+        self._prepare_generation += 1
+        timer, self._prepare_timer = self._prepare_timer, None
+        if timer is not None:
+            try:
+                self.window.windowID.after_cancel(timer)
+            except tk.TclError:
+                pass
+
+    def _on_destroy(self, event) -> None:
+        # Tk also delivers child-widget destruction events to this binding.
+        if event.widget is self.window.windowID:
+            self._cancel_preparation()

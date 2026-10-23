@@ -7,6 +7,7 @@ from enum import Enum, IntEnum
 import math
 from types import MappingProxyType
 from typing import Any, Mapping
+from tibia_client.freshness import get_stale_seconds
 
 
 Point = tuple[int, int]
@@ -92,12 +93,15 @@ class Target:
     count: int
     position: Point | None = None
     selected: bool = False
+    count_complete: bool = True
 
     def __post_init__(self):
         _identity(self.count, "target count")
         object.__setattr__(self, "position", _point(self.position))
         if type(self.selected) is not bool:
             raise ValueError("selected must be boolean")
+        if type(self.count_complete) is not bool:
+            raise ValueError('count_complete must be boolean')
 
 
 @dataclass(frozen=True)
@@ -165,6 +169,10 @@ class ObservationUnavailable(RuntimeError):
     pass
 
 
+class TransientObservationError(RuntimeError):
+    """An adapter could not capture this time; retain policies and retry later."""
+
+
 @dataclass(frozen=True)
 class Snapshot:
     observations: Mapping[Sensor, Observation] = field(default_factory=dict)
@@ -199,7 +207,9 @@ class Snapshot:
         except KeyError:
             raise ObservationUnavailable(f"{sensor.kind.value}: no observation") from None
 
-    def require(self, sensor: Sensor, *, now: float, max_age: float = 0.5) -> Any:
+    def require(self, sensor: Sensor, *, now: float, max_age: float | None = None) -> Any:
+        if max_age is None:
+            max_age = get_stale_seconds()
         obs = self.observation(sensor)
         if obs.epoch != self.epoch or not obs.fresh(now, max_age):
             raise ObservationUnavailable(
@@ -292,7 +302,7 @@ class Action:
 @dataclass(frozen=True)
 class Requirement:
     sensor: Sensor
-    max_age: float = 0.5
+    max_age: float = field(default_factory=get_stale_seconds)
 
     def __post_init__(self):
         if not isinstance(self.sensor, Sensor):
@@ -406,7 +416,7 @@ class FeatureContext:
             raise ValueError("feature context snapshot must be a Snapshot")
         finite(self.now, "feature context timestamp")
 
-    def require(self, sensor: Sensor, max_age: float = 0.5) -> Any:
+    def require(self, sensor: Sensor, max_age: float | None = None) -> Any:
         return self.snapshot.require(sensor, now=self.now, max_age=max_age)
 
 

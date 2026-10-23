@@ -383,8 +383,9 @@ def test_live_evidence_provenance_requires_default_native_composition(monkeypatc
         provider = None
         capture_size = (180, 120)
 
-        def __init__(self, *, capture_size):
+        def __init__(self, *, capture_size, startup_timeout):
             self.capture_size = tuple(capture_size)
+            assert startup_timeout == 15.0
 
         def capture(self):
             pixels = np.ones((120, 180, 3), dtype=np.uint8)
@@ -409,7 +410,8 @@ def test_default_process_uses_exact_calibrated_capture_size(monkeypatch):
     made = []
 
     class Process:
-        def __init__(self, *, capture_size):
+        def __init__(self, *, capture_size, startup_timeout):
+            assert startup_timeout == 15.0
             made.append(tuple(capture_size))
 
         def capture(self):
@@ -441,36 +443,31 @@ def test_observe_uses_one_frame_for_union_and_returns_domain_values(monkeypatch)
             seen_frames.append(frame)
             return 75 if self.name == "Health" else None
 
-    def locate(template, *, Region=None, Precision=None, frame=None):
+    def locate(template, *, Region=None, Precision=None, frame=None, Scale=1.0):
         seen_frames.append(frame)
-        if "MapSettings" in template:
-            return Match(17, 17, 6, 6, 0.8)
-        if "Targets" in template:
-            return Match(3, 4, 10, 6, 0.9)
-        if "NotFollow" in template:
-            return Match(4, 5, 8, 6, 0.8)
         if "NoRing" in template or "Hur" in template:
             return Match(0, 0, 2, 2, 0.9)
         return None
 
-    def locate_all(template, *, Region=None, Precision=None, frame=None):
+    def target(frame, region, name, scale, reader):
         seen_frames.append(frame)
-        return [Match(1, 2, 10, 6, 0.9), Match(20, 22, 10, 6, 0.88)]
+        assert region == (50, 30, 170, 100) and name == "Orc"
+        return Reading(Target(2, (58, 37), True))
 
-    def selected(region, *, frame, target):
+    def marker(frame, region, name, scale):
         seen_frames.append(frame)
-        assert target == "Orc"
-        return True
+        assert region == (20, 40, 60, 80) and name == "Flag"
+        return Reading(Marker((40, 60), True))
 
-    def need_follow(*, frame):
+    def follow(sensor, frame, scale=1.0, matches=None):
         seen_frames.append(frame)
-        return True
+        return Reading((8, 8))
 
     monkeypatch.setattr(desktop, "ScanStages", Bars)
     monkeypatch.setattr(desktop, "LocateMatch", locate)
-    monkeypatch.setattr(desktop, "LocateMatches", locate_all)
-    monkeypatch.setattr(desktop.Scanners, "target_selected", selected)
-    monkeypatch.setattr(desktop.Scanners, "NeedFollow", need_follow)
+    monkeypatch.setattr("tibia_client.battle_text.read_target", target)
+    monkeypatch.setattr("tibia_client.visual_readings.read_marker", marker)
+    monkeypatch.setattr(DesktopAdapter, "_follow", staticmethod(follow))
 
     sensors = [
         Sensor(SensorKind.HEALTH, (1, 1)),
@@ -538,7 +535,8 @@ def test_frame_valid_is_capture_backed_and_exact_black_fails_transport():
 
 
 def test_process_timestamp_excludes_lazy_startup_but_includes_capture_delay(monkeypatch):
-    capture = CaptureProcess(moderately_slow_provider, timeout=5, capture_size=(4, 3))
+    capture = CaptureProcess(moderately_slow_provider, timeout=5, startup_timeout=15,
+                             capture_size=(4, 3))
     original_start = capture._start
 
     def delayed_start():
@@ -591,6 +589,22 @@ def test_execute_maps_only_public_actions_and_restores_valid_physical_cursor():
     assert ("drag", (1, 2), (8, 9)) in hotkey.events
     assert hotkey.events.count(("move", 17, 23)) == 2
     assert adapter.last_cursor_transition == ((17, 23), (17, 23))
+
+
+@pytest.mark.parametrize("click,start", [((150, 30), (17, 23)), ((40, 50), (150, 30))])
+def test_control_click_or_cursor_over_controls_parks_inside_client(click, start):
+    from types import SimpleNamespace
+
+    hotkey = ScreenHotkey()
+    hotkey.cursor = start
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+    adapter._follow_matches['controls'] = SimpleNamespace(
+        parking_geometry=lambda: ((140, 10, 170, 70), (4, 116)))
+    adapter.execute(Action(ActionKind.LEFT_CLICK, point=click), Token())
+    assert ("left", *click) in hotkey.events
+    assert ("move", 4, 116) in hotkey.events
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
+    assert hotkey.events.index(("left", *click)) < hotkey.events.index(("move", 4, 116))
 
 
 def test_hotkey_facade_falls_back_when_wrapped_backend_lacks_screen_restore():
@@ -678,15 +692,66 @@ def test_cancelled_action_prevents_screen_cursor_restore():
     assert not any(event[0] == "screen_restore" for event in hotkey.events)
 
 
-def test_dispatch_rejects_geometry_changed_after_capture():
+def test_dispatch_does_not_poll_geometry_after_capture():
     hotkey = FakeHotkey()
     adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
     adapter.observe([], Token())
     hotkey.size = (181, 120)
 
-    with pytest.raises(DesktopAdapterError, match="geometry changed"):
+    adapter.execute(Action(ActionKind.PRESS, key="F1"), Token())
+    assert hotkey.events == [("press", "F1")]
+    assert adapter.last_error_diagnostic is None
+
+
+def test_input_failure_checks_availability_after_error_without_retry():
+    class FailingHotkey(FakeHotkey):
+        def Press(self, key):
+            self.events.append(("press", key))
+            raise OSError("key dispatch failed")
+
+    hotkey = FailingHotkey()
+    adapter = DesktopAdapter(0, hotkey=hotkey, capture_provider=Provider())
+    with pytest.raises(DesktopAdapterError, match="key dispatch failed"):
         adapter.execute(Action(ActionKind.PRESS, key="F1"), Token())
-    assert ("press", "F1") not in hotkey.events
+    assert hotkey.events == [("press", "F1"), ("ready",)]
+    assert adapter.last_error_diagnostic == {"is_window": True}
+
+
+def test_input_native_failure_diagnostic_is_reused_without_another_query():
+    failure = OSError("key dispatch failed")
+    failure.client_availability = {"hwnd": 41, "is_window": False}
+
+    class FailingHotkey(FakeHotkey):
+        def Press(self, key):
+            self.events.append(("press", key))
+            raise failure
+
+    hotkey = FailingHotkey()
+    adapter = DesktopAdapter(0, hotkey=hotkey, capture_provider=Provider())
+    with pytest.raises(DesktopAdapterError) as caught:
+        adapter.execute(Action(ActionKind.PRESS, key="F1"), Token())
+    assert caught.value.__cause__ is failure
+    assert hotkey.events == [("press", "F1")]
+    assert adapter.last_error_diagnostic == failure.client_availability
+
+
+def test_capture_failure_checks_availability_only_after_provider_failure():
+    events = []
+
+    class FailingProvider:
+        def capture(self):
+            events.append("capture")
+            raise OSError("capture failed")
+
+    class DiagnosticHotkey(FakeHotkey):
+        def IsReady(self):
+            events.append("diagnose")
+            return False
+
+    adapter = DesktopAdapter(0, hotkey=DiagnosticHotkey(), capture_provider=FailingProvider())
+    with pytest.raises(CaptureError, match="capture failed"):
+        adapter.observe([], Token())
+    assert events == ["capture", "diagnose"]
 
 
 def test_cancelled_mouse_action_never_restores_cursor():

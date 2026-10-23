@@ -110,7 +110,7 @@ def capture(args: argparse.Namespace) -> Path:
         origin="native_capture",
         provenance=_provenance(args, "tibia_client.capture.CaptureProcess"),
     ) as recorder:
-        with CaptureProcess(timeout=args.capture_timeout) as process:
+        with CaptureProcess(timeout=args.capture_timeout, startup_timeout=15.0) as process:
             for index in range(args.count):
                 frame = process.capture(timeout=args.capture_timeout)
                 row = annotations[index] if annotations else None

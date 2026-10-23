@@ -6,7 +6,7 @@ from conf.conf_manager import ConfManager
 from core.Getters import validate_calibration
 from core.GUI import GUI, shutdown
 from tibia_client.application import (
-    close_client, configure_client, get_client, poll_hotkey, set_compatibility_provider,
+    close_client, configure_client, get_client, HotkeyLatch, set_compatibility_provider,
 )
 
 MOUSE_OPTION = None
@@ -39,6 +39,9 @@ def load_profile(filename: str) -> dict:
     global MOUSE_OPTION, MainPath, ItemsPath, ChestsPath, ContainersNamePath, CavebotScriptsPath
     data = ConfManager.get(filename)
     config = ConfManager.get("conf.json")
+    from core.target_binding import validate_target_binding
+
+    validate_target_binding(config, data)
     size = config.get("capture_size")
     validate_calibration(data, tuple(size) if isinstance(size, list) and len(size) == 2 else None)
     if data.get("calibration_size") is None:
@@ -51,6 +54,9 @@ def load_profile(filename: str) -> dict:
         raise ValueError("profile MouseOption must be physical (1) or window messages (0)")
     HealthLocation[:] = _values(data, "Positions", "LifePosition", ("x", "y"))
     ManaLocation[:] = _values(data, "Positions", "ManaPosition", ("x", "y"))
+    if "ResourceBars" in data:
+        HealthLocation[:] = data["ResourceBars"]["HealthBar"]
+        ManaLocation[:] = data["ResourceBars"]["ManaBar"]
     Player[:] = _values(data, "Positions", "PlayerPosition", ("x", "y"))
     BattlePositions[:] = _values(data, "Boxes", "BattleBox", ("x", "y", "w", "h"))
     StatsPositions[:] = _values(data, "Boxes", "StatusBarBox", ("x", "y", "w", "h"))
@@ -168,17 +174,23 @@ def OpenHuntWorkflow():
 
 
 class root:
-    def __init__(self, CharName, LoadedJson):
-        global _active_root, _profile_controller, _profile_filename
-        load_profile(LoadedJson)
-        from tibia_client.desktop import DesktopAdapter
+    def __init__(self, CharName, LoadedJson, *, keyboard_only=False):
+        global _active_root, _profile_controller, _profile_filename, MOUSE_OPTION
+        if keyboard_only:
+            MOUSE_OPTION = 1
+        else:
+            profile_data = load_profile(LoadedJson)
+        from tibia_client.desktop import DesktopAdapter, KeyboardDesktopAdapter
         from tibia_client.desktop_profile import DesktopProfileController
 
-        adapter = DesktopAdapter(MOUSE_OPTION)
-        controller = DesktopProfileController(LoadedJson,
+        adapter = KeyboardDesktopAdapter(MOUSE_OPTION) if keyboard_only else DesktopAdapter(
+            MOUSE_OPTION, ui_scale=profile_data.get("ui_scale", 1.0))
+        controller = None if keyboard_only else DesktopProfileController(LoadedJson,
             input_size=adapter.hotkey.MainWindowSize, capabilities=adapter.capabilities())
-        configure_client(MOUSE_OPTION, adapter=adapter, activation_guard=controller)
-        set_compatibility_provider(controller.status)
+        # Explicit module starts use the selected, calibrated target directly.
+        # Compatibility reports remain diagnostic, not a mandatory probe gate.
+        configure_client(MOUSE_OPTION, adapter=adapter)
+        set_compatibility_provider(None if controller is None else controller.status)
         _profile_controller, _profile_filename = controller, LoadedJson
         self.root = GUI("root", "TibiaAuto V12")
         self.root.MainWindow("Main", [357, 530], [2, 2.36])
@@ -201,7 +213,6 @@ class root:
             ("Creature Info", [147, 188]),
             ("Monsters", [245, 188]),
             ("Show Map", [147, 290]),
-            ("Modules", [245, 366]),
             ("Python Scripts", [245, 392]),
         )
         for text, position in unavailable:
@@ -222,13 +233,31 @@ class root:
         self.root.addButton("Hunt Console", OpenHuntConsole, [213, 23], [134, 426])
         self.root.addButton("Hunt workflow", OpenHuntWorkflow, [92, 23], [147, 366])
         self.root.addButton("Readings", OpenResourceMonitor, [92, 23], [147, 392])
+        def other_screen():
+            from core.window_placement import move_to_other_screen
+            try:
+                move_to_other_screen(self.root.windowID)
+            except (OSError, ValueError) as exc:
+                self.control_status.set(str(exc))
+        self.root.addButton("Other screen", other_screen, [92, 23], [245, 366])
+
+        if keyboard_only:
+            self.root.addMinimalLabel("Keyboard modules — image calibration pending", [14, 35])
+            available = {"Timed Spells", "Trace viewer", "Readings", "Other screen"}
+            for widget in self.root.windowID.winfo_children():
+                if widget.winfo_class() == "Button" and widget.cget("text") not in available:
+                    widget.configure(state="disabled")
 
         import tkinter as tk
         from modules.HuntConsole import run_control
         self._stopping = False
         self._closing = False
-        self._stop_latched = False
-        self.control_status = tk.StringVar(value="Stop shortcut: Ctrl+Shift+F12")
+        self.control_status = tk.StringVar(value="Stop shortcut: Ctrl+Shift+F11")
+        try:
+            self._stop_shortcut = HotkeyLatch("ctrl+shift+f11")
+        except Exception:
+            self._stop_shortcut = None
+            self.control_status.set("Global stop shortcut unavailable; use STOP ALL.")
         tk.Label(self.root.windowID, textvariable=self.control_status, bg="black", fg="white",
                  wraplength=330).place(x=12, y=459, width=335, height=34)
 
@@ -248,10 +277,8 @@ class root:
             if self._closing:
                 return
             try:
-                pressed = poll_hotkey("ctrl+shift+f12")
-                if pressed and not self._stop_latched:
+                if self._stop_shortcut is not None and self._stop_shortcut.consume():
                     stop_all()
-                self._stop_latched = pressed
             except Exception:
                 # A missing global keyboard hook must not disable the visible Stop button.
                 self.control_status.set("Global stop shortcut unavailable; use STOP ALL.")
@@ -263,6 +290,8 @@ class root:
         def close():
             self._closing = True
             try:
+                if self._stop_shortcut is not None:
+                    self._stop_shortcut.close()
                 monitor = getattr(_active_root, "resource_monitor", None)
                 if monitor is not None:
                     monitor.close()

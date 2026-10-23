@@ -1,5 +1,9 @@
 # Resource-reader benchmark
 
+The [expanded visual benchmark](visual-detection-benchmark.md) also evaluates
+health/mana bars, battle-list targets, automatic minimap location and map markers
+on the preserved originals, alongside both current production Skills readers.
+
 `tools/compare_resource_readers.py` compares the shipped exact-scale preset with
 the adaptive reader on the same frozen screenshot cases. Tesseract is an
 explicit optional technique because its installed version and latency can differ

@@ -38,10 +38,18 @@ def get_client_size(hwnd: int) -> tuple[int, int]:
     user32.IsWindow.restype = wintypes.BOOL
     user32.GetClientRect.argtypes = (wintypes.HWND, ctypes.POINTER(wintypes.RECT))
     user32.GetClientRect.restype = wintypes.BOOL
+    user32.SetThreadDpiAwarenessContext.argtypes = (ctypes.c_void_p,)
+    user32.SetThreadDpiAwarenessContext.restype = ctypes.c_void_p
     if not user32.IsWindow(hwnd):
         raise WindowLookupError(f"window handle is no longer valid: {hwnd}")
-    if not user32.GetClientRect(hwnd, ctypes.byref(rect)):
-        raise ctypes.WinError(ctypes.get_last_error())
+    previous = user32.SetThreadDpiAwarenessContext(ctypes.c_void_p(-4))
+    if not previous:
+        raise WindowLookupError("could not measure the selected window in physical pixels")
+    try:
+        if not user32.GetClientRect(hwnd, ctypes.byref(rect)):
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        user32.SetThreadDpiAwarenessContext(previous)
     return rect.right - rect.left, rect.bottom - rect.top
 
 

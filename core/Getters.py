@@ -107,6 +107,16 @@ def validate_calibration(
         elif width is not None and (x >= width or y >= height):
             problems.append(f"SQM.{name} ({x}, {y}) is outside {width}x{height}")
 
+    if "ResourceBars" in profile:
+        from core.perception import validate_region, DetectionError
+        for name in ("HealthBar", "ManaBar"):
+            try:
+                box = profile["ResourceBars"][name]
+                if width is None:
+                    raise ValueError("resource bars require calibration_size")
+                validate_region(box, (width, height))
+            except (KeyError, TypeError, ValueError, DetectionError) as exc:
+                problems.append(f"ResourceBars.{name}: {exc}")
     if problems:
         raise CalibrationError(problems)
     return True

@@ -1,4 +1,4 @@
-"""Application entry points use the exact benchmark-selected composition."""
+"""Default readers decode real pixels and preserve explicit OCR settings."""
 from pathlib import Path
 
 import cv2
@@ -10,21 +10,12 @@ from tibia_client.adaptive import FIELDS
 from tibia_client.adaptive_runtime import AdaptiveResourceTracker, _default_reader_factory
 from tibia_client.adaptive_text import OCRBox
 from tibia_client.models import Quality, Sensor, SensorKind
-from tibia_client.resource_monitor import create_reader
 from tibia_client.resource_profiles import apply_adaptive_resource_preset
 from tibia_client.resource_reader import NumberReader, ResourceReader
 from tibia_client.visual import AdaptiveVisual, VisualProfile
-from tools.resource_reader import CurrentNumberReader, CurrentResourceReader
 
 
-def test_runtime_and_monitor_defaults_are_the_exact_benchmark_classes():
-    assert ResourceReader is CurrentResourceReader
-    assert NumberReader is CurrentNumberReader
-    reader = _default_reader_factory("paulistinha-skills-v1")
-    assert type(reader) is ResourceReader
-    assert type(reader.number_reader) is NumberReader
-    assert reader.number_reader._ocr is reader.ocr
-    assert type(create_reader()) is ResourceReader
+def test_unknown_resource_profile_is_rejected():
     with pytest.raises(ValueError, match="unsupported adaptive reader"):
         _default_reader_factory("not-a-resource-profile")
 
@@ -136,7 +127,6 @@ def test_default_live_tracker_recognizes_partial_panel_and_rejects_obscured_curr
         current = tracker.read(frame, requested)[health]
         assert current.quality is Quality.KNOWN, current.detail
         assert current.value["count"] == 710
-        assert type(group.reader) is ResourceReader
         assert current.diagnostics["adaptive_reader"] == "paulistinha-skills-v1"
 
         pixels = frame.pixels.copy()

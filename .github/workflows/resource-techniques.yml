@@ -1,13 +1,7 @@
 name: Resource reader technique experiments
 
 on:
-  pull_request:
-    paths:
-      - 'tools/resource_reader_experiments.py'
-      - 'tools/resource_numeric_vector.py'
-      - 'tools/benchmark_resource_techniques.py'
-      - 'tools/check_resource_experiment_guards.py'
-      - '.github/workflows/resource-techniques.yml'
+  # Comparing experimental variants is opt-in, independent of application CI.
   workflow_dispatch:
 
 permissions:

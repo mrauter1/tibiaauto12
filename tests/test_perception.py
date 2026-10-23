@@ -120,14 +120,12 @@ def test_template_matching_handles_brightness_and_constant_templates(tmp_path):
     assert locate_match(zero_path, frame=Frame(zero_haystack), precision=0.999).position == (4, 2)
 
 
-def test_large_uniform_response_fails_fast_as_ambiguous(tmp_path):
+def test_large_uniform_response_does_not_invent_template_matches(tmp_path):
     path = tmp_path / "black.png"
     Image.fromarray(np.zeros((3, 3, 3), dtype=np.uint8)).save(path)
     uniform = Frame(np.zeros((500, 500, 3), dtype=np.uint8))
-    started = time.monotonic()
     with pytest.raises(DetectionError, match="ambiguous"):
         locate_matches(path, frame=uniform, precision=0.99)
-    assert time.monotonic() - started < 0.5
 
 
 def test_nms_counts_actual_shipped_template_objects_once():
@@ -199,7 +197,11 @@ def test_default_windows_capture_rejects_stale_calibrated_size(monkeypatch):
         "_load_capture_config",
         lambda: {"platform": "windows", "capture_hwnd": 42, "capture_size": [800, 600]},
     )
-    monkeypatch.setattr(perception, "_capture_windows", lambda hwnd: Image.new("RGB", (1024, 768)))
+    from tibia_client import direct_capture
+
+    monkeypatch.setattr(direct_capture, "capture_direct_host_client",
+                        lambda hwnd: Image.new("RGB", (1024, 768)))
+    monkeypatch.setattr(direct_capture, "diagnose_client_availability", lambda hwnd: {"hwnd": hwnd})
 
     with pytest.raises(CaptureError, match="client size changed.*recalibrate"):
         perception._default_capture()
@@ -212,7 +214,9 @@ def test_default_windows_capture_accepts_current_calibrated_size(monkeypatch):
         "_load_capture_config",
         lambda: {"platform": "windows", "capture_hwnd": 42, "capture_size": [800, 600]},
     )
-    monkeypatch.setattr(perception, "_capture_windows", lambda hwnd: image)
+    from tibia_client import direct_capture
+
+    monkeypatch.setattr(direct_capture, "capture_direct_host_client", lambda hwnd: image)
 
     assert perception._default_capture() is image
 

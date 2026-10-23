@@ -5,7 +5,6 @@ import multiprocessing
 import os
 from hashlib import sha256
 from time import perf_counter
-from time import sleep
 from types import SimpleNamespace
 
 import numpy as np
@@ -230,7 +229,10 @@ def test_loader_rejects_symlinked_frame_directory(tmp_path):
     path = make_sequence(tmp_path)
     outside = tmp_path / "outside-frames"
     (path / "frames").rename(outside)
-    os.symlink(outside, path / "frames", target_is_directory=True)
+    try:
+        os.symlink(outside, path / "frames", target_is_directory=True)
+    except (NotImplementedError, OSError) as exc:
+        pytest.skip(f"directory symlinks unavailable: {exc}")
 
     with pytest.raises(ResourceSequenceError, match="symlink"):
         load_resource_sequence(path)
@@ -545,10 +547,11 @@ def test_unknown_freshness_is_evidence_gap_without_invented_safety_violation(tmp
 
 def test_replay_has_finite_wall_timeout_when_async_tracker_never_completes(tmp_path, monkeypatch):
     sequence = load_resource_sequence(make_sequence(tmp_path, deadline=10_000))
+    clock = [0.0]
 
     class NeverCompletes:
         def read(self, _frame, requests):
-            sleep(0.2)
+            clock[0] += 0.2
             return {sensor: Reading(None, Quality.UNKNOWN, "still pending") for sensor in requests}
 
         def close(self):
@@ -556,7 +559,7 @@ def test_replay_has_finite_wall_timeout_when_async_tracker_never_completes(tmp_p
 
     monkeypatch.setattr(benchmark, "AdaptiveResourceTracker", NeverCompletes)
     monkeypatch.setattr(benchmark, "_last_hold_seconds", lambda *_args: 0.01)
-    started = perf_counter()
+    monkeypatch.setattr(benchmark, "perf_counter", lambda: clock[0])
     with pytest.raises(TimeoutError, match="wall timeout"):
         benchmark.replay_tracker(
             sequence,
@@ -565,7 +568,6 @@ def test_replay_has_finite_wall_timeout_when_async_tracker_never_completes(tmp_p
             max_gap_ms=20_000,
             wall_timeout=0.1,
         )
-    assert perf_counter() - started < 0.5
 
 
 def test_non_realtime_playback_excludes_deadline_claims(tmp_path):

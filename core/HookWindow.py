@@ -40,10 +40,10 @@ def TakeImage(Region=None, frame: Optional[ImageLike] = None) -> Image.Image:
     return snapshot.image if Region is None else snapshot.crop(Region)
 
 
-def LocateMatch(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None) -> Optional[Match]:
+def LocateMatch(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None, Scale=1.0) -> Optional[Match]:
     """Return an explicit optional match; (0, 0) remains a valid position."""
 
-    return locate_match(image, frame=frame, region=Region, precision=Precision)
+    return locate_match(image, frame=frame, region=Region, precision=Precision, scale=Scale)
 
 
 def LocateMatches(
@@ -52,8 +52,9 @@ def LocateMatches(
     Precision=0.8,
     frame: Optional[ImageLike] = None,
     NmsIou=0.3,
+    Scale=1.0,
 ) -> list[Match]:
-    return locate_matches(image, frame=frame, region=Region, precision=Precision, nms_iou=NmsIou)
+    return locate_matches(image, frame=frame, region=Region, precision=Precision, nms_iou=NmsIou, scale=Scale)
 
 
 def LocateImage(image, Region=None, Precision=0.8, frame: Optional[ImageLike] = None):
