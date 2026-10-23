@@ -591,6 +591,22 @@ def test_execute_maps_only_public_actions_and_restores_valid_physical_cursor():
     assert adapter.last_cursor_transition == ((17, 23), (17, 23))
 
 
+@pytest.mark.parametrize("click,start", [((150, 30), (17, 23)), ((40, 50), (150, 30))])
+def test_control_click_or_cursor_over_controls_parks_inside_client(click, start):
+    from types import SimpleNamespace
+
+    hotkey = ScreenHotkey()
+    hotkey.cursor = start
+    adapter = DesktopAdapter(1, hotkey=hotkey, capture_provider=Provider())
+    adapter._follow_matches['controls'] = SimpleNamespace(
+        parking_geometry=lambda: ((140, 10, 170, 70), (4, 116)))
+    adapter.execute(Action(ActionKind.LEFT_CLICK, point=click), Token())
+    assert ("left", *click) in hotkey.events
+    assert ("move", 4, 116) in hotkey.events
+    assert not any(event[0] == "screen_restore" for event in hotkey.events)
+    assert hotkey.events.index(("left", *click)) < hotkey.events.index(("move", 4, 116))
+
+
 def test_hotkey_facade_falls_back_when_wrapped_backend_lacks_screen_restore():
     class LegacyBackend:
         def __init__(self):

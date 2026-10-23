@@ -610,6 +610,7 @@ class DesktopAdapter:
         self._last_cursor_transition = None
         self.last_error_diagnostic = None
         previous = None
+        park = None
         preserve = self.mouse_mode == 1 and action.kind is not ActionKind.PRESS
         restore_support = getattr(self.hotkey, "SupportsScreenRestore", None)
         if callable(restore_support):
@@ -629,6 +630,30 @@ class DesktopAdapter:
                         else self.hotkey.Position()
                     )
                     token.checkpoint()
+                    controls = self._follow_matches.get('controls')
+                    geometry = controls.parking_geometry() if controls is not None else None
+                    if geometry is not None:
+                        region, destination = geometry
+                        mapping = self._coordinate_mapping
+                        if mapping is not None:
+                            region = (*mapping.capture_to_input(region[:2]),
+                                      *mapping.capture_to_input((region[2]-1, region[3]-1)))
+                            destination = mapping.capture_to_input(destination)
+                        def over_controls(point):
+                            return point is not None and region[0] <= point[0] <= region[2] and region[1] <= point[1] <= region[3]
+                        # Also avoid restoring onto these buttons after a target
+                        # or loot click when the pointer began over a control.
+                        began_over_controls = False
+                        if not over_controls(action.point):
+                            try:
+                                began_over_controls = over_controls(
+                                    self.hotkey.Position() if screen_restore else previous)
+                            except Exception:
+                                # Optional parking must not prevent an attack
+                                # if the extra cursor-position read fails.
+                                pass
+                        if over_controls(action.point) or began_over_controls:
+                            park = destination
                 try:
                     if action.kind is ActionKind.PRESS:
                         self.hotkey.Press(action.key)
@@ -643,7 +668,10 @@ class DesktopAdapter:
                     token.checkpoint()
                 finally:
                     if preserve and previous is not None:
-                        self._restore_cursor(previous, token, screen=screen_restore)
+                        # Stay inside the guest viewport so Sandbox receives a
+                        # move away from the control, without a follow-up click.
+                        self._restore_cursor(park if park is not None else previous, token,
+                                             screen=False if park is not None else screen_restore)
                         if not _cancelled(token):
                             try:
                                 final = (

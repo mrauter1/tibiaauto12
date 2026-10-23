@@ -428,6 +428,47 @@ def test_unreadable_follow_does_not_block_next_target_after_a_kill():
     assert step.requests[0].requirements[0].sensor.kind is SensorKind.TARGET
 
 
+def test_unreadable_stand_times_out_to_follow_and_skips_loot_until_recovered():
+    feature = bot(
+        targets=(TargetSpec(1, "Lizard *"),),
+        config=SessionConfig(walking=False, follow=False, count_stable_samples=1,
+                             loot_button="right"),
+        loot_points=((10, 10),),
+    )
+
+    def obscured(now, frame, target, *, targets_unreadable=False):
+        value = context(feature, now, frame=frame, targets={"Lizard *": target},
+                        follow={"": (30, 31)})
+        observations = dict(value.snapshot.observations)
+        for sensor in observations:
+            if (sensor.kind is SensorKind.FOLLOW and sensor.name == "disable") or (
+                targets_unreadable and sensor.kind is SensorKind.TARGET
+            ):
+                observations[sensor] = Observation(sensor, None, now, frame, 1, Quality.UNKNOWN)
+        return FeatureContext(Snapshot(observations, frame, 1, now), now)
+
+    feature.tick(context(feature, 0, targets={"Lizard *": Target(3, (5, 5), True)}))
+    feature.tick(obscured(0.2, 2, Target(2, (6, 6), True)))
+    feature.tick(obscured(0.4, 3, Target(2), targets_unreadable=True))
+    waiting = feature.tick(obscured(2.39, 4, Target(2), targets_unreadable=True))
+    assert not waiting.requests
+    # Target-reading waits must not extend the stand timeout. Even with the
+    # normal follow setting off, recovery requests follow and the next attack.
+    recovered = feature.tick(obscured(2.41, 5, Target(2, (6, 6), False)))
+    assert [r.action.point for r in recovered.requests] == [(30, 31), (6, 6)]
+    assert recovered.requests[0].requirements[0].sensor.name == ""
+    assert not recovered.finished and not feature.failed
+    for request in recovered.requests:
+        feature.on_result(result(request, ResultState.EXECUTED, 2.41))
+    another_kill = feature.tick(obscured(2.6, 6, Target(1, (6, 6), True)))
+    assert all(r.action.kind is not ActionKind.RIGHT_CLICK for r in another_kill.requests)
+    assert not another_kill.finished
+    feature.tick(context(feature, 2.8, frame=7,
+                         targets={"Lizard *": Target(1, (6, 6), True)}))
+    loot = feature.tick(context(feature, 3, frame=8, targets={"Lizard *": Target(0)}))
+    assert any(r.action == Action(ActionKind.RIGHT_CLICK, point=(10, 10)) for r in loot.requests)
+
+
 def test_loot_disabled_never_requests_a_loot_click():
     feature = bot(
         targets=(TargetSpec(1, "dragon"),),

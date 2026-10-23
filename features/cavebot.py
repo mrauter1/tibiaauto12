@@ -64,6 +64,7 @@ class SessionConfig:
     loot_button: str = "right"
     loot_budget: int = 9
     loot_max_seconds: float = 2.0
+    follow_hold_timeout: float = 2.0
     navigation_history_size: int = 12
     navigation_progress_pixels: float = 3.0
     navigation_stall_seconds: float = 1.0
@@ -76,6 +77,7 @@ class SessionConfig:
             "arrival_timeout",
             "combat_timeout",
             "loot_max_seconds",
+            "follow_hold_timeout",
             "navigation_progress_pixels",
             "navigation_stall_seconds",
         )
@@ -91,6 +93,8 @@ class SessionConfig:
             raise ValueError("operation timeouts must be greater than zero")
         if self.loot_max_seconds <= 0:
             raise ValueError("loot_max_seconds must be greater than zero")
+        if self.follow_hold_timeout <= 0:
+            raise ValueError("follow_hold_timeout must be greater than zero")
         if self.navigation_progress_pixels <= 0 or self.navigation_stall_seconds <= 0:
             raise ValueError("navigation progress settings must be greater than zero")
         for field_name in (
@@ -213,6 +217,8 @@ class CaveBotFeature:
         self._loot_cursor = 0
         self._loot_started: float | None = None
         self._loot_resweep = False
+        self._stand_wait_started: float | None = None
+        self._loot_follow_fallback = False
         self._pre_pause_status: CaveBotStatus | None = None
         self._evidence_wait_started: float | None = None
         self._pre_evidence_status: CaveBotStatus | None = None
@@ -377,7 +383,7 @@ class CaveBotFeature:
         if marker is not None:
             sensors.append(marker)
         sensors.extend(self._target_sensor(target) for target in self.targets)
-        if self.config.follow:
+        if self.config.follow or (self.targets and self.config.loot and self.loot_points):
             sensors.append(Sensor(SensorKind.FOLLOW))
         if self.targets and self.config.loot and self.loot_points:
             sensors.append(Sensor(SensorKind.FOLLOW, name="disable"))
@@ -688,6 +694,7 @@ class CaveBotFeature:
         self._loot_cursor = 0
         self._loot_started = context.now
         self._loot_resweep = False
+        self._stand_wait_started = None
         self._selected_wait = None
         self._set_status("Holding position for loot", "stable_target_count_drop")
 
@@ -713,7 +720,7 @@ class CaveBotFeature:
         if evidence_error is not None:
             return self._wait_for_evidence(context, evidence_error)
         dropped = self._observe_combat_counts(context)
-        if dropped is not None and self.config.loot and self.loot_points:
+        if dropped is not None and self.config.loot and self.loot_points and not self._loot_follow_fallback:
             self._begin_loot(context, dropped)
             return self._tick_loot(context)
         if spec is None or target is None:
@@ -776,7 +783,8 @@ class CaveBotFeature:
         # Derive intent from the current phase instead of latching a prior
         # decision. Missing creature readings, pending attacks, startup and
         # route waits must never leave follow off outside an actual loot sweep.
-        enabled = False if self._mode == "loot" else (True if self.config.follow else None)
+        enabled = (True if self._loot_follow_fallback else False if self._mode == "loot"
+                   else True if self.config.follow else None)
         kind = "follow" if enabled else "follow_off"
         if pending is not None and (
             step.finished or enabled is None or pending.kind != kind
@@ -998,8 +1006,43 @@ class CaveBotFeature:
         self._deadline = context.now + self.config.marker_timeout
         return self._step()
 
+    def _recover_loot_follow(self, context: FeatureContext) -> tuple[str, ...]:
+        if self._mode != 'loot' and not self._loot_follow_fallback:
+            self._stand_wait_started = None
+            return ()
+        try:
+            context.require(Sensor(SensorKind.FOLLOW, name='disable'), self._MAX_EVIDENCE_AGE)
+        except ObservationUnavailable:
+            if self._loot_follow_fallback:
+                return ()
+            if self._stand_wait_started is None:
+                self._stand_wait_started = context.now
+            if context.now-self._stand_wait_started < self.config.follow_hold_timeout:
+                return ()
+            self._loot_follow_fallback = True
+            self._mode = 'combat'
+            self._loot_sensor = self._loot_started = None
+            self._loot_resweep = False
+            cancel = ()
+            if self._pending is not None and self._pending.kind == 'loot':
+                cancel, self._pending = (self._pending.key,), None
+            return cancel
+        self._stand_wait_started = None
+        self._loot_follow_fallback = False
+        return ()
+
     def tick(self, context: FeatureContext) -> Step:
-        return self._with_follow(context, self._tick_policy(context))
+        # Run recovery before target/queue waits: they cannot extend the stand
+        # timeout or keep a queued loot action alive after switching to follow.
+        cancel = () if self._status.finished else self._recover_loot_follow(context)
+        step = self._tick_policy(context)
+        if self._loot_follow_fallback and not step.finished:
+            suffix = ' · follow requested; loot skipped (stand unreadable)'
+            self._set_status(self.status.phase.removesuffix(suffix)+suffix,
+                             'stand_unavailable_following')
+            step = replace(step, phase=self.status.phase)
+        step = replace(step, cancel_keys=(*cancel, *step.cancel_keys))
+        return self._with_follow(context, step)
 
     def _tick_policy(self, context: FeatureContext) -> Step:
         if self._status.finished:
