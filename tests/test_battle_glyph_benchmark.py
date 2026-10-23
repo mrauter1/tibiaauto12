@@ -120,13 +120,13 @@ def fixture_corpus(tmp_path):
     manifest.write_text(json.dumps({"screenshots": [{"id": "s", "file": "source.png",
         "integrity": {"sha256": source_hash}, "split": "heldout"}]}))
     annotation = tmp_path / "labels.json"
-    annotation.write_text(json.dumps({"schema": "tibiaauto.visual-annotations", "box_format": "xyxy-half-open",
+    annotation.write_bytes(json.dumps({"schema": "tibiaauto.visual-annotations", "box_format": "xyxy-half-open",
         "screenshots": [{"id": "s", "source_sha256": source_hash, "battle_list": {
             "status": "reviewed", "region": [0, 0, 60, 35], "partial_names": True,
             "excluded_queries": ["Nightmare"], "rows": [
                 {"name": "Rat", "box": [20, 0, 60, 10]},
                 {"name": "Nightmare", "box": [20, 10, 60, 20]},
-                {"name": "Rat", "box": [20, 30, 60, 40]}]}}]}, indent=2))
+                {"name": "Rat", "box": [20, 30, 60, 40]}]}}]}, indent=2).encode("utf-8"))
     sidecar = tmp_path / "labels.json.sha256"
     sidecar.write_text(sha256(annotation.read_bytes().replace(b"\n", b"\r\n")).hexdigest())
     return annotation, manifest

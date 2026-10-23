@@ -39,12 +39,14 @@ jobs:
         shell: python
         run: |
           import json
+          import gc
           import sys
           from pathlib import Path
 
           state = {"status": "unavailable", "engine": "Windows.Media.Ocr.OcrEngine"}
           initialized = False
           engine = None
+          language = None
           try:
               from winrt.runtime import ApartmentType, init_apartment, uninit_apartment
               from winrt.windows.globalization import Language
@@ -67,6 +69,8 @@ jobs:
               state["error"] = f"{type(exc).__name__}: {exc}"
           finally:
               engine = None
+              language = None
+              gc.collect()  # Release projected COM objects before apartment teardown.
               if initialized:
                   uninit_apartment()
           Path("reports/battle-glyph-ocr-probe.json").write_text(
