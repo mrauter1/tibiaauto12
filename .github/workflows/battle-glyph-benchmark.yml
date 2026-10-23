@@ -84,7 +84,7 @@ jobs:
         if: ${{ always() && !cancelled() && steps.dependencies.outcome == 'success' }}
         shell: pwsh
         run: |
-          python -m pytest tests/test_tibia_font_extraction.py tests/test_glyph_text.py tests/test_battle_glyph_benchmark.py -q --junitxml=reports/battle-glyph-tests.xml 2>&1 | Tee-Object -FilePath reports/battle-glyph-tests.log
+          python -m pytest tests/test_tibia_font_extraction.py tests/test_glyph_text.py tests/test_battle_glyph_benchmark.py tests/test_fullscreen_ocr_benchmark.py -q --junitxml=reports/battle-glyph-tests.xml 2>&1 | Tee-Object -FilePath reports/battle-glyph-tests.log
           exit $LASTEXITCODE
       - name: Compare unchanged annotated pixels with both readers
         id: benchmark
@@ -93,6 +93,13 @@ jobs:
         shell: pwsh
         run: |
           python tools/benchmark_battle_glyphs.py --readers both --repeats 10 --json-out reports/battle-glyph-benchmark.json --text-out reports/battle-glyph-benchmark.txt 2>&1 | Tee-Object -FilePath reports/battle-glyph-benchmark.log
+          exit $LASTEXITCODE
+      - name: Measure complete screenshot OCR at 1x and 3x
+        id: fullscreen
+        if: ${{ always() && !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          python tools/benchmark_fullscreen_ocr.py --repeats 20 --output-prefix reports/battle-glyph-fullscreen 2>&1 | Tee-Object -FilePath reports/battle-glyph-fullscreen.log
           exit $LASTEXITCODE
       - name: Preserve step outcomes and reader availability
         if: always()
@@ -103,6 +110,7 @@ jobs:
           OCR_PROBE_OUTCOME: ${{ steps.ocr_probe.outcome }}
           TESTS_OUTCOME: ${{ steps.tests.outcome }}
           BENCHMARK_OUTCOME: ${{ steps.benchmark.outcome }}
+          FULLSCREEN_OUTCOME: ${{ steps.fullscreen.outcome }}
         run: |
           import json
           import os
@@ -113,7 +121,7 @@ jobs:
           state = {
               "evaluated_sha": os.environ["EVALUATED_SHA"],
               "steps": {name.lower(): os.environ[name + "_OUTCOME"]
-                        for name in ("DEPENDENCIES", "OCR_PROBE", "TESTS", "BENCHMARK")},
+                        for name in ("DEPENDENCIES", "OCR_PROBE", "TESTS", "BENCHMARK", "FULLSCREEN")},
               "readers": {},
               "note": "Experimental measurements only; no accuracy or latency threshold enables production.",
           }

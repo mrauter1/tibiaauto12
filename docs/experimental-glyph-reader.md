@@ -74,3 +74,20 @@ in battle-list letter shapes and spacing. Keep the reader experimental until a
 matching battle-list font/rendering profile is established and evaluated on
 additional held-out screenshots. The Windows report is the source for the
 same-machine latency and accuracy comparison.
+
+For full-screen latency, run `python tools/benchmark_fullscreen_ocr.py --repeats
+20 --output-prefix reports/battle-glyph-fullscreen` on Windows. This compares
+native color and the production neutral mask, each at 1x and 3x, using the entire
+1536x864 `reddit-valouran-pl7tust` screenshot. A derived 1024x768 workload fits
+the whole screenshot to 1024x576 with black padding; it is not a native client
+capture at that resolution. A 133x20 name crop supplies a same-run control.
+The script verifies source hashes and checks the masked 3x output against the
+unchanged production OCR function after timing. Twenty fresh recognition calls
+per case follow a separately reported first call, with rotated invocation order.
+Durations include preprocessing, COM and engine setup, bitmap transfer, awaited
+recognition, and text/box extraction. Capture, disk decoding, input-canvas fitting
+and JSON serialization are excluded. OS/model caches may remain warm even in a
+fresh Python process. Raw first-call words/boxes and all per-call timings are
+preserved. Full-screen ground truth is unavailable: word counts are diagnostic,
+not accuracy scores. The neutral mask intentionally removes colored pixels and
+should not be assumed to recover every text color in a complete game window.
