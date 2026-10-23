@@ -17,6 +17,40 @@ from tools.check_resource_reader_guards import GUARD_MODULES, MIN_GUARD_TESTS
 from tools.compare_resource_readers import BenchmarkCase, TechniqueObservation, score_case
 
 
+PRODUCTION_OPTIMIZATION_FILES = {
+    "core/native_visual_guard.py", "core/native_visual_guard.c", "tools/build_visual_native.py",
+    "tools/resource_numeric_cache.py", "tools/resource_numeric_vector.py",
+    "tools/resource_discovery_cache.py", "tibia_client/capture.py", "core/perception.py",
+    "tibia_client/adaptive_runtime.py", "tests/test_native_visual_guard.py",
+    "tests/test_resource_numeric_cache.py", "tests/test_resource_numeric_memoization.py",
+    "tests/test_resource_discovery_cache.py", "tests/test_frame_ownership.py",
+    "tests/test_adaptive_reader_lanes.py", "tools/benchmark_visual_production.py",
+    "tests/test_visual_production_benchmark.py", ".github/workflows/ci.yml",
+}
+
+
+def test_promotion_fingerprints_bind_all_production_optimization_sources():
+    hashes = benchmark.fingerprints()
+    assert PRODUCTION_OPTIMIZATION_FILES <= hashes.keys()
+    assert not any("visual_experiments" in name for name in hashes)
+
+
+def test_workflow_change_filter_includes_all_production_optimization_sources():
+    import ast
+    import fnmatch
+    import textwrap
+
+    workflow = (benchmark.ROOT / '.github/workflows/resource-reader.yml').read_text()
+    body = workflow.split("python - <<'PY'\n", 1)[1].split("          PY", 1)[0]
+    program = ast.parse(textwrap.dedent(body))
+    assignment = next(node for node in program.body if isinstance(node, ast.Assign)
+                      and any(isinstance(target, ast.Name) and target.id == 'watched'
+                              for target in node.targets))
+    patterns = ast.literal_eval(assignment.value)
+    assert all(any(fnmatch.fnmatchcase(name, pattern) for pattern in patterns)
+               for name in PRODUCTION_OPTIMIZATION_FILES)
+
+
 @pytest.fixture
 def evidence(tmp_path, monkeypatch):
     frame = Frame(np.zeros((20, 20, 3), np.uint8), captured_at=1, source="fixture")

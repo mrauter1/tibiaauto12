@@ -24,6 +24,23 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
+      - name: Build and verify native visual filter (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          python tools/build_visual_native.py
+          python -c "from core.native_visual_guard import available; assert available(), 'Native visual filter failed to load'"
+      - name: Build and verify native visual filter (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          set "VISUAL_GUARD_VSROOT="
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "VISUAL_GUARD_VSROOT=%%i"
+          if not defined VISUAL_GUARD_VSROOT exit /b 1
+          call "%VISUAL_GUARD_VSROOT%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
+          if errorlevel 1 exit /b %errorlevel%
+          python tools/build_visual_native.py --compiler cl
+          if errorlevel 1 exit /b %errorlevel%
+          python -c "from core.native_visual_guard import available; assert available(), 'Native visual filter failed to load'"
       - run: python -m pytest
       - run: python -m compileall -q conf core engine features modules tibia_client tools start.py
       - run: python -m ruff check .

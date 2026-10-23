@@ -29,10 +29,18 @@ GUARD_MODULES = (
     "tests/test_resource_row_geometry.py",
     "tests/test_resource_panel_guard.py",
     "tests/test_resource_reader_benchmark.py",
+    "tests/test_resource_numeric_memoization.py",
+    "tests/test_resource_numeric_cache.py",
+    "tests/test_resource_discovery_cache.py",
+    "tests/test_native_visual_guard.py",
+    "tests/test_frame_ownership.py",
+    "tests/test_adaptive_reader_lanes.py",
+    "tests/test_visual_production_benchmark.py",
 )
-# The original guard modules contribute 60 cases, rows 12, current panels 16,
-# and benchmark integrity 27. No shortened or skipped run can satisfy the gate.
-MIN_GUARD_TESTS = 115
+# A native build is required for this promotion gate: optional-native tests may
+# skip in ordinary pytest, but this runner rejects every skipped guard case.
+# No shortened module list can satisfy the selected-identity/provenance checks.
+MIN_GUARD_TESTS = 247
 EXCLUDE_ORIGINAL_ACCEPTANCE = (
     "not existing_regression_screenshot and not calmera_resampled and not manually_boxed"
 )

@@ -235,9 +235,11 @@ def test_background_rediscovery_does_not_share_live_reader_caches():
         assert current[health].value["count"] == 710
         assert current[mana].quality is Quality.UNKNOWN
         assert len(created) == 2
-        assert discoveries == created
-        assert group.reader is created[0]
-        assert created[1].discovering
+        assert discoveries == [created[0], created[0]]
+        assert group.discovery_reader is created[0]
+        assert group.reader is created[1]
+        assert created[0].discovering
+        assert not created[1].discovering
     finally:
         tracker.close()
         release.set()

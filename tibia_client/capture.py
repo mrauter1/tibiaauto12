@@ -17,8 +17,6 @@ import threading
 import time
 from typing import Any, Callable
 
-import numpy as np
-
 from core.perception import CaptureError, Frame, as_frame
 from tibia_client.models import TransientObservationError
 
@@ -423,11 +421,15 @@ class CaptureProcess:
         shared_pixels = self._shared_memory
         if shared_pixels is None:
             raise CaptureError("capture worker returned no shared pixel buffer")
+        # The worker reuses this buffer. Keep one owned, immutable snapshot;
+        # constructing a Frame from an array would copy the same bytes again.
         pixels = bytes(shared_pixels.buf[:byte_count])
         if time.monotonic() >= deadline:
             raise TimeoutError
-        array = np.frombuffer(pixels, dtype=np.uint8).reshape(height, width, 3)
-        frame = Frame(array, captured_at=float(captured_at), source=str(source)[:_MAX_SOURCE_TEXT])
+        frame = Frame._from_rgb_bytes(
+            pixels, width, height,
+            captured_at=float(captured_at), source=str(source)[:_MAX_SOURCE_TEXT],
+        )
         self.last_observed_at = float(observed_at)
         return frame
 

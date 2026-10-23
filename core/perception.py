@@ -72,12 +72,50 @@ class Frame:
         captured_at: Optional[float] = None,
         source: str = "capture",
     ) -> None:
-        rgb = _as_rgb_array(image, CaptureError)
-        object.__setattr__(self, "_rgb", rgb.tobytes())
-        object.__setattr__(self, "width", int(rgb.shape[1]))
-        object.__setattr__(self, "height", int(rgb.shape[0]))
+        if isinstance(image, Image.Image):
+            if image.width <= 0 or image.height <= 0:
+                raise CaptureError("capture image must be non-empty")
+            rgb = image if image.mode == "RGB" else image.convert("RGB")
+            pixels = rgb.tobytes()
+            width, height = rgb.size
+        else:
+            rgb = _as_rgb_array(image, CaptureError)
+            pixels = rgb.tobytes()
+            height, width = rgb.shape[:2]
+        object.__setattr__(self, "_rgb", pixels)
+        object.__setattr__(self, "width", int(width))
+        object.__setattr__(self, "height", int(height))
         object.__setattr__(self, "captured_at", time.time() if captured_at is None else float(captured_at))
         object.__setattr__(self, "source", str(source))
+
+    @classmethod
+    def _from_rgb_bytes(
+        cls,
+        rgb: bytes,
+        width: int,
+        height: int,
+        *,
+        captured_at: float,
+        source: str,
+    ) -> "Frame":
+        """Adopt an immutable RGB snapshot already copied out of capture storage."""
+        if type(rgb) is not bytes:
+            raise CaptureError("RGB snapshot must be immutable bytes")
+        if any(
+            isinstance(value, bool) or not isinstance(value, numbers.Integral) or value <= 0
+            for value in (width, height)
+        ):
+            raise CaptureError("RGB snapshot dimensions must be positive integers")
+        width, height = int(width), int(height)
+        if len(rgb) != width * height * 3:
+            raise CaptureError("RGB snapshot byte count does not match its dimensions")
+        frame = object.__new__(cls)
+        object.__setattr__(frame, "_rgb", rgb)
+        object.__setattr__(frame, "width", width)
+        object.__setattr__(frame, "height", height)
+        object.__setattr__(frame, "captured_at", float(captured_at))
+        object.__setattr__(frame, "source", str(source))
+        return frame
 
     @property
     def timestamp(self) -> float:
@@ -97,7 +135,7 @@ class Frame:
 
     def crop(self, region: Sequence[int]) -> Image.Image:
         left, top, right, bottom = validate_region(region, self.size)
-        return self.image.crop((left, top, right, bottom))
+        return Image.fromarray(self.pixels[top:bottom, left:right])
 
 
 @dataclass(frozen=True, slots=True)

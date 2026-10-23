@@ -1,0 +1,350 @@
+{
+  "schema": "tibiaauto.production-visual-analysis.v1",
+  "refs": {
+    "base": "d3731316a69e4e96c0d422d870f562723710a6b9",
+    "current": "d00c48ff0185b214a716814094cd066d84a6aa79"
+  },
+  "artifact_sha256": {
+    "base-correctness.json": "e74dbb9b9e49bff491cc1e026c3dedebff47fcbe906bc885231cd28078b93ba2",
+    "base-timing-1.json": "38bbb2b92acb0003a7893e8fb40aaacf65fc24f653495b06f1357fdd4510984e",
+    "base-timing-2.json": "364952843db6326a2b96b026048f1516567724dc9ef5b20ec02a7a4b94730d56",
+    "current-correctness.json": "c84c9e8b6576bc8a5201c40d295cd3075e21eda186897dbe35af294ab3786919",
+    "current-timing-1.json": "85c2ab158b727056df07e8a31c2a48d38b2e17edc32cf8c99ef35465b1969e5c",
+    "current-timing-2.json": "a2ab20b3ae4800136be725722054dc386e48a47b761ed05f0d6a681eab757d7b"
+  },
+  "original_output_mismatches": 0,
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.55-x86_64-with-glibc2.41",
+    "opencv": "4.11.0",
+    "numpy": "2.2.6",
+    "pillow": "11.3.0",
+    "pytesseract": null,
+    "tesseract": "tesseract 5.5.0"
+  },
+  "python_executable": "/workspace/tibiaauto12/.venv/bin/python",
+  "native_backends": {
+    "base": {
+      "available": false,
+      "reason": "backend absent from checkout"
+    },
+    "current": {
+      "available": true,
+      "path": ".work/native/visual_guard_fac6622bce9ff8b65ce80309e19acdcf1918153f0b4fa72bf30da9bc5cc5fa92_64.so",
+      "sha256": "64b20a9ff69202a77a23dca16594a649f945cb434da626ed1af281036d95deef"
+    }
+  },
+  "correctness": {
+    "base": {
+      "cases": 81,
+      "eligible_fields": 239,
+      "exact": 221,
+      "unknown": 18,
+      "incorrect_accepted": 0,
+      "accepted_location_mismatch": 0,
+      "unsafe_expected_unknown": 0,
+      "controls": 17,
+      "controls_all_unknown": 17,
+      "controls_without_panel": 17,
+      "reader_errors": 0,
+      "unexpected_panels": [
+        "dfg-demolidores-4KCJ"
+      ]
+    },
+    "current": {
+      "cases": 81,
+      "eligible_fields": 239,
+      "exact": 221,
+      "unknown": 18,
+      "incorrect_accepted": 0,
+      "accepted_location_mismatch": 0,
+      "unsafe_expected_unknown": 0,
+      "controls": 17,
+      "controls_all_unknown": 17,
+      "controls_without_panel": 17,
+      "reader_errors": 0,
+      "unexpected_panels": [
+        "dfg-demolidores-4KCJ"
+      ]
+    }
+  },
+  "timing": {
+    "stable": {
+      "case_block_pairs": [
+        {
+          "case_id": "dfg-calmera-ek246-D9BJ",
+          "block": 1,
+          "base_ms": 3.0921884999770555,
+          "current_ms": 0.8538294996469631,
+          "ratio": 0.2761246604640366
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "block": 1,
+          "base_ms": 2.735656999902858,
+          "current_ms": 0.7423870001730393,
+          "ratio": 0.2713742988245241
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "block": 1,
+          "base_ms": 12.808117000531638,
+          "current_ms": 4.836879999857047,
+          "ratio": 0.37764177198383475
+        },
+        {
+          "case_id": "dfg-gladera-SSVX",
+          "block": 1,
+          "base_ms": 30.036626999390137,
+          "current_ms": 21.63497150013427,
+          "ratio": 0.7202863191187727
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "block": 1,
+          "base_ms": 3.750238499378611,
+          "current_ms": 1.5592709996781196,
+          "ratio": 0.4157791564287125
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "block": 1,
+          "base_ms": 21.441274000608246,
+          "current_ms": 14.346726500662044,
+          "ratio": 0.669117259555335
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "block": 1,
+          "base_ms": 13.065465000181575,
+          "current_ms": 1.170215999991342,
+          "ratio": 0.08956558377180446
+        },
+        {
+          "case_id": "user-paulistinha-20261013",
+          "block": 1,
+          "base_ms": 2.8712915000141948,
+          "current_ms": 1.169269500678638,
+          "ratio": 0.4072277233686853
+        },
+        {
+          "case_id": "dfg-calmera-ek246-D9BJ",
+          "block": 2,
+          "base_ms": 2.8175990000818274,
+          "current_ms": 0.7591214998683427,
+          "ratio": 0.2694214115799646
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "block": 2,
+          "base_ms": 2.4114379993989132,
+          "current_ms": 0.8396129996981472,
+          "ratio": 0.3481793850422168
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "block": 2,
+          "base_ms": 11.23886000004859,
+          "current_ms": 6.043541000508412,
+          "ratio": 0.5377361227457486
+        },
+        {
+          "case_id": "dfg-gladera-SSVX",
+          "block": 2,
+          "base_ms": 27.5070425004742,
+          "current_ms": 20.605964000424137,
+          "ratio": 0.7491159400385886
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "block": 2,
+          "base_ms": 4.101385500689503,
+          "current_ms": 1.6062855002019205,
+          "ratio": 0.39164460398367346
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "block": 2,
+          "base_ms": 22.00043899938464,
+          "current_ms": 16.350296999007696,
+          "ratio": 0.7431804883286656
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "block": 2,
+          "base_ms": 13.59004949881637,
+          "current_ms": 1.3758304994553328,
+          "ratio": 0.10123807860855556
+        },
+        {
+          "case_id": "user-paulistinha-20261013",
+          "block": 2,
+          "base_ms": 2.8165769990664558,
+          "current_ms": 1.1944819998461753,
+          "ratio": 0.4240899504050775
+        }
+      ],
+      "paired_geomean_ratio": 0.36463555807278,
+      "paired_median_ratio": 0.3994361636761794,
+      "paired_ratio_min": 0.08956558377180446,
+      "paired_ratio_max": 0.7491159400385886,
+      "pooled": {
+        "base": {
+          "samples": 320,
+          "p50_ms": 10.849294500076212,
+          "p95_ms": 29.695201048889434
+        },
+        "current": {
+          "samples": 320,
+          "p50_ms": 1.5220850000332575,
+          "p95_ms": 22.618157599390543
+        }
+      }
+    },
+    "background": {
+      "case_block_pairs": [
+        {
+          "case_id": "dfg-calmera-ek246-D9BJ",
+          "block": 1,
+          "base_ms": 6.612927999412932,
+          "current_ms": 2.5754750004125526,
+          "ratio": 0.38946061421524514
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "block": 1,
+          "base_ms": 6.5154959993378725,
+          "current_ms": 2.6617049988999497,
+          "ratio": 0.40851916710108355
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "block": 1,
+          "base_ms": 16.500759499649575,
+          "current_ms": 7.001341000432149,
+          "ratio": 0.42430416615555394
+        },
+        {
+          "case_id": "dfg-gladera-SSVX",
+          "block": 1,
+          "base_ms": 32.78928999952768,
+          "current_ms": 28.21592599957512,
+          "ratio": 0.8605226279672893
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "block": 1,
+          "base_ms": 17.23794200006523,
+          "current_ms": 11.528707500474411,
+          "ratio": 0.6687983693430912
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "block": 1,
+          "base_ms": 28.39025550019869,
+          "current_ms": 17.10389949948876,
+          "ratio": 0.6024566950223135
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "block": 1,
+          "base_ms": 24.926142500589776,
+          "current_ms": 8.002882499567932,
+          "ratio": 0.3210638188150684
+        },
+        {
+          "case_id": "user-paulistinha-20261013",
+          "block": 1,
+          "base_ms": 9.620595000342291,
+          "current_ms": 5.197475500608562,
+          "ratio": 0.5402447042437231
+        },
+        {
+          "case_id": "dfg-calmera-ek246-D9BJ",
+          "block": 2,
+          "base_ms": 6.357123999805481,
+          "current_ms": 2.6159549997828435,
+          "ratio": 0.41149975993277593
+        },
+        {
+          "case_id": "dfg-gentebra-3XWB",
+          "block": 2,
+          "base_ms": 6.200458000421349,
+          "current_ms": 3.1972199994925177,
+          "ratio": 0.5156425540299203
+        },
+        {
+          "case_id": "dfg-gentebra-BJEI",
+          "block": 2,
+          "base_ms": 16.50281499951234,
+          "current_ms": 7.677341999624332,
+          "ratio": 0.4652140861938523
+        },
+        {
+          "case_id": "dfg-gladera-SSVX",
+          "block": 2,
+          "base_ms": 37.30081449975842,
+          "current_ms": 23.14026750082121,
+          "ratio": 0.6203689600657669
+        },
+        {
+          "case_id": "reddit-blake-m91oix5",
+          "block": 2,
+          "base_ms": 19.45271050044539,
+          "current_ms": 11.463921999165905,
+          "ratio": 0.589322603598271
+        },
+        {
+          "case_id": "reddit-chrissykes-4ppe2dp",
+          "block": 2,
+          "base_ms": 28.016785499858088,
+          "current_ms": 26.983690500856028,
+          "ratio": 0.9631258554266586
+        },
+        {
+          "case_id": "reddit-deleted-09s6sbl",
+          "block": 2,
+          "base_ms": 24.634233001052053,
+          "current_ms": 8.25176450143772,
+          "ratio": 0.3349714399910609
+        },
+        {
+          "case_id": "user-paulistinha-20261013",
+          "block": 2,
+          "base_ms": 9.848196499660844,
+          "current_ms": 5.526783499590238,
+          "ratio": 0.5611975248240194
+        }
+      ],
+      "paired_geomean_ratio": 0.5175844423484903,
+      "paired_median_ratio": 0.5279436291368217,
+      "paired_ratio_min": 0.3210638188150684,
+      "paired_ratio_max": 0.9631258554266586,
+      "pooled": {
+        "base": {
+          "samples": 320,
+          "p50_ms": 17.15772100033064,
+          "p95_ms": 37.19325944894081
+        },
+        "current": {
+          "samples": 320,
+          "p50_ms": 7.742209999378247,
+          "p95_ms": 28.185644598943327
+        }
+      }
+    }
+  },
+  "timing_output_mismatches": 0,
+  "inherited_unexpected_panels": [
+    "dfg-demolidores-4KCJ"
+  ],
+  "caveats": [
+    "Eight predeclared sources, two blocks, 20 stable and 20 background reads per source/block.",
+    "Repetitions are correlated; timing inputs keep numeric pixels unchanged, with no fresh values.",
+    "Read-only CPU replay excludes capture, Frame construction, initialization and discovery.",
+    "Combined production defaults: these read timings do not attribute gains to individual techniques.",
+    "Correctness invocation timings are excluded because those invocations may overlap.",
+    "Windows live capture and GPU hardware results remain unmeasured.",
+    "Zero timing mismatches means all recorded sequence-consistency flags passed; individual outputs are not stored."
+  ]
+}

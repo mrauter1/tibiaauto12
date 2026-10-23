@@ -37,7 +37,7 @@ CORPUS = ROOT / "tests/fixtures/screenshots"
 SCHEMA = "tibiaauto.resource-reader-originals"
 SHARDS, WARM_READS, BACKGROUND_READS, BUDGET_MS = 12, 50, 20, 100
 EXPECTED_CASES, EXPECTED_FIELDS, EXPECTED_CONTROLS, MIN_EXACT = 81, 239, 17, 221
-TEXT_SUFFIXES = {".py", ".json", ".md", ".txt", ".yml", ".yaml"}
+TEXT_SUFFIXES = {".py", ".c", ".json", ".md", ".txt", ".yml", ".yaml"}
 METRICS = ("cases", "eligible_fields", "numeric_exact", "unknown", "incorrect_accepted",
            "unsafe_intentional_unknown_acceptances", "accepted_location_mismatch", "reader_errors")
 
@@ -59,17 +59,20 @@ def fingerprints():
         "tools/resource_reader.py", "tools/resource_panel_guard.py",
         "tools/resource_reader_experiments.py", "tools/resource_numeric_vector.py",
         "tools/resource_row_geometry.py", "tools/benchmark_resource_reader.py",
+        "tools/benchmark_visual_production.py", "tests/test_visual_production_benchmark.py",
+        "tools/resource_numeric_cache.py", "tools/resource_discovery_cache.py",
+        "tools/build_visual_native.py", "core/native_visual_guard.py", "core/native_visual_guard.c",
         "tools/check_resource_reader_guards.py", "tests/test_resource_reader_benchmark.py",
         "tools/compare_resource_readers.py", "tools/benchmark_resources.py",
         "tools/benchmark_resource_latency.py", "tools/screenshot_split.py",
         "tibia_client/adaptive.py", "tibia_client/adaptive_text.py",
-        "tibia_client/adaptive_runtime.py", "tibia_client/models.py",
+        "tibia_client/adaptive_runtime.py", "tibia_client/models.py", "tibia_client/capture.py",
         "tibia_client/resource_profiles.py", "tibia_client/visual.py",
         "tibia_client/resource_reader.py", "tests/test_resource_reader_default.py",
         "core/perception.py", "core/paths.py", "requirements.txt", "requirements-dev.txt",
         "tests/fixtures/screenshots/manifest.json",
         "tests/fixtures/screenshots/split-2026-10-17-latest.json",
-        ".github/workflows/resource-reader.yml", *GUARD_MODULES,
+        ".github/workflows/resource-reader.yml", ".github/workflows/ci.yml", *GUARD_MODULES,
     }
     files = {ROOT / name for name in names}
     files.update(path for path in (ROOT / "profiles/paulistinha-skills-v1").rglob("*")

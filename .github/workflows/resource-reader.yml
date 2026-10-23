@@ -31,10 +31,14 @@ jobs:
               "tools/summarize_latest_screenshots.py", "tibia_client/adaptive*.py",
               "tibia_client/resource*.py", "tibia_client/visual.py",
               "tibia_client/models.py", "core/perception.py", "core/paths.py",
+              "tibia_client/capture.py", "core/native_visual_guard.py", "core/native_visual_guard.c",
+              "tools/build_visual_native.py", "tests/test_native_visual_guard.py",
+              "tools/benchmark_visual_production.py", "tests/test_visual_production_benchmark.py",
+              "tests/test_frame_ownership.py", "tests/test_adaptive_reader_lanes.py",
               "profiles/paulistinha-skills-v1/**", "tests/fixtures/screenshots/**",
               "tests/fixtures/resources/**", "tests/test_resource*.py",
               "tests/test_adaptive*.py", "requirements*.txt",
-              ".github/workflows/resource-reader.yml",
+              ".github/workflows/resource-reader.yml", ".github/workflows/ci.yml",
           )
           should_run = True
           try:
@@ -72,6 +76,17 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
+      - name: Build and verify native visual filter
+        shell: cmd
+        run: |
+          set "VISUAL_GUARD_VSROOT="
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "VISUAL_GUARD_VSROOT=%%i"
+          if not defined VISUAL_GUARD_VSROOT exit /b 1
+          call "%VISUAL_GUARD_VSROOT%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
+          if errorlevel 1 exit /b %errorlevel%
+          python tools/build_visual_native.py --compiler cl
+          if errorlevel 1 exit /b %errorlevel%
+          python -c "from core.native_visual_guard import available; assert available(), 'Native visual filter failed to load'"
       - name: Score unchanged originals and measure current-frame readings
         run: python tools/benchmark_resource_reader.py --shard ${{ matrix.shard }} --shards 12 --warm-reads 50 --out .work/resource-reader/shard-${{ matrix.shard }}.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -125,6 +140,17 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
+      - name: Build and verify native visual filter
+        shell: cmd
+        run: |
+          set "VISUAL_GUARD_VSROOT="
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do set "VISUAL_GUARD_VSROOT=%%i"
+          if not defined VISUAL_GUARD_VSROOT exit /b 1
+          call "%VISUAL_GUARD_VSROOT%\Common7\Tools\VsDevCmd.bat" -arch=x64 -host_arch=x64
+          if errorlevel 1 exit /b %errorlevel%
+          python tools/build_visual_native.py --compiler cl
+          if errorlevel 1 exit /b %errorlevel%
+          python -c "from core.native_visual_guard import available; assert available(), 'Native visual filter failed to load'"
       - run: python tools/check_resource_reader_guards.py --out-dir .work/resource-reader-guards
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()

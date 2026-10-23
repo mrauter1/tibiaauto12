@@ -67,6 +67,17 @@ class VectorNumberReader(ExperimentalNumberReader):
         width = tight.shape[1]
         if 'prune' in self.features:
             max_digits = min(max_digits, width // math.ceil(5.0 * scale))
+        # Each candidate split reuses many identical intervals. Cache their
+        # glyph extraction and strict ranking for this image only; keep complete
+        # path enumeration/order so distinct-text runner-ups and ties are exact.
+        @lru_cache(maxsize=None)
+        def rank_interval(left, right):
+            try:
+                glyph = _glyph(tight[:, left:right])
+                return self._rank_digit(glyph, scale, family, force_strict=True)
+            except ValueError:
+                return None
+
         candidates = {}
         for count in range(2, max_digits + 1):
             cell_width = width / count
@@ -83,12 +94,8 @@ class VectorNumberReader(ExperimentalNumberReader):
                     continue
                 ranks = []
                 for left, right in zip(boundaries, boundaries[1:]):
-                    try:
-                        glyph = _glyph(tight[:, left:right])
-                        # Keep this fallback's original strict hole policy,
-                        # even when segmented glyphs use soft topology.
-                        ranked = self._rank_digit(glyph, scale, family, force_strict=True)
-                    except ValueError:
+                    ranked = rank_interval(left, right)
+                    if ranked is None:
                         break
                     ranks.append(ranked)
                 if len(ranks) != count:
