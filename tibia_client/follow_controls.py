@@ -13,6 +13,8 @@ class FollowControls:
         self._layout = None
         self._frame = None
         self._reading = None
+        self._observation_cycle = None
+        self._configured_scale = None
         self._templates = {}
         self._scaled = {}
         self._worker = None
@@ -105,19 +107,23 @@ class FollowControls:
         size, _, region, _ = self._layout
         return region, (min(4, size[0]-1), max(0, size[1]-4))
 
-    def read(self, frame, configured_scale=1.0):
+    def read(self, frame, configured_scale=1.0, *, observation_cycle=None):
         if self._closed:
             return Reading(None, Quality.UNKNOWN, "follow reader is closed")
-        # Keep one coherent state when automation and inspection share a frame.
-        # A newly located candidate becomes visible on the next captured frame.
-        if frame is self._frame and self._reading is not None:
+        # Automation and inspection share a result within one observation cycle.
+        # A capture provider may reuse the same immutable Frame in later cycles.
+        # Standalone calls without a cycle each count as a fresh observation.
+        if (observation_cycle is not None and observation_cycle is self._observation_cycle
+                and frame is self._frame and configured_scale == self._configured_scale
+                and self._reading is not None):
             return self._reading
         if self._candidate is not None:
             candidate, self._candidate = self._candidate, None
             if candidate[0] == frame.size:
                 self._layout = candidate
-            self._frame = None
         self._frame = frame
+        self._observation_cycle = observation_cycle
+        self._configured_scale = configured_scale
         self._reading = None
         if self._layout is not None:
             size, scale, region, remembered = self._layout
@@ -170,15 +176,16 @@ class FollowControls:
     def close(self):
         self._closed = True
         self._frame = self._reading = self._candidate = self._layout = None
+        self._observation_cycle = self._configured_scale = None
 
 
-def follow_action(sensor, frame, scale=1.0, cache=None):
+def follow_action(sensor, frame, scale=1.0, cache=None, *, observation_cycle=None):
     if sensor.region or sensor.name not in ("", "disable"):
         raise ValueError("follow sensor needs no region and an empty name or 'disable'")
     cache = {} if cache is None else cache
     if "controls" not in cache:
         cache["controls"] = FollowControls()
-    state = cache["controls"].read(frame, scale)
+    state = cache["controls"].read(frame, scale, observation_cycle=observation_cycle)
     desired = sensor.name != "disable"
     diagnostics = {**state.diagnostics, "desired_follow": desired, "following": state.value}
     if state.quality is Quality.KNOWN and state.value == desired:

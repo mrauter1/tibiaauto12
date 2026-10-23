@@ -210,7 +210,7 @@ class VisualReadings:
             raise ValueError(self.error or f'{key} is not calibrated; use Image calibration')
         return validate_region(box, frame.size)
 
-    def read(self, frame, *, resolve=None, battle_for=None, follow=None):
+    def read(self, frame, *, resolve=None, battle_for=None, follow=None, observation_cycle=None):
         """Optionally reuse ordinary observations with exactly matching settings.
 
         resolve(sensor, fallback, scale) belongs to the frame's adapter. Inspector
@@ -328,7 +328,8 @@ class VisualReadings:
                                                 'score': None if match is None else match.score})
                 return detect() if key == 'pz' else shared(SensorKind(key), box, detect)
             put('status:'+key, label, 'Status / equipment', box_key, present)
-        follow = (follow if follow is not None else self.follow).read(frame, self.scale)
+        follow = (follow if follow is not None else self.follow).read(
+            frame, self.scale, observation_cycle=observation_cycle)
         out['status:follow'] = Reading(
             ('Following' if follow.value else 'Standing') if follow.quality is Quality.KNOWN else None,
             follow.quality, follow.detail,
