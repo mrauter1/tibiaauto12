@@ -1,0 +1,5 @@
+# Preserve the extracted resource bytes and reproducible provenance on Windows.
+profiles/tibia-15.33-bitmap-font/Verdana10px.fnt -text
+profiles/tibia-15.33-bitmap-font/Verdana10px.png binary
+profiles/tibia-15.33-bitmap-font/provenance.json text eol=lf
+tools/extract_tibia_font.py text eol=lf

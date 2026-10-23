@@ -1,0 +1,149 @@
+name: Experimental battle glyph benchmark
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-comparison:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'codex/glyph-reader')
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Prepare diagnostic artifacts
+        shell: python
+        run: |
+          from pathlib import Path
+          Path("reports").mkdir(exist_ok=True)
+      - name: Install pinned desktop and test dependencies
+        id: dependencies
+        shell: pwsh
+        run: |
+          # zstandard is optional offline-extraction tooling, not a production dependency.
+          python -m pip install -r requirements-dev.txt zstandard==0.25.0 2>&1 | Tee-Object -FilePath reports/battle-glyph-install.log
+          exit $LASTEXITCODE
+      - name: Diagnose Windows OCR engine and installed languages
+        id: ocr_probe
+        shell: python
+        run: |
+          import json
+          import sys
+          from pathlib import Path
+
+          state = {"status": "unavailable", "engine": "Windows.Media.Ocr.OcrEngine"}
+          initialized = False
+          engine = None
+          try:
+              from winrt.runtime import ApartmentType, init_apartment, uninit_apartment
+              from winrt.windows.globalization import Language
+              from winrt.windows.media.ocr import OcrEngine
+
+              init_apartment(ApartmentType.MULTI_THREADED)
+              initialized = True
+              state["installed_languages"] = [
+                  language.language_tag for language in OcrEngine.available_recognizer_languages]
+              language = Language("en-US")
+              state["en_us_supported"] = OcrEngine.is_language_supported(language)
+              engine = (OcrEngine.try_create_from_language(language)
+                        if state["en_us_supported"] else
+                        OcrEngine.try_create_from_user_profile_languages())
+              if engine is None:
+                  raise RuntimeError("Windows OCR has no installed recognition language")
+              state.update(status="available", language=engine.recognizer_language.language_tag,
+                           max_image_dimension=OcrEngine.max_image_dimension)
+          except Exception as exc:
+              state["error"] = f"{type(exc).__name__}: {exc}"
+          finally:
+              engine = None
+              if initialized:
+                  uninit_apartment()
+          Path("reports/battle-glyph-ocr-probe.json").write_text(
+              json.dumps(state, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(state, indent=2))
+          if state["status"] != "available":
+              print("::error::Windows OCR unavailable; see OCR probe artifact. No substitute OCR is used.")
+              sys.exit(1)
+      - name: Run focused extraction, reader and benchmark tests
+        id: tests
+        if: ${{ always() && !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          python -m pytest tests/test_tibia_font_extraction.py tests/test_glyph_text.py tests/test_battle_glyph_benchmark.py -q --junitxml=reports/battle-glyph-tests.xml 2>&1 | Tee-Object -FilePath reports/battle-glyph-tests.log
+          exit $LASTEXITCODE
+      - name: Compare unchanged annotated pixels with both readers
+        id: benchmark
+        # Preserve results even if tests or the independent OCR probe failed.
+        if: ${{ always() && !cancelled() && steps.dependencies.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          python tools/benchmark_battle_glyphs.py --readers both --repeats 10 --json-out reports/battle-glyph-benchmark.json --text-out reports/battle-glyph-benchmark.txt 2>&1 | Tee-Object -FilePath reports/battle-glyph-benchmark.log
+          exit $LASTEXITCODE
+      - name: Preserve step outcomes and reader availability
+        if: always()
+        shell: python
+        env:
+          EVALUATED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          OCR_PROBE_OUTCOME: ${{ steps.ocr_probe.outcome }}
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
+          BENCHMARK_OUTCOME: ${{ steps.benchmark.outcome }}
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          output = Path("reports")
+          output.mkdir(exist_ok=True)
+          state = {
+              "evaluated_sha": os.environ["EVALUATED_SHA"],
+              "steps": {name.lower(): os.environ[name + "_OUTCOME"]
+                        for name in ("DEPENDENCIES", "OCR_PROBE", "TESTS", "BENCHMARK")},
+              "readers": {},
+              "note": "Experimental measurements only; no accuracy or latency threshold enables production.",
+          }
+          report = output / "battle-glyph-benchmark.json"
+          try:
+              document = json.loads(report.read_text(encoding="utf-8"))
+              for name in ("glyph", "windows-ocr"):
+                  result = document["readers"][name]
+                  reader = {"initialization_status": result["status"], "error": result.get("error")}
+                  if result["status"] == "available":
+                      reader["runtime_errors"] = sum(
+                          result[section][phase]["errors"]
+                          for section in ("primary_rows", "negative_panels")
+                          for phase in ("first", "repeat_uncached"))
+                      reader["error_messages"] = sorted({
+                          call["error"] for case in document["cases"]
+                          for call in case["readers"].get(name, []) if call["error"]})
+                      reader["measurement_status"] = (
+                          "runtime-errors" if reader["runtime_errors"] else "completed")
+                  else:
+                      reader["measurement_status"] = "unavailable"
+                  state["readers"][name] = reader
+          except Exception as exc:
+              state["benchmark_report_error"] = f"{type(exc).__name__}: {exc}"
+          (output / "battle-glyph-ci-status.json").write_text(
+              json.dumps(state, indent=2) + "\n", encoding="utf-8")
+          summary = "Experimental battle glyph benchmark\n\n```json\n" + json.dumps(state, indent=2) + "\n```\n"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as stream:
+              stream.write(summary)
+          print(json.dumps(state, indent=2))
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: battle-glyph-benchmark-windows-${{ github.event.pull_request.head.sha || github.sha }}
+          path: reports/battle-glyph-*
+          if-no-files-found: error
+          retention-days: 90
