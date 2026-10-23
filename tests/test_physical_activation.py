@@ -42,7 +42,7 @@ def test_keyboard_session_runs_real_timed_spells_without_image_calibration(monke
     session.start_feature(TimedSpellsFeature((TimedSpell("Ctrl + O", 3600),), immediate=True))
     session.tick_once()
     assert ("key", 0x4F, False) in native.events
-    assert adapter.capabilities().sensors == ()
+    assert adapter.capabilities().sensors == (SensorKind.READINGS.value,)
     with pytest.raises(DesktopAdapterError, match="image calibration"):
         adapter.observe((Sensor(SensorKind.FRAME_VALID),), Token())
     with pytest.raises(DesktopAdapterError, match="key presses"):

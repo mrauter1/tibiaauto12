@@ -15,7 +15,7 @@ from core.paths import scripts_path
 from core.perception import load_template, locate_match, locate_matches, validate_region
 from engine.ScanStages import read_bar_region
 from tibia_client.battle_text import BattleTextReader, name_key, read_target
-from tibia_client.models import Marker, Quality, Reading
+from tibia_client.models import Marker, Quality, Reading, Sensor, SensorKind
 
 
 def read_marker(frame, region, name, scale=1.0):
@@ -173,7 +173,7 @@ def load_visual_config():
 
 class VisualReadings:
     """Uses calibrated regions; contains no capture or input adapter."""
-    def __init__(self, profile=None, targets=None):
+    def __init__(self, profile=None, targets=None, *, battle=None, follow=None, markers=None):
         self.error = ''
         if profile is None:
             try:
@@ -185,15 +185,17 @@ class VisualReadings:
         self.scale = float(profile.get('ui_scale', 1))
         if not math.isfinite(self.scale) or not .5 <= self.scale <= 3:
             raise ValueError('Calibration ui_scale must be between 0.5 and 3')
-        self.battle = BattleTextReader()
+        self.battle = battle if battle is not None else BattleTextReader()
         from tibia_client.follow_controls import FollowControls
-        self.follow = FollowControls()
-        self.markers = MarkerReader()
+        self.follow = follow if follow is not None else FollowControls()
+        self.markers = markers if markers is not None else MarkerReader()
+        self._owned = tuple(reader for supplied, reader in
+                            ((battle, self.battle), (follow, self.follow), (markers, self.markers))
+                            if supplied is None)
 
     def close(self):
-        self.battle.close()
-        self.follow.close()
-        self.markers.close()
+        for reader in self._owned:
+            reader.close()
 
     def _region(self, key, frame):
         size = self.profile.get('calibration_size')
@@ -208,8 +210,17 @@ class VisualReadings:
             raise ValueError(self.error or f'{key} is not calibrated; use Image calibration')
         return validate_region(box, frame.size)
 
-    def read(self, frame):
+    def read(self, frame, *, resolve=None, battle_for=None, follow=None):
+        """Optionally reuse ordinary observations with exactly matching settings.
+
+        resolve(sensor, fallback, scale) belongs to the frame's adapter. Inspector
+        rows without a public sensor retain their existing observation-only path.
+        """
         out = {}
+
+        def shared(kind, region, callback, name=''):
+            return (resolve(Sensor(kind, tuple(region), name), callback, self.scale)
+                    if resolve is not None else callback())
 
         def put(key, label, group, region_key, callback):
             region = None
@@ -227,14 +238,24 @@ class VisualReadings:
 
         for key, kind, label in [('HealthBar', 'health', 'Health bar'), ('ManaBar', 'mana', 'Mana bar')]:
             def bar(region, kind=kind):
-                value = read_bar_region(frame, region, kind)
-                return Reading(value, Quality.KNOWN if value is not None else Quality.UNKNOWN,
-                               '' if value is not None else 'Calibrated bar is unreadable',
-                               {'format': 'percent', 'reader': 'bar-fill'})
+                def detect():
+                    value = read_bar_region(frame, region, kind)
+                    return Reading(value, Quality.KNOWN if value is not None else Quality.UNKNOWN,
+                                   '' if value is not None else 'Calibrated bar is unreadable')
+                result = shared(SensorKind(kind), region, detect)
+                return Reading(result.value, result.quality, result.detail,
+                               {**result.diagnostics, 'format': 'percent', 'reader': 'bar-fill'})
             put('bar:'+kind, label, 'Resources', key, bar)
 
-        battle, region = put('battle', 'Battle list', 'Creatures', 'BattleBox',
-                            lambda box: self.battle.read_all(frame, box, self.scale))
+        battle_reader = self.battle
+
+        def read_battle(box):
+            nonlocal battle_reader
+            if battle_for is not None:
+                battle_reader = battle_for(tuple(box), self.scale) or self.battle
+            return battle_reader.read_all(frame, box, self.scale)
+
+        battle, region = put('battle', 'Battle list', 'Creatures', 'BattleBox', read_battle)
         rows = battle.value or ()
         if battle.quality is Quality.KNOWN:
             counts = Counter(row['name'] for row in rows)
@@ -265,7 +286,9 @@ class VisualReadings:
                  'effective_region': (region[0], region[1]+a, region[2], region[1]+b)})
         for name in self.targets:
             try:
-                reading = (read_target(frame, region, name, self.scale, self.battle) if region else
+                reading = (shared(SensorKind.TARGET, region,
+                                  lambda: read_target(frame, region, name, self.scale, battle_reader),
+                                  name) if region else
                            Reading(None, Quality.UNKNOWN, battle.detail))
             except Exception as exc:
                 reading = Reading(None, Quality.ERROR, f'{type(exc).__name__}: {exc}')
@@ -278,7 +301,10 @@ class VisualReadings:
                                 diagnostics={'reader': 'calibration'}))
         for name in NameMarks:
             def marker(box, name=name):
-                result = self.markers.read(frame, box, name, self.scale)
+                result = shared(SensorKind.MARKER, box,
+                                lambda: self.markers.read(frame, box, name, self.scale), name)
+                if result.value is None or result.quality is not Quality.KNOWN:
+                    return result
                 detail = ('Center overlap at threshold 0.70' if result.value.reached else 'Away from map center')
                 if not result.diagnostics['count']:
                     detail = 'No click match above 0.80'+(' · center candidate at 0.70' if result.value.reached else '')
@@ -294,13 +320,15 @@ class VisualReadings:
             ('amulet_empty', 'Amulet slot empty', 'AmuletBox', 'NoAmulet'),
         ]:
             def present(box, template=template):
-                match = locate_match(f'images/PlayerStats/{template}.png', frame=frame,
-                                     region=box, precision=.9, scale=self.scale)
-                return Reading(match is not None, detail='Template presence at threshold 0.90',
-                               diagnostics={'reader': 'template', 'ui_scale': self.scale,
-                                            'score': None if match is None else match.score})
+                def detect():
+                    match = locate_match(f'images/PlayerStats/{template}.png', frame=frame,
+                                         region=box, precision=.9, scale=self.scale)
+                    return Reading(match is not None, detail='Template presence at threshold 0.90',
+                                   diagnostics={'reader': 'template', 'ui_scale': self.scale,
+                                                'score': None if match is None else match.score})
+                return detect() if key == 'pz' else shared(SensorKind(key), box, detect)
             put('status:'+key, label, 'Status / equipment', box_key, present)
-        follow = self.follow.read(frame, self.scale)
+        follow = (follow if follow is not None else self.follow).read(frame, self.scale)
         out['status:follow'] = Reading(
             ('Following' if follow.value else 'Standing') if follow.quality is Quality.KNOWN else None,
             follow.quality, follow.detail,

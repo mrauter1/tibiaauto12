@@ -1,4 +1,4 @@
-"""Tk view of the capture-only resource monitor. No desktop input operations."""
+"""Tk readings view for a shared session or an explicit standalone monitor."""
 from __future__ import annotations
 
 import time
@@ -17,7 +17,13 @@ COLORS = {"Accepted": "#16804a", "N/A": "#a56800", "Stale": "#a56800", "Error": 
 
 
 class ResourceMonitorWindow:
-    def __init__(self, parent=None, *, monitor=None, clock=time.monotonic):
+    def __init__(self, parent=None, *, monitor=None, client=None, clock=time.monotonic):
+        if monitor is not None and client is not None:
+            raise ValueError("supply either monitor or client")
+        if monitor is None and client is not None:
+            from tibia_client.session_monitor import SessionResourceMonitor
+
+            monitor = SessionResourceMonitor(client)
         self.monitor = monitor if monitor is not None else ResourceMonitor()
         self.clock = clock
         self.window = tk.Tk() if parent is None else tk.Toplevel(getattr(parent, "windowID", parent))
@@ -276,7 +282,7 @@ class ResourceMonitorWindow:
             self.window.after_cancel(self._after)
         self.start_button.configure(state="disabled")
         self.stop_button.configure(state="disabled")
-        self.status.set("Closing capture…")
+        self.status.set("Closing readings…")
         self._finish_close()
 
     def _finish_close(self):

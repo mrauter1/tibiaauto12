@@ -157,7 +157,7 @@ def OpenResourceMonitor():
         existing.window.deiconify()
         existing.window.lift()
         return existing
-    window = ResourceMonitorWindow(_active_root.windowID)
+    window = ResourceMonitorWindow(_active_root.windowID, client=get_client())
     _active_root.resource_monitor = window
     return window
 

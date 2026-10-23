@@ -108,13 +108,15 @@ class FollowControls:
     def read(self, frame, configured_scale=1.0):
         if self._closed:
             return Reading(None, Quality.UNKNOWN, "follow reader is closed")
+        # Keep one coherent state when automation and inspection share a frame.
+        # A newly located candidate becomes visible on the next captured frame.
+        if frame is self._frame and self._reading is not None:
+            return self._reading
         if self._candidate is not None:
             candidate, self._candidate = self._candidate, None
             if candidate[0] == frame.size:
                 self._layout = candidate
             self._frame = None
-        if frame is self._frame and self._reading is not None:
-            return self._reading
         self._frame = frame
         self._reading = None
         if self._layout is not None:
