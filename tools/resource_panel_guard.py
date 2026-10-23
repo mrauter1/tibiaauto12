@@ -22,10 +22,41 @@ import cv2
 import numpy as np
 
 from core.perception import Frame
+from core import native_visual_guard
 from tibia_client.adaptive import PanelLayout, _crop, _ink
 
 
 _LAYOUT_CACHE_LIMIT = 32
+
+
+def _candidate_coordinates(pixels, sentinels, seed_coarse, out_height, out_width):
+    """Exact proposal filter; missing optional native code uses the NumPy path."""
+    samples = tuple((int(dy), int(dx), bool(expected), bool(seed_coarse[dy, dx]))
+                    for (dy, dx), expected in sentinels)
+    native = native_visual_guard.try_candidates(pixels, samples, out_width, out_height)
+    if native is not None:
+        return native
+    coarse = cv2.inRange(pixels, (130, 130, 130), (255, 255, 255)) > 0
+    proposed = None
+    for (dy, dx), _ in sentinels[:4]:
+        expected = seed_coarse[dy, dx]
+        part = coarse[dy:dy + out_height, dx:dx + out_width]
+        matched = part if expected else ~part
+        if proposed is None:
+            proposed = matched.copy()
+        else:
+            proposed &= matched
+    ys, xs = np.nonzero(proposed)
+    for (dy, dx), expected in sentinels:
+        if not len(xs):
+            break
+        rgb = pixels[ys + dy, xs + dx]
+        low = np.minimum(np.minimum(rgb[:, 0], rgb[:, 1]), rgb[:, 2])
+        high = np.maximum(np.maximum(rgb[:, 0], rgb[:, 1]), rgb[:, 2])
+        keep = ((low >= 130) & (high - low < 35)) == expected
+        ys, xs = ys[keep], xs[keep]
+    # Only the first 129 row-major survivors matter: >128 always rejects.
+    return ys[:129], xs[:129]
 
 
 class PanelGuardMixin:
@@ -108,8 +139,7 @@ class PanelGuardMixin:
         pixels = frame.pixels
         # One brightness proposal plus sparse chroma tests avoids a full-frame
         # sweep for every sentinel. Full label/row proof still decides candidates.
-        coarse = cv2.inRange(pixels, (130, 130, 130), (255, 255, 255)) > 0
-        seed_coarse = coarse[seed.box[1]:seed.box[3], seed.box[0]:seed.box[2]]
+        seed_coarse = cv2.inRange(_crop(frame, seed.box), (130, 130, 130), (255, 255, 255)) > 0
         positive, negative = np.argwhere(template), np.argwhere(~template)
         if not len(positive):
             return False
@@ -120,24 +150,7 @@ class PanelGuardMixin:
         sentinels = [item for pair in zip(positives, negatives) for item in pair]
         sentinels.extend(positives[len(negatives):])
         out_height, out_width = frame.height - height + 1, frame.width - width + 1
-        proposed = None
-        for (dy, dx), _ in sentinels[:4]:
-            expected = seed_coarse[dy, dx]
-            part = coarse[dy:dy + out_height, dx:dx + out_width]
-            matched = part if expected else ~part
-            if proposed is None:
-                proposed = matched.copy()
-            else:
-                proposed &= matched
-        ys, xs = np.nonzero(proposed)
-        for (dy, dx), expected in sentinels:
-            if not len(xs):
-                return False
-            rgb = pixels[ys + dy, xs + dx]
-            low = np.minimum(np.minimum(rgb[:, 0], rgb[:, 1]), rgb[:, 2])
-            high = np.maximum(np.maximum(rgb[:, 0], rgb[:, 1]), rgb[:, 2])
-            keep = ((low >= 130) & (high - low < 35)) == expected
-            ys, xs = ys[keep], xs[keep]
+        ys, xs = _candidate_coordinates(pixels, sentinels, seed_coarse, out_height, out_width)
         # Bound costly verification under pathological repeated word patterns.
         if len(xs) > 128:
             self._duplicate_result = True

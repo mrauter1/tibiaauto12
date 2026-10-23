@@ -1,11 +1,14 @@
 """Selected resource-reader composition with current-frame row and panel guards.
 
-The retained numeric backend uses threshold consensus and bounded glyph caches.
-Values always come from the current frame; unsupported readings remain UNKNOWN.
+The numeric backend uses threshold consensus, memoized splits and bounded exact
+result reuse. Current-frame guards still run before numeric reuse. Discovery
+reuses only complete, identical label-search evidence; geometry is checked anew.
 Application callers use the shared aliases in ``tibia_client.resource_reader``.
 """
 from __future__ import annotations
 
+from tools.resource_discovery_cache import ExactDiscoveryEvidenceCacheMixin
+from tools.resource_numeric_cache import NumericResultCacheMixin
 from tools.resource_numeric_vector import VectorNumberReader
 from tools.resource_panel_guard import PanelGuardMixin
 from tools.resource_reader_experiments import ExperimentalResourceReader, VARIANTS
@@ -15,7 +18,7 @@ from tools.resource_row_geometry import StructuralRowMixin
 FEATURES = VARIANTS["accelerated_robust"]
 
 
-class CurrentNumberReader(VectorNumberReader):
+class CurrentNumberReader(NumericResultCacheMixin, VectorNumberReader):
     """The single selected numeric configuration."""
 
     supports_font_family = True
@@ -24,7 +27,9 @@ class CurrentNumberReader(VectorNumberReader):
         super().__init__(FEATURES, **kwargs)
 
 
-class CurrentResourceReader(PanelGuardMixin, StructuralRowMixin, ExperimentalResourceReader):
+class CurrentResourceReader(
+    ExactDiscoveryEvidenceCacheMixin, PanelGuardMixin, StructuralRowMixin, ExperimentalResourceReader
+):
     """Verify complete current rows, reject duplicate panels, then decode."""
 
     def __init__(self, *, number_reader=None, ocr=None, **kwargs):

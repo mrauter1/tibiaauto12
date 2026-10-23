@@ -49,6 +49,70 @@ An ambiguous digit near a scale-bank boundary requires the same text to pass
 at both neighboring scales. The original screenshot bytes remain unchanged;
 these are internal recognition operations, not generated benchmark captures.
 
+## Production optimizations
+
+The default reader includes five optimizations without changing recognition
+thresholds, numeric precision, supported font families, or scale coverage:
+
+| Optimization | Default behavior |
+| --- | --- |
+| Exact numeric result cache | Reuse a verified `KNOWN` result only for identical RGB region bytes and decoding options. Keep at most 128 results and 2 MiB of region bytes per number reader. |
+| Exact discovery evidence cache | Reuse complete label-search results only when the entire binary search image, search box, frame dimensions, fields, mode, configuration, and relevant ordered template banks match. Keep at most 24 entries and 32 MiB of image/template payloads per resource reader. |
+| Touching-digit interval memoization | Score each repeated glyph interval once within a decode call. Preserve complete split enumeration, ordering, score thresholds, and ambiguity checks. |
+| Reduced frame copies | Capture takes one owned immutable RGB snapshot; crops materialize only their selected region. Shared capture storage never becomes a mutable backing buffer for a published `Frame`. |
+| Optional native duplicate filter | Use the prebuilt C filter when compatible; otherwise use the NumPy implementation. Both nominate the same row-ordered candidates for the existing full label and geometry checks. |
+
+The exact caches belong to each reader instance. Entry limits also bound the
+number of retained result and metadata objects; the byte limits above account
+for pixel/template payloads, not total Python object overhead. Numeric caching
+also retains one snapshot of the small template bank. Template or recognition
+configuration changes prevent reuse. Numeric reads requested with OCR enabled,
+`UNKNOWN` results, errors, and unsupported inputs/options are never cached.
+Discovery can cache an empty completed search, but never a partial, failed, or
+cancelled search; cancellation checkpoints remain active on cache hits.
+
+These caches do not establish a panel's current geometry or uniqueness. The
+ordinary current-frame label, row, visibility, and duplicate checks still apply
+before a reading is accepted. Discovery retains all font and scale searches;
+it does not narrow future searches to a previously selected panel.
+
+For controlled comparisons, set either `discovery_cache_entries` or
+`discovery_cache_bytes` to zero on `ResourceReader`. Numeric limits belong to
+`NumberReader`: pass `number_reader=NumberReader(numeric_cache_entries=0)` to
+disable numeric result reuse. Custom number readers retain their own behavior.
+`clear_discovery_cache()` and `clear_numeric_cache()` discard retained results;
+`discovery_cache_stats` and `numeric_cache_info()` expose cache activity.
+
+### Optional native build
+
+Run the build explicitly from the repository root in the configured Python
+environment, before starting the application. On Linux with GCC or Clang:
+
+```console
+python tools/build_visual_native.py --compiler cc
+```
+
+On Windows, use an x64 Native Tools developer shell with matching 64-bit Python
+and MSVC (or select `clang-cl`, GCC, or Clang with `--compiler`):
+
+```console
+python tools/build_visual_native.py --compiler cl
+```
+
+The library stays under `.work/native`; its source identity, pointer width, and
+ABI must match before it is used. Startup never invokes a compiler. A missing,
+incompatible, or failed native backend falls back to NumPy. Build after source
+changes and restart existing application processes to load the new backend.
+Check availability in a fresh process with:
+
+```console
+python -c "from core.native_visual_guard import available; print(available())"
+```
+
+These changes target CPU work. Windows capture and GPU performance remain
+unmeasured because the validation environment is Linux without a GPU; the
+Windows build command is provided for validation on that hardware.
+
 ## Screenshot corpus
 
 `tests/fixtures/screenshots/manifest.json` is the source of truth for benchmark
@@ -106,7 +170,11 @@ claimed until actual capture evidence is available.
 
 `AdaptiveResourceTracker` performs discovery outside the action loop and checks
 cached layouts against fresh captures. Background rediscovery uses a separate
-reader instance so its mutable caches cannot interfere with current readings.
+reader instance, retained across attempts, so its mutable caches cannot interfere
+with current readings. Readers have one owner at a time: serialize foreground
+calls, as `ClientSession` does. A custom `reader_factory` must return independent
+reader instances and mutable decoder state for the foreground, discovery, and
+OCR lanes; returning a shared singleton breaks that ownership contract.
 A changed or ambiguous panel invalidates
 dependent readings; replacement bindings are published together under a new
 layout revision. The workflow cancels queued dependent actions when it observes

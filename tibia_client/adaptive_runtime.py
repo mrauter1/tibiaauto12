@@ -104,6 +104,7 @@ def _default_reader_factory(reader_id: str) -> Any:
 @dataclass(slots=True)
 class _Group:
     reader: Any | None = None
+    discovery_reader: Any | None = None
     layout: Any | None = None
     last_bounds: tuple[int, int, int, int] | None = None
     ticket: int = 0
@@ -118,6 +119,7 @@ class _Group:
         str,
         tuple[int, int, int, int] | None,
         frozenset[str],
+        Any | None,
     ] | None = None
     ocr_completed: tuple[int, str, dict[str, str], Mapping[str, Reading]] | None = None
     ocr_cache: OrderedDict[tuple[str, str, str], Reading] = field(default_factory=OrderedDict)
@@ -133,7 +135,12 @@ class _Group:
 
 
 class AdaptiveResourceTracker:
-    """Track adaptive layouts for one adapter without blocking its hot path."""
+    """Track adaptive layouts for one adapter without blocking its hot path.
+
+    The owner must serialize calls to ``read``, as ClientSession does. A factory should
+    return independent mutable instances for foreground, discovery and OCR
+    lanes; discovery retains its instance across attempts within one group.
+    """
 
     def __init__(
         self,
@@ -267,25 +274,34 @@ class AdaptiveResourceTracker:
         group.force_global = False
 
         def run() -> None:
-            # Keep the local defined even when construction itself fails so
-            # the failure detail can be published and rate-limited.
-            reader = None
+            # Construct the first foreground reader here too: loading its
+            # template bank must not block the scheduler's current-frame work.
+            foreground_reader = None
+
+            def checkpoint() -> None:
+                if self._closed or generation != self._generation or ticket != group.ticket:
+                    raise RuntimeError("adaptive discovery was superseded")
+
             try:
                 # A partial layout can still be read while rediscovery runs.
-                # Keep the selected reader's mutable geometry and panel-guard
-                # caches private to each lane until discovery is complete.
-                reader = self._reader_factory(reader_id)
-
-                def checkpoint() -> None:
-                    if self._closed or generation != self._generation or ticket != group.ticket:
-                        raise RuntimeError("adaptive discovery was superseded")
-
+                # Keep each lane's caches private and retain discovery evidence
+                # across attempts rather than replacing the live reader.
+                checkpoint()
+                if group.discovery_reader is None:
+                    reader = self._reader_factory(reader_id)
+                    checkpoint()
+                    group.discovery_reader = reader
+                reader = group.discovery_reader
                 result = reader.discover(
                     frame,
                     selection=selection,
                     use_ocr=use_ocr,
                     checkpoint=checkpoint,
                 )
+                checkpoint()
+                if group.reader is None and getattr(result, "layout", None) is not None:
+                    foreground_reader = self._reader_factory(reader_id)
+                    checkpoint()
                 detail = str(getattr(result, "detail", ""))
             except Exception as exc:
                 result = None
@@ -297,10 +313,9 @@ class AdaptiveResourceTracker:
                         and generation == self._generation
                         and ticket == group.ticket
                     ):
-                        if reader is not None:
-                            group.reader = reader
                         group.completed = (
-                            ticket, result, detail, selection, required_fields
+                            ticket, result, detail, selection, required_fields,
+                            foreground_reader,
                         )
             finally:
                 self._discovery_slot.release()
@@ -557,7 +572,10 @@ class AdaptiveResourceTracker:
                 if group.completed is not None:
                     completed, group.completed = group.completed, None
             if completed is not None:
-                _ticket, discovery, detail, selection, required_fields = completed
+                (_ticket, discovery, detail, selection, required_fields,
+                 foreground_reader) = completed
+                if group.reader is None and foreground_reader is not None:
+                    group.reader = foreground_reader
                 candidate = None if discovery is None else getattr(discovery, "layout", None)
                 if candidate is not None and not required_fields.issubset(
                     getattr(candidate, "regions", {})
