@@ -174,6 +174,24 @@ def test_entry_and_payload_byte_budgets_evict_and_skip_oversized_images():
     assert bounded.discovery_cache_stats['bytes'] == 0
 
 
+def test_mutating_diagnostic_snapshots_cannot_change_cache_accounting():
+    reader = Probe(discovery_cache_entries=2, discovery_cache_bytes=1000)
+    search(reader)
+    snapshot = reader.discovery_cache_stats
+    snapshot['bytes'] = 0
+    reader.discovery_cache_stats.clear()
+    with pytest.raises(AttributeError):
+        reader.discovery_cache_stats = {}
+    search(reader, blank(value=255))
+    assert len(reader._discovery_search_cache) == 1
+    assert sum(entry[2] for entry in reader._discovery_search_cache.values()) == 618
+    assert reader.discovery_cache_stats['bytes'] == 618
+    assert reader.discovery_cache_stats['evictions'] == 1
+    search(reader, blank(value=255))
+    assert reader.discovery_cache_stats['hits'] == 1
+    assert len(reader.calls) == 2
+
+
 @pytest.mark.parametrize('kwargs', [{'discovery_cache_entries': 0}, {'discovery_cache_bytes': 0}])
 def test_zero_limit_is_an_uncached_comparator_path(kwargs):
     reader = Probe(**kwargs)

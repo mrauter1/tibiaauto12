@@ -40,7 +40,7 @@ GUARD_MODULES = (
 # A native build is required for this promotion gate: optional-native tests may
 # skip in ordinary pytest, but this runner rejects every skipped guard case.
 # No shortened module list can satisfy the selected-identity/provenance checks.
-MIN_GUARD_TESTS = 246
+MIN_GUARD_TESTS = 247
 EXCLUDE_ORIGINAL_ACCEPTANCE = (
     "not existing_regression_screenshot and not calmera_resampled and not manually_boxed"
 )

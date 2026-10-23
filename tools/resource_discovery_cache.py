@@ -42,14 +42,19 @@ class ExactDiscoveryEvidenceCacheMixin:
         self._discovery_cache_entries = discovery_cache_entries
         self._discovery_cache_limit = discovery_cache_bytes
         self._discovery_search_cache = OrderedDict()
-        self.discovery_cache_stats = dict(hits=0, misses=0, evictions=0,
-                                          bypasses=0, bytes=0)
+        self._discovery_cache_stats = dict(hits=0, misses=0, evictions=0,
+                                           bypasses=0, bytes=0)
         super().__init__(*args, **kwargs)
+
+    @property
+    def discovery_cache_stats(self):
+        """Return a diagnostic snapshot without exposing cache accounting."""
+        return dict(self._discovery_cache_stats)
 
     def clear_discovery_cache(self):
         """Discard retained evidence; cumulative hit/miss counters remain useful."""
         self._discovery_search_cache.clear()
-        self.discovery_cache_stats["bytes"] = 0
+        self._discovery_cache_stats["bytes"] = 0
 
     def _discovery_configuration(self, family):
         # Arrays can be replaced or edited in place by custom reader setup. An
@@ -65,14 +70,14 @@ class ExactDiscoveryEvidenceCacheMixin:
         checkpoint()
         if (not self._discovery_cache_entries or not self._discovery_cache_limit
                 or (box[2] - box[0]) * (box[3] - box[1]) > self._discovery_cache_limit):
-            self.discovery_cache_stats["bypasses"] += 1
+            self._discovery_cache_stats["bypasses"] += 1
             return method(frame, box, checkpoint, fields=fields, exhaustive=exhaustive)
 
         evidence = _ink(_crop(frame, box)).tobytes()
         configuration, bank_bytes = self._discovery_configuration(family)
         payload_size = len(evidence) + bank_bytes
         if payload_size > self._discovery_cache_limit:
-            self.discovery_cache_stats["bypasses"] += 1
+            self._discovery_cache_stats["bypasses"] += 1
             return method(frame, box, checkpoint, fields=fields, exhaustive=exhaustive)
         key = (family, frame.size, tuple(box),
                tuple(sorted(fields)) if fields is not None else None,
@@ -82,11 +87,11 @@ class ExactDiscoveryEvidenceCacheMixin:
             # Hashes index entries only. Equality of the retained complete bytes
             # is required before returning an immutable search result's copy.
             checkpoint()
-            self.discovery_cache_stats["hits"] += 1
+            self._discovery_cache_stats["hits"] += 1
             self._discovery_search_cache.move_to_end(key)
             return list(cached[1])
 
-        self.discovery_cache_stats["misses"] += 1
+        self._discovery_cache_stats["misses"] += 1
         # Materialization and the final checkpoint must both succeed. A reader
         # raising partway through its search cannot install a partial result.
         result = tuple(method(frame, box, checkpoint, fields=fields, exhaustive=exhaustive))
@@ -96,14 +101,14 @@ class ExactDiscoveryEvidenceCacheMixin:
             return list(result)
         old = self._discovery_search_cache.pop(key, None)
         if old is not None:
-            self.discovery_cache_stats["bytes"] -= old[2]
+            self._discovery_cache_stats["bytes"] -= old[2]
         self._discovery_search_cache[key] = (evidence, result, payload_size)
-        self.discovery_cache_stats["bytes"] += payload_size
+        self._discovery_cache_stats["bytes"] += payload_size
         while (len(self._discovery_search_cache) > self._discovery_cache_entries
-               or self.discovery_cache_stats["bytes"] > self._discovery_cache_limit):
+               or self._discovery_cache_stats["bytes"] > self._discovery_cache_limit):
             _, (_, _, removed_size) = self._discovery_search_cache.popitem(last=False)
-            self.discovery_cache_stats["bytes"] -= removed_size
-            self.discovery_cache_stats["evictions"] += 1
+            self._discovery_cache_stats["bytes"] -= removed_size
+            self._discovery_cache_stats["evictions"] += 1
         return list(result)
 
     def _anchors(self, frame, box, checkpoint, *, fields=None, exhaustive=False):

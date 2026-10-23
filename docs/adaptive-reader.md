@@ -81,7 +81,8 @@ For controlled comparisons, set either `discovery_cache_entries` or
 `NumberReader`: pass `number_reader=NumberReader(numeric_cache_entries=0)` to
 disable numeric result reuse. Custom number readers retain their own behavior.
 `clear_discovery_cache()` and `clear_numeric_cache()` discard retained results;
-`discovery_cache_stats` and `numeric_cache_info()` expose cache activity.
+`discovery_cache_stats` and `numeric_cache_info()` expose independent snapshots
+of cache activity; changing a snapshot does not change internal accounting.
 
 ### Optional native build
 
