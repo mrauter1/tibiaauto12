@@ -172,6 +172,23 @@ class _PendingConfirmation:
     deadline: float
 
 
+@dataclass(frozen=True)
+class ObservationView:
+    """A subscriber's immutable results paired with their exact source frame."""
+
+    snapshot: Snapshot
+    frame: Frame | None = None
+
+
+@dataclass
+class _Observer:
+    identity: int
+    sensors: tuple[Sensor, ...]
+    interval: float
+    next_due: float
+    view: ObservationView
+
+
 class ClientSession:
     """Coordinate features over one capture and one serialized action stream.
 
@@ -226,6 +243,8 @@ class ClientSession:
         self._tick_lock = threading.Lock()
         self._recorder_context = threading.local()
         self._records: dict[str, _FeatureRecord] = {}
+        self._observers: dict[int, _Observer] = {}
+        self._observer_ids = itertools.count(1)
         self._generations: dict[str, int] = {}
         self._feature_instances: list[weakref.ReferenceType[Any]] = []
         self._queue: list[_Queued] = []
@@ -520,6 +539,78 @@ class ClientSession:
                     return None
             return self._preview_frame
 
+    def subscribe_observations(
+        self, sensors: tuple[Sensor, ...], *, interval: float = 0.1,
+    ) -> int:
+        """Request shared observations without activating input or a feature.
+
+        The returned handle owns only this demand. Stop All, reconfiguration,
+        and session shutdown invalidate it. UI polling never captures; the
+        existing scheduler performs all observations.
+        """
+        self._guard_recorder_reentry("subscribe to observations")
+        interval = _positive(interval, "observation interval")
+        if not isinstance(sensors, tuple) or not 1 <= len(sensors) <= 1024:
+            raise ValueError("observation sensors must be a nonempty tuple of at most 1024 sensors")
+        if any(not isinstance(sensor, Sensor) for sensor in sensors):
+            raise TypeError("observation sensors must contain Sensor values")
+        with self._lifecycle_lock:
+            with self._lock:
+                if self._closed or self._stopping_all:
+                    raise RuntimeError("client session is closed or stopping")
+                if len(self._observers) >= 64:
+                    raise RuntimeError("too many observation subscriptions")
+                now = self._now()
+                identity = next(self._observer_ids)
+                self._observers[identity] = _Observer(
+                    identity, tuple(dict.fromkeys(sensors)), interval, now,
+                    ObservationView(Snapshot(epoch=self._epoch, created_at=now)),
+                )
+            try:
+                if self._autostart:
+                    runtime.start(self._runtime_name, self._run)
+            except BaseException:
+                with self._lock:
+                    self._observers.pop(identity, None)
+                raise
+        return identity
+
+    def unsubscribe_observations(self, identity: int) -> bool:
+        """Remove only this subscriber; leave automation and the adapter open."""
+        self._guard_recorder_reentry("unsubscribe from observations")
+        if type(identity) is not int or identity <= 0:
+            raise ValueError("observation handle must be a positive integer")
+        with self._lock:
+            removed = self._observers.pop(identity, None)
+            if removed is not None:
+                self._prune_snapshot_locked(self._now())
+            return removed is not None
+
+    def observation_view(self, identity: int) -> ObservationView | None:
+        """Return a coherent view, or None when the subscription is invalid."""
+        if type(identity) is not int or identity <= 0:
+            raise ValueError("observation handle must be a positive integer")
+        with self._lock:
+            observer = self._observers.get(identity)
+            return None if observer is None else observer.view
+
+    def reset_readings(self) -> None:
+        """Signal inspection recalibration; detector mutation stays on its worker."""
+        self._guard_recorder_reentry("recalibrate readings")
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("client session is closed")
+            reset = getattr(self._adapter, "reset_readings", None)
+            if not callable(reset):
+                raise NotImplementedError("this adapter does not support readings recalibration")
+            # Adapter contract: this only sets a nonblocking reset signal.
+            reset()
+
+    def _clear_observer_views_locked(self, now: float) -> None:
+        for observer in self._observers.values():
+            observer.view = ObservationView(Snapshot(epoch=self._epoch, created_at=now))
+            observer.next_due = min(observer.next_due, now)
+
     def feature_status(self, name: str) -> FeatureStatus:
         if not isinstance(name, str) or not name:
             raise ValueError("feature name must be non-empty")
@@ -708,6 +799,7 @@ class ClientSession:
                     if not callable(configure):
                         raise RuntimeError("this client adapter does not support visual profiles")
                     configure(profile)
+                    self._observers.clear()
                     self._stop_epoch += 1
                     self._epoch += 1
                     self._snapshot = Snapshot(epoch=self._epoch, created_at=self._now())
@@ -977,6 +1069,7 @@ class ClientSession:
                 return ()
             self._stopping_all = True
             self._stop_epoch += 1
+            self._observers.clear()
             records = [record for record in self._records.values() if record.active]
             for record in records:
                 record.cancelled.set()
@@ -1321,10 +1414,10 @@ class ClientSession:
     def _tick_once_locked(self) -> Snapshot:
         """Run one tick while the caller holds ``_tick_lock``."""
         with self._lock:
-            if self._closed:
+            if self._closed or self._stopping_all:
                 return self._snapshot
             has_work = any(record.active for record in self._records.values())
-            has_work = has_work or bool(self._queue) or bool(self._confirming)
+            has_work = has_work or bool(self._queue) or bool(self._confirming) or bool(self._observers)
         if not has_work:
             return self.snapshot
 
@@ -1335,12 +1428,12 @@ class ClientSession:
         if not self._ensure_ready(now):
             return self.snapshot
 
-        due, sensors = self._collect_due(now)
+        due, sensors, observers = self._collect_due(now)
         # Every due policy gets a capture-health heartbeat, including features
         # such as timed spells that do not consume a visual sensor.  This keeps
         # a failed transport/layout from being bypassed by sensorless input.
         if due or sensors:
-            if not self._observe(sensors, now):
+            if not self._observe(sensors, now, observers=observers):
                 return self.snapshot
         snapshot = self.snapshot
         now = self._now()
@@ -1410,6 +1503,7 @@ class ClientSession:
                     self._epoch += 1
                     self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
                     self._preview_frame = None
+                    self._clear_observer_views_locked(now)
                     rejected = list(self._queue)
                     unconfirmed = [value.queued for value in self._confirming.values()]
                     self._queue.clear()
@@ -1449,7 +1543,9 @@ class ClientSession:
                 self._ready_started_at = None
         return False
 
-    def _collect_due(self, now: float) -> tuple[list[_FeatureRecord], tuple[Sensor, ...]]:
+    def _collect_due(
+        self, now: float,
+    ) -> tuple[list[_FeatureRecord], tuple[Sensor, ...], tuple[_Observer, ...]]:
         with self._lock:
             due = [
                 record for record in self._records.values()
@@ -1460,7 +1556,12 @@ class ClientSession:
                 for pending in self._confirming.values()
                 if pending.queued.request.confirmation is not None
             ]
+            observers = tuple(
+                observer for observer in self._observers.values() if now >= observer.next_due
+            )
         sensors: set[Sensor] = set(confirmation_sensors)
+        for observer in observers:
+            sensors.update(observer.sensors)
         valid_due: list[_FeatureRecord] = []
         for record in due:
             activation_reasons = self._activation_reasons(
@@ -1492,14 +1593,20 @@ class ClientSession:
                 record.sensors = requested
             sensors.update(requested)
             valid_due.append(record)
-        return valid_due, tuple(sorted(sensors, key=lambda sensor: (sensor.kind.value, sensor.name, sensor.region)))
+        return (valid_due,
+                tuple(sorted(sensors, key=lambda sensor: (sensor.kind.value, sensor.name, sensor.region))),
+                observers)
 
-    def _capture_unavailable(self, exc: TransientObservationError, now: float) -> None:
+    def _capture_unavailable(
+        self, exc: TransientObservationError, now: float, *, expected_observation=None,
+    ) -> None:
         """Discard unexecuted intents but retain enabled policies for recovery."""
         message = f"{type(exc).__name__}: {exc}"
         phase = f"Waiting for capture; retrying: {exc}"
         with self._lock:
-            if self._closed:
+            if (self._closed or self._stopping_all or
+                    (expected_observation is not None and
+                     expected_observation != (self._epoch, self._stop_epoch))):
                 return
             self._capture_transport_ok = False
             self._capture_visual_valid = False
@@ -1511,6 +1618,7 @@ class ClientSession:
             self._snapshot = Snapshot({}, self._frame_id, self._epoch, now)
             self._preview_frame = None
             self._preview_frame_id = None
+            self._clear_observer_views_locked(now)
             removed = list(self._queue)
             self._queue.clear()
             statuses = []
@@ -1526,8 +1634,12 @@ class ClientSession:
         for status in statuses:
             self._record("status", now, status.name, status=status, reason=message)
 
-    def _observe(self, sensors: tuple[Sensor, ...], now: float) -> bool:
+    def _observe(
+        self, sensors: tuple[Sensor, ...], now: float, *, observers: tuple[_Observer, ...] = (),
+    ) -> bool:
         token = self._session_token()
+        with self._lock:
+            capture_epoch, stop_epoch = self._epoch, self._stop_epoch
         try:
             token.checkpoint()
             with runtime.use_token(token):
@@ -1541,36 +1653,22 @@ class ClientSession:
         except runtime.CancelledError:
             return False
         except TransientObservationError as exc:
-            self._capture_unavailable(exc, self._now())
+            self._capture_unavailable(exc, self._now(),
+                                      expected_observation=(capture_epoch, stop_epoch))
             return False
         except Exception as exc:
-            with self._lock:
-                self._capture_transport_ok = False
-                self._capture_visual_valid = False
-                self._capture_reasons = (f"{type(exc).__name__}: {exc}",)
-                self._preview_frame = None
-                self._failure_reasons.append(self._capture_reasons[0])
-            self._fatal(exc, now)
+            self._fatal(exc, now, expected_observation=(capture_epoch, stop_epoch))
             return False
 
         with self._lock:
-            if self._closed:
+            if (self._closed or self._stopping_all or
+                    (self._epoch, self._stop_epoch) != (capture_epoch, stop_epoch)):
                 return False
             self._frame_id += 1
             frame_id = self._frame_id
             epoch = self._epoch
             previous_snapshot = self._snapshot
-            watched = {
-                sensor
-                for record in self._records.values()
-                if record.active
-                for sensor in record.sensors
-            }
-            watched.update(
-                pending.queued.request.confirmation.sensor
-                for pending in self._confirming.values()
-                if pending.queued.request.confirmation is not None
-            )
+            watched = self._watched_sensors_locked()
         # ObservationBatch timestamps belong to the adapter's monotonic clock.
         # A Frame may separately carry wall time and is never consulted here.
         observed_at = adapter_timestamp
@@ -1603,19 +1701,10 @@ class ClientSession:
                 if observation.quality is Quality.ERROR
             )
             with self._lock:
-                if self._closed:
+                if (self._closed or self._stopping_all or
+                        (self._epoch, self._stop_epoch) != (capture_epoch, stop_epoch)):
                     return False
-                current_watched = {
-                    sensor
-                    for record in self._records.values()
-                    if record.active
-                    for sensor in record.sensors
-                }
-                current_watched.update(
-                    pending.queued.request.confirmation.sensor
-                    for pending in self._confirming.values()
-                    if pending.queued.request.confirmation is not None
-                )
+                current_watched = self._watched_sensors_locked()
                 observations = {
                     sensor: observation
                     for sensor, observation in observations.items()
@@ -1632,8 +1721,15 @@ class ClientSession:
                 # avoid importing desktop perception in the headless SDK path.
                 self._preview_frame = batch.frame
                 self._preview_frame_id = frame_id if batch.frame is not None else None
+                for observer in observers:
+                    if self._observers.get(observer.identity) is observer:
+                        selected = {sensor: observations[sensor] for sensor in observer.sensors}
+                        observer.view = ObservationView(
+                            Snapshot(selected, frame_id, epoch, published_at), batch.frame,
+                        )
+                        observer.next_due = published_at + observer.interval
         except Exception as exc:
-            self._fatal(exc, now)
+            self._fatal(exc, now, expected_observation=(capture_epoch, stop_epoch))
             return False
         self._record(
             "observation", published_at, snapshot=snapshot,
@@ -2229,7 +2325,7 @@ class ClientSession:
             and not record.cancelled.is_set()
         )
 
-    def _prune_snapshot_locked(self, now: float) -> None:
+    def _watched_sensors_locked(self) -> set[Sensor]:
         watched = {
             sensor
             for record in self._records.values()
@@ -2241,6 +2337,11 @@ class ClientSession:
             for pending in self._confirming.values()
             if pending.queued.request.confirmation is not None
         )
+        watched.update(sensor for observer in self._observers.values() for sensor in observer.sensors)
+        return watched
+
+    def _prune_snapshot_locked(self, now: float) -> None:
+        watched = self._watched_sensors_locked()
         kept = {
             sensor: observation
             for sensor, observation in self._snapshot.observations.items()
@@ -2287,17 +2388,24 @@ class ClientSession:
             reason="feature failed",
         )
 
-    def _fatal(self, exc: BaseException, now: float) -> None:
+    def _fatal(self, exc: BaseException, now: float, *, expected_observation=None) -> None:
         with self._lifecycle_lock:
-            self._fatal_locked(exc, now)
+            self._fatal_locked(exc, now, expected_observation=expected_observation)
 
-    def _fatal_locked(self, exc: BaseException, now: float) -> None:
+    def _fatal_locked(self, exc: BaseException, now: float, *, expected_observation=None) -> None:
         message = f"{type(exc).__name__}: {exc}"
         with self._lock:
             if self._closed:
                 return
+            if expected_observation is not None:
+                if self._stopping_all or expected_observation != (self._epoch, self._stop_epoch):
+                    return
+                self._capture_transport_ok = False
+                self._capture_visual_valid = False
+                self._capture_reasons = (message,)
             self._closed = True
             self._closed_reason = f"failure requires client reconfiguration ({message})"
+            self._observers.clear()
             self._readiness_reason = self._closed_reason
             self._failure_reasons.append(message)
             self._epoch += 1
@@ -2360,6 +2468,7 @@ class ClientSession:
                 records = []
             else:
                 self._closed = True
+                self._observers.clear()
                 if self._closed_reason is None:
                     self._closed_reason = "closed by caller"
                 self._epoch += 1
@@ -2393,4 +2502,4 @@ class ClientSession:
         self.close()
 
 
-__all__ = ["ClientSession"]
+__all__ = ["ClientSession", "ObservationView"]

@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import math
 from numbers import Integral
+import threading
 import time
 from typing import Any, Sequence
 
@@ -119,6 +120,7 @@ class DesktopAdapter:
         if not callable(self.capture_provider) and not callable(getattr(self.capture_provider, "capture", None)):
             raise TypeError("capture_provider must be callable or expose capture()")
         self._closed = False
+        self._close_complete = False
         configured_size = getattr(self.capture_provider, "capture_size", None)
         self._capture_size: tuple[int, int] | None = (
             tuple(configured_size) if configured_size is not None else None
@@ -141,6 +143,10 @@ class DesktopAdapter:
         self._last_cursor_transition: (
             tuple[tuple[int, int], tuple[int, int]] | None
         ) = None
+        self._readings_inspector = None
+        self._readings_detectors = None
+        self._readings_tracker = None
+        self._readings_reset = threading.Event()
 
     @property
     def evidence_source(self) -> str:
@@ -284,9 +290,11 @@ class DesktopAdapter:
 
     def _present(self, template: str, sensor: Sensor, frame: Frame, *, precision: float = 0.9) -> Reading:
         region = _region(sensor, 4)
-        return Reading(
-            LocateMatch(template, Region=region, Precision=precision, frame=frame, Scale=self.ui_scale) is not None
-        )
+        match = LocateMatch(template, Region=region, Precision=precision, frame=frame,
+                            Scale=self.ui_scale)
+        return Reading(match is not None, detail=f'Template presence at threshold {precision:.2f}',
+                       diagnostics={'reader': 'template', 'ui_scale': self.ui_scale,
+                                    'score': None if match is None else match.score})
 
     def _target(self, sensor: Sensor, frame: Frame) -> Reading:
         region = _region(sensor, 4)
@@ -324,6 +332,10 @@ class DesktopAdapter:
         if sensor.kind is SensorKind.FRAME_VALID:
             if sensor.region or sensor.name:
                 raise ValueError("frame_valid sensor does not take a region or name")
+            return
+        if sensor.kind is SensorKind.READINGS:
+            if sensor.region or sensor.name:
+                raise ValueError('readings sensor does not take a region or name')
             return
         if sensor.kind in (
             SensorKind.RING_EMPTY,
@@ -408,12 +420,78 @@ class DesktopAdapter:
             value = changed
         return Reading(value, reading.quality, reading.detail, diagnostics)
 
+    def reset_readings(self) -> None:
+        """Signal recalibration without constructing readers on the caller's thread."""
+        if self._closed:
+            raise DesktopAdapterError('desktop adapter is closed')
+        self._readings_reset.set()
+
+    def _inspect_readings(self, frame, resolve, cache, checkpoint):
+        if self._readings_reset.is_set():
+            self._readings_reset.clear()
+            if self._readings_inspector is not None:
+                self._readings_inspector.close()
+                self._readings_inspector = None
+            if self._readings_tracker is not None:
+                self._readings_tracker.reset()
+        result = {}
+        visual_started = float(self.clock.monotonic())
+        try:
+            if self._readings_inspector is None:
+                from tibia_client.follow_controls import FollowControls
+                from tibia_client.visual_readings import BattleTextReader, MarkerReader, VisualReadings
+                if self._readings_detectors is None:
+                    # Recalibration replaces settings, not active worker lanes.
+                    # These private detectors never share learned contexts with
+                    # automation and remain bounded across repeated UI resets.
+                    self._readings_detectors = dict(
+                        battle=BattleTextReader(), follow=FollowControls(), markers=MarkerReader())
+                self._readings_inspector = VisualReadings(**self._readings_detectors)
+
+            def battle_for(region, scale):
+                if scale == self.ui_scale and any(
+                        kind is SensorKind.TARGET and box == region for kind, box, _ in cache):
+                    return self._battle_text
+                return None
+
+            follow = None
+            if self._readings_inspector.scale == self.ui_scale and any(
+                    kind is SensorKind.FOLLOW for kind, _, _ in cache):
+                follow = self._follow_matches.get('controls')
+            result.update(self._readings_inspector.read(
+                frame, resolve=resolve, battle_for=battle_for, follow=follow))
+        except Exception as exc:
+            result['visual_error'] = Reading(None, Quality.ERROR,
+                f'visual readings failed: {type(exc).__name__}: {exc}',
+                {'label': 'Visual readings', 'group': 'Diagnostics'})
+        visual_decode_ms = (float(self.clock.monotonic()) - visual_started) * 1000
+        checkpoint()
+        try:
+            if self._readings_tracker is None:
+                from tibia_client.retained_tracker import RetainedResourceTracker
+                self._readings_tracker = RetainedResourceTracker()
+            result.update(self._readings_tracker.read(frame))
+        except Exception as exc:
+            from tibia_client.adaptive import FIELDS
+            result.update({name: Reading(None, Quality.ERROR,
+                           f'resource reader failed: {type(exc).__name__}: {exc}')
+                           for name in FIELDS})
+        checkpoint()
+        return Reading(result, diagnostics={
+            'discovery_ms': getattr(self._readings_tracker, 'discovery_ms', 0.0),
+            'discovery_detail': getattr(self._readings_tracker, 'detail', ''),
+            'recovery': getattr(self._readings_tracker, 'detail', ''),
+            'discovery_busy': getattr(self._readings_tracker, 'busy', False),
+            'visual_decode_ms': visual_decode_ms,
+        })
+
     def observe(self, sensors: Sequence[Sensor], token: Any) -> ObservationBatch:
         if self._closed:
             raise DesktopAdapterError("desktop adapter is closed")
         token.checkpoint()
         self.last_error_diagnostic = None
         observed_at = float(self.clock.monotonic())
+        capture_requested_at = observed_at
         try:
             frame = self._capture(token)
         except Exception as exc:
@@ -425,6 +503,7 @@ class DesktopAdapter:
             failure = failure_type(f"desktop observation capture failed: {exc}")
             failure.client_availability = self.last_error_diagnostic
             raise failure from exc
+        capture_finished = float(self.clock.monotonic())
         if self._capture_size is None:
             self._capture_size = frame.size
         elif frame.size != self._capture_size:
@@ -502,6 +581,8 @@ class DesktopAdapter:
         for sensor in sensors:
             token.checkpoint()
             key = sensor.kind, sensor.region, sensor.name
+            if sensor.kind is SensorKind.READINGS:
+                continue
             reading = invalid.get(key) or cache.get(key)
             if reading is None:
                 adaptive = (
@@ -549,6 +630,30 @@ class DesktopAdapter:
                         Quality.UNKNOWN,
                         f"adaptive visual mapping failed: {type(exc).__name__}: {exc}",
                     )
+        inspector_requests = [sensor for sensor in sensors if sensor.kind is SensorKind.READINGS
+                              and (sensor.kind, sensor.region, sensor.name) not in invalid]
+        if inspector_requests:
+            def resolve(sensor, fallback, scale):
+                token.checkpoint()
+                # A reloaded inspector calibration can have a different scale
+                # from automation. Only identical detector settings share results.
+                if scale != self.ui_scale and sensor.kind not in (SensorKind.HEALTH, SensorKind.MANA):
+                    return fallback()
+                key = sensor.kind, sensor.region, sensor.name
+                if key in invalid:
+                    return invalid[key]
+                # Inspector-only regions keep their own learned detector state.
+                return cache[key] if key in cache else fallback()
+            token.checkpoint()
+            try:
+                composite = self._inspect_readings(frame, resolve, cache, token.checkpoint)
+            except Exception as exc:
+                if _cancelled(token):
+                    raise
+                composite = Reading(None, Quality.ERROR,
+                                    f'readings detector failed: {type(exc).__name__}: {exc}')
+            for sensor in inspector_requests:
+                cache[sensor.kind, sensor.region, sensor.name] = composite
         for sensor in sensors:
             key = sensor.kind, sensor.region, sensor.name
             reading = invalid.get(key) or cache.get(key)
@@ -556,6 +661,15 @@ class DesktopAdapter:
                 reading = Reading(None, Quality.UNKNOWN, "adaptive visual reading unavailable")
             readings[sensor] = reading
         token.checkpoint()
+        if inspector_requests:
+            finished = float(self.clock.monotonic())
+            diagnostics = {'capture_ms': (capture_finished - capture_requested_at) * 1000,
+                           'decode_ms': (finished - capture_finished) * 1000,
+                           'total_ms': (finished - capture_requested_at) * 1000}
+            composite = Reading(composite.value, composite.quality, composite.detail,
+                                {**composite.diagnostics, **diagnostics})
+            for sensor in inspector_requests:
+                readings[sensor] = composite
         return ObservationBatch(readings=readings, observed_at=observed_at, frame=frame)
 
     def _restore_cursor(self, point: object, token: Any, *, screen: bool) -> None:
@@ -706,7 +820,16 @@ class DesktopAdapter:
             raise failure from exc
 
     def close(self) -> None:
+        if self._close_complete:
+            return
         self._closed = True
+        if self._readings_inspector is not None:
+            self._readings_inspector.close()
+        if self._readings_tracker is not None:
+            self._readings_tracker.close()
+        if self._readings_detectors is not None:
+            for reader in self._readings_detectors.values():
+                reader.close()
         self._battle_text.close()
         self._markers.close()
         controls = self._follow_matches.get("controls")
@@ -717,16 +840,19 @@ class DesktopAdapter:
         close = getattr(self.capture_provider, "close", None)
         if callable(close):
             close()
+        self._close_complete = True
 
 
 class KeyboardDesktopAdapter(DesktopAdapter):
     """Production keyboard modules without pretending image calibration succeeded."""
 
     def capabilities(self) -> AdapterCapabilities:
-        return AdapterCapabilities(operations=("press", "modified_press"), sensors=())
+        return AdapterCapabilities(operations=("press", "modified_press"),
+                                   sensors=(SensorKind.READINGS.value,))
 
     def observe(self, sensors: Sequence[Sensor], token: Any) -> ObservationBatch:
-        if sensors:
+        if any(not isinstance(sensor, Sensor) or sensor.kind is not SensorKind.READINGS
+               for sensor in sensors):
             raise DesktopAdapterError("image calibration is required for visual sensors")
         return super().observe(sensors, token)
 

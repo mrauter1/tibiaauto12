@@ -6,9 +6,25 @@ Open **Readings** in the launcher, then **Start monitoring**. Alternatively:
 .venv\Scripts\python.exe -m tools.resource_monitor
 ```
 
-The standalone command does not start the automation app. Opening the window
-does not capture until Start is pressed. It uses the configured capture window
-and size from `scripts/conf.json`. To test capture without a calibrated automation
+The launcher's Readings window subscribes to the same `ClientSession` as Auto
+Heal, Auto Mana and CaveBot. Starting monitoring uses their capture worker and
+reuses matching detector results; it does not enable automation, activate input or create a
+second capture process. Opening the window alone is passive. Closing it or
+pressing Stop removes only its subscription and leaves automation running.
+STOP ALL also stops this subscription and clears the displayed values; press
+Start monitoring to resume it.
+
+The session and adapter objects are created when the main menu opens. Their
+scheduler and capture process start lazily when monitoring or a feature starts.
+When there is no observation or automation demand, the session does not capture.
+Additional monitor-only fields still require detector work on the shared frame,
+so monitoring can increase CPU use and the time before the next automation tick.
+Values, capture timestamps and source crops come from the same session batch.
+
+The standalone command keeps its own capture and reader workers and does not
+start the automation app. Opening its window also waits for Start. Both modes
+use the configured capture window and size from `scripts/conf.json`. To test
+standalone capture without a calibrated automation
 profile, explicitly supply the capture window's current HWND:
 
 ```console
@@ -16,8 +32,9 @@ profile, explicitly supply the capture window's current HWND:
 ```
 
 Replace the example handle with the actual game or OBS projector window handle.
-The target is pinned for each run; Stop and Start again after changing the
-selected capture window. Use an unscaled, uncropped capture and keep the Skills
+The standalone target is pinned for each run; Stop and Start it again after
+changing the selected capture window. The launcher follows the selected client
+session. Use an unscaled, uncropped capture and keep the Skills
 panel's resource rows visible. The monitor uses
 `tibia_client.retained_resources.RetainedResourceReader`, which discovers labels
 with Windows OCR and retains the row geometry for ordinary numeric reads.
@@ -64,7 +81,8 @@ Select any table row to inspect its enlarged source crop and diagnostic evidence
 including source frame, coordinates, OCR fragments or template scores. Creature
 crops include the adjacent icon so selection borders can be inspected. Marker
 crops outline detected matches. Use the table scrollbar for additional entries.
-The left preview follows capture independently. Its region outline is drawn only
+The launcher preview and rows advance together with the subscribed observation.
+The standalone preview follows capture independently. Its region outline is drawn only
 when it is the same frame as the selected reading. The selected crop always comes
 from that reading's exact source frame. Enlarged crops use nearest-neighbor scaling.
 Stale crops remain visibly marked Stale for inspection, and their numeric labels
@@ -72,17 +90,24 @@ become N/A. The timestamp is local; identical frames do not prove a frozen strea
 and continuous OBS/game freshness is unverified.
 
 Capture plus transfer, discovery and decoding are measured separately. The total
-is **capture request to decoded result**, including process startup when it occurs,
-but excluding initial reader construction and UI rendering. A result over the
-100 ms budget is marked **OVER BUDGET** independently of readability. Initial
-discovery can exceed that budget and may produce an already-stale first result.
+is **capture request to decoded result**, including capture-process startup and
+foreground detector setup when they occur, but excluding UI rendering. Numeric
+reader construction and panel discovery run in the background; their old pixels
+never become a new reading. A proposed layout must pass checks against the current
+frame. A result over the 100 ms budget is marked **OVER BUDGET** independently of
+readability. In shared mode, decode time includes all requested sensors; visual
+decode time reports the additional inspection work within that total.
 
-Capture, resource decoding, visual decoding and Skills discovery run in separate
-workers. Each decoder consumes only the latest frame; there is no frame queue.
-Their readings have separate ages. Missing numeric values retain their layout;
-only missing layout evidence triggers background recovery. Stop clears readings immediately,
-cancels capture/discovery, and discards a decoder result that finishes later.
-Restart waits for the previous worker to finish. Capture failures clear readings;
+In the launcher, the session schedules the requested readings on its shared
+capture; Skills discovery and asynchronous OCR keep their own bounded background
+work. The standalone monitor keeps separate capture, resource and visual decoder
+workers, each consuming only the latest frame, without a frame queue. Its resource
+and visual readings can have separate ages. Missing numeric values retain their
+layout; only missing layout evidence triggers background recovery. Both views
+clear readings immediately on Stop and discard later results for that stopped
+subscription or run. Standalone Stop also cancels its capture/discovery workers;
+its restart waits for them to finish. The launcher leaves the session available
+to active automation. Capture failures clear readings;
 transport errors retry capture, while invalid frame size/black frames stop the run.
 
 Creature target names accept `*` (zero or more characters) and `?` (one character).
@@ -128,8 +153,9 @@ drives loot. A template miss alone cannot finish a pending or failed OCR read.
 Exact name matching is retained; partial names are not guessed. Unchanged failed pixels
 are cached, while transient OCR exceptions may retry after one second.
 
-The automation session and Readings have separate capture workers. A valid
-health bar in Readings does not prove that Auto Heal's session is capturing.
+The main-menu Readings window shares the automation session's capture and health
+bar detector. The standalone command has a separate capture worker, so a valid
+bar there does not prove that Auto Heal's session is capturing.
 Recoverable automation capture timeouts and worker disconnects now show
 **Waiting for capture; retrying** while features stay enabled. They discard
 old observations and queued input, restart the stopped worker on a later tick
@@ -182,10 +208,12 @@ Input calls are serialized; resource actions do not wait for the loot sweep to
 finish, and resources and follow do not consume the ordinary action slot.
 Game cooldowns still apply to resource hotkeys.
 
-The monitor owns only capture and reading, has no input adapter, does not start
-automation or save screenshots. Applying stale time updates the shared reading
-setting; it may also persist the retained Skills layout cache. Existing
-automation modules are independent; use STOP ALL before a strictly
-observation-only trial. Start with capture and reading comparisons against the
+Monitoring never starts an automation feature or sends input. The launcher view
+owns only a read-only subscription; the standalone monitor owns capture and
+reading without an input adapter. Neither saves screenshots. Applying stale time
+updates the shared setting; reading may also persist the retained Skills layout
+cache. Existing automation can continue while either monitor runs; use STOP ALL
+before a strictly observation-only trial, then start monitoring. Start with
+capture and reading comparisons against the
 visible client, then obscure values, move the panel, resize the capture and stop
 during a read. These live checks remain separate from offline fixture tests.

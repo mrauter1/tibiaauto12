@@ -20,6 +20,7 @@ from core.perception import CaptureError, DetectionError, Frame, validate_region
 from tibia_client.adaptive import FIELDS
 from tibia_client.models import Marker, Quality, Reading, Target
 from tibia_client.freshness import DEFAULT_STALE_MS, get_stale_ms, validate_stale_ms
+from tibia_client.retained_tracker import RetainedResourceTracker, create_reader
 
 FIELD_NAMES = dict(zip(FIELDS, ("HP (Skills)", "Mana (Skills)", "Soul points", "Capacity")))
 BUDGET_MS = 100.0
@@ -72,12 +73,6 @@ def create_capture(hwnd: int | None = None):
             target = selected
     return CaptureProcess(WindowSource(hwnd, target), capture_size=size,
                           timeout=2.0, max_restarts=0, startup_timeout=15.0)
-
-
-def create_reader():
-    from tibia_client.retained_resources import RetainedResourceReader
-
-    return RetainedResourceReader()
 
 
 def create_visual_reader():
@@ -220,12 +215,10 @@ class ResourceMonitor:
         self._token = _Cancellation()
         self._closed = False
         self._decode_worker = None
-        self._recovery_worker = None
+        self._tracker = None
         self._visual_worker = None
         self._visual_ready = threading.Event()
         self._frame_ready = threading.Event()
-        self._recalibrate = threading.Event()
-        self._candidate = None
         self._layout_epoch = 0
         self._cache_path = None
         if capture_factory is create_capture and reader_factory is create_reader:
@@ -239,21 +232,24 @@ class ResourceMonitor:
     @property
     def busy(self) -> bool:
         with self._lock:
-            return any(w is not None and w.is_alive() for w in
-                       (self._worker, self._decode_worker, self._recovery_worker, self._visual_worker))
+            return (any(w is not None and w.is_alive() for w in
+                        (self._worker, self._decode_worker, self._visual_worker))
+                    or self._tracker is not None and self._tracker.busy)
 
     def start(self) -> bool:
         with self._lock:
             if self._closed:
                 raise RuntimeError("Monitor is closed")
-            if any(w is not None and w.is_alive() for w in
-                   (self._worker, self._decode_worker, self._recovery_worker, self._visual_worker)):
+            if (any(w is not None and w.is_alive() for w in
+                    (self._worker, self._decode_worker, self._visual_worker))
+                    or self._tracker is not None and self._tracker.busy):
                 return False
             self._token = _Cancellation()
             self._frame_ready.clear()
             self._visual_ready.clear()
-            self._recalibrate.clear()
-            self._candidate = None
+            self._tracker = RetainedResourceTracker(
+                self._reader_factory, clock=self._clock,
+                rediscovery_interval=self._rediscovery_interval, cache_path=self._cache_path)
             self._layout_epoch += 1
             self._state = MonitorState("Starting", detail="Starting capture…", running=True)
             self._worker = threading.Thread(
@@ -267,6 +263,8 @@ class ResourceMonitor:
             self._token.event.set()
             self._frame_ready.set()
             self._visual_ready.set()
+            if self._tracker is not None:
+                self._tracker.close()
             self._state = MonitorState(
                 "Stopped", detail="Monitoring stopped. Previous readings were cleared.",
                 source=self._state.source,
@@ -280,16 +278,18 @@ class ResourceMonitor:
     def wait(self, timeout: float = 3.0) -> bool:
         """Bounded shutdown wait for command-line/application teardown."""
         deadline = time.monotonic() + timeout
-        for worker in (self._worker, self._decode_worker, self._recovery_worker, self._visual_worker):
+        for worker in (self._worker, self._decode_worker, self._visual_worker):
             if worker is not None:
                 worker.join(max(0, deadline-time.monotonic()))
+        if self._tracker is not None:
+            self._tracker.wait(max(0, deadline-time.monotonic()))
         return not self.busy
 
     def recalibrate(self):
         with self._lock:
             self._layout_epoch += 1
-            self._candidate = None
-            self._recalibrate.set()
+            if self._tracker is not None:
+                self._tracker.reset()
             self._frame_ready.set()
             self._visual_ready.set()
             self._state = replace(self._state, sample=None, visual=None)
@@ -331,100 +331,36 @@ class ResourceMonitor:
             if reader is not None:
                 reader.close()
 
-    def _discover(self, token, frame, epoch):
-        started = self._clock()
-        def checkpoint():
-            token.checkpoint()
-            if epoch != self._layout_epoch:
-                raise _Stopped()
-            if self._clock() - started > 30:
-                raise TimeoutError("Panel search exceeded 30 seconds; preview remains live")
-        try:
-            # A separate reader owns discovery caches; normal reads never share them.
-            reader = self._reader_factory()
-            result = reader.discover(frame, use_ocr=False, checkpoint=checkpoint)
-            checkpoint()
-            with self._lock:
-                if not token.event.is_set() and epoch == self._layout_epoch:
-                    self._candidate = (result.layout, (self._clock()-started)*1000)
-            self._publish(token, recovery=result.detail or "Panel located; validating current frame")
-        except _Stopped:
-            pass
-        except Exception as exc:
-            self._publish(token, recovery=f"Panel recovery: {exc}")
-
     def _decode(self, token):
-        from tibia_client.retained_resources import load_layout, save_layout
+        tracker = self._tracker
         try:
-            reader = self._reader_factory()
-            layout = load_layout(self._cache_path) if self._cache_path else None
-            sequence, missing_since, next_recovery, discovery_ms = 0, None, 0.0, 0.0
+            sequence = 0
             while not token.event.is_set():
                 self._frame_ready.wait(.2)
                 self._frame_ready.clear()
                 token.checkpoint()
-                if self._recalibrate.is_set():
-                    self._recalibrate.clear()
-                    layout, next_recovery = None, 0.0
                 with self._lock:
                     latest = self._state.preview
                     sample_epoch = self._layout_epoch
                 if latest is None or latest.sequence == sequence:
                     continue
-                with self._lock:
-                    candidate, self._candidate = self._candidate, None
                 sequence, frame = latest.sequence, latest.frame
                 started = self._clock()
-                if candidate and candidate[0] is not None:
-                    proposed, discovery_ms = candidate
-                    if len(reader.visible_fields(frame, proposed)) >= 2:
-                        layout = proposed
-                        if self._cache_path:
-                            try:
-                                save_layout(self._cache_path, layout)
-                            except OSError as exc:
-                                self._publish(token, recovery=f"Layout cache: {exc}")
-                visible = reader.visible_fields(frame, layout) if layout else set()
-                if layout and len(visible) < 2 and started >= next_recovery:
-                    shifted = reader.relocate(frame, layout)
-                    if shifted is not None:
-                        layout = shifted
-                        visible = reader.visible_fields(frame, layout)
-                        if self._cache_path:
-                            try:
-                                save_layout(self._cache_path, layout)
-                            except OSError:
-                                pass
-                # Numeric failures do not schedule discovery. Hidden rows keep
-                # their geometry, and unaffected fields continue to be read.
-                if len(visible) >= 2:
-                    missing_since = None
-                    if self._recovery_worker is None or not self._recovery_worker.is_alive():
-                        self._publish(token, recovery="")
-                elif missing_since is None:
-                    missing_since = started
-                needs_search = layout is None or (missing_since is not None and started-missing_since >= 2)
-                if needs_search and started >= next_recovery and (
-                    self._recovery_worker is None or not self._recovery_worker.is_alive()
-                ):
-                    next_recovery = started + max(10.0, self._rediscovery_interval)
-                    self._publish(token, recovery="Searching for panel in background; capture continues")
-                    self._recovery_worker = threading.Thread(target=self._discover,
-                        args=(token, frame, self._layout_epoch), name="resource-discovery", daemon=True)
-                    self._recovery_worker.start()
-                readings = (reader.read(frame, layout, use_ocr=False) if layout else
-                    {name: Reading(None, Quality.UNKNOWN, "Locating resource panel in background") for name in FIELDS})
+                readings = tracker.read(frame)
                 finished = self._clock()
                 sample = Sample(sequence, frame, readings, latest.observed_at, latest.capture_ms,
-                                discovery_ms, (finished-started)*1000,
+                                tracker.discovery_ms, (finished-started)*1000,
                                 (finished-latest.observed_at)*1000)
                 good = sum(r.quality is Quality.KNOWN for r in readings.values())
                 self._publish(token, _epoch=sample_epoch, sample=sample, phase="Monitoring",
-                    detail=f"{good}/4 fields read · saved layout" if layout else "Locating panel; preview is live")
+                    recovery=tracker.detail,
+                    detail=f"{good}/4 fields read · saved layout" if tracker.has_layout else "Locating panel; preview is live")
         except _Stopped:
             pass
         except Exception as exc:
             self._publish(token, recovery=f"Reader error: {type(exc).__name__}: {exc}")
+        finally:
+            tracker.close()
 
     def _publish(self, token: _Cancellation, *, _epoch=None, **changes) -> None:
         with self._lock:
@@ -492,6 +428,8 @@ class ResourceMonitor:
             self._publish(token, phase="Error", sample=None, visual=None, preview=None, detail=str(exc), running=False)
         finally:
             token.event.set()
+            if self._tracker is not None:
+                self._tracker.close()
             self._frame_ready.set()
             self._visual_ready.set()
             if capture is not None:
