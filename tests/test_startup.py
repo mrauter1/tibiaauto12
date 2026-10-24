@@ -288,6 +288,11 @@ def test_windows_real_gui_constructors_smoke(tmp_path, monkeypatch):
         assert not monitor.monitor.busy
         assert root_module.OpenResourceMonitor() is monitor
         monitor.close()
+        coordinate_monitor = root_module.OpenCoordinateMonitor()
+        assert coordinate_monitor.monitor is None
+        assert not coordinate_monitor.enabled.get()
+        assert root_module.OpenCoordinateMonitor() is coordinate_monitor
+        coordinate_monitor.close()
         workflow = root_module.OpenHuntWorkflow()
         workflow.data["bindings"] = {
             "first": {"name": "first_detector", "region": [1, 2, 10, 12]},

@@ -1,0 +1,31 @@
+CAPTURE RECOVERY
+
+Temporary native capture failures (GDI readback, Windows client geometry access,
+PrintWindow, or a uniformly black frame) pause observations and are retried.
+The session retains enabled features, clears stale readings and queued decisions,
+and waits for a fresh valid capture before deciding again. It does not replay
+previous inputs after recovery. Stop All/cancellation still interrupts recovery.
+
+The worker now sends an explicit boolean recovery classification alongside its
+bounded error diagnostic. Wrapped exceptions preserve the native classification;
+exception class names and arbitrary error strings are not used to infer it.
+The parent reaps the failed worker before the next capture starts a replacement.
+Retries use the session/monitor's existing 250 ms delay; native capture attempts
+and process startup retain their existing deadlines.
+
+Malformed worker messages, invalid frames, configuration/calibration changes and
+workers that cannot be terminated remain terminal errors. A replaced/closed game
+window may still require selecting the new window handle in the application.
+
+The readings panel clears both decoder lanes during an outage and invalidates
+late pre-outage results. The coordinate panel clears the old prediction, displays
+Waiting for capture, and reuses the loaded atlas when capture returns.
+
+The original screenshot truncates the native error detail. This change repairs
+the identified fatal-versus-retryable propagation bug; it does not establish
+which Windows operation caused that particular incident.
+
+Regression checks use injected providers and synthetic frames, including a real
+spawn worker that fails once and then returns a new frame. No game input is sent.
+Run tests/test_capture_recovery.py plus capture, desktop, session, readings and
+coordinate monitor tests with the project's virtual environment.

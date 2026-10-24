@@ -98,9 +98,15 @@ def capture_direct_host_client(hwnd, expected_size=None):
     hwnd = _validate_handle(hwnd)
     try:
         native = _DirectClientBackend()
-        with native.physical_pixels():
-            rect = native.client_rectangle(hwnd)
-            image = native.grab(rect)
+        try:
+            with native.physical_pixels():
+                rect = native.client_rectangle(hwnd)
+                image = native.grab(rect)
+        except (WindowTargetError, OSError) as exc:
+            # Only the native operation is retryable. Size/configuration and
+            # malformed returned-image checks below remain terminal.
+            exc.capture_retryable = True
+            raise
         actual_size = (rect[2] - rect[0], rect[3] - rect[1])
         if not isinstance(image, Image.Image) or image.size != actual_size:
             raise WindowTargetError("capture returned inconsistent client pixel dimensions")

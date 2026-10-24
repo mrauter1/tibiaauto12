@@ -20,7 +20,7 @@ from core import runtime
 from core.HookWindow import LocateMatch
 from core.perception import CaptureError, Frame, as_frame, validate_region
 from engine.ScanStages import ScanStages
-from tibia_client.capture import CaptureProcess, TransientCaptureError
+from tibia_client.capture import CaptureProcess, TransientCaptureError, _retryable_capture_error
 from tibia_client.adaptive_runtime import AdaptiveResourceTracker, CaptureInputMapping
 from tibia_client.diagnostics import AdapterCapabilities
 from tibia_client.models import (
@@ -261,8 +261,8 @@ class DesktopAdapter:
         value = method() if callable(method) else provider()
         return as_frame(value, source="desktop-adapter")
 
-    def _capture_failure(self, message: str):
-        failure = CaptureError(message)
+    def _capture_failure(self, message: str, *, retryable=False):
+        failure = (TransientCaptureError if retryable else CaptureError)(message)
         self._diagnose_operation_error(failure)
         raise failure
 
@@ -499,7 +499,7 @@ class DesktopAdapter:
             if _cancelled(token):
                 raise
             self._diagnose_operation_error(exc)
-            failure_type = TransientCaptureError if isinstance(exc, TransientCaptureError) else CaptureError
+            failure_type = TransientCaptureError if _retryable_capture_error(exc) else CaptureError
             failure = failure_type(f"desktop observation capture failed: {exc}")
             failure.client_availability = self.last_error_diagnostic
             raise failure from exc
@@ -522,7 +522,7 @@ class DesktopAdapter:
         # source; non-black identical frames remain explicitly unverified.
         if not bool(frame.pixels.any()):
             self._capture_error = "capture returned an exactly uniform black frame"
-            self._capture_failure(self._capture_error)
+            self._capture_failure(self._capture_error, retryable=True)
         if isinstance(self.capture_provider, CaptureProcess) and self._system_clock:
             capture_started = self.capture_provider.last_observed_at
             returned_at = float(self.clock.monotonic())

@@ -1,0 +1,200 @@
+OPTIONAL COORDINATE MONITOR
+
+Open Coordinates in the main launcher, then select Enable coordinate prediction.
+
+The module is disabled when opened and does not auto-start on application launch.
+
+It captures the selected client/OBS window without sending game input.
+
+The panel displays predicted X, Y and Z, agreement, screenshot pixels per world
+
+tile, local capture age, capture-to-result time, and the minimap crop. A red ring
+
+marks the screen point used for the coordinate prediction.
+
+Settings
+
+- Map folder: the concatenated minimap-world directory, containing manifest.json
+
+  and floor_XX.png files. The default is
+
+  C:\SandBox\PaulistinhaOTLauncher\minimap-world.
+
+- Minimap bounds: Left Top Right Bottom in captured-client pixels, with the right
+
+  and bottom edges excluded. These are initialized from the active bot profile's
+
+  MapBox. Disable monitoring before changing them. Recalibrate when the client
+
+  layout or capture size changes.
+
+- Pixels per tile: Auto measures colour-boundary grid spacing and searches
+  compatible power-of-two zoom families (1, 1.25, 1.5 and 1.75 base UI scales),
+  from 0.125 through 16 captured pixels per world tile. Manual values in this
+  range are also accepted. Reduced views sample the atlas at strides 2, 4 or 8;
+  indexes include every world-tile phase, rather than one aligned reduced map.
+  Their caches are prepared during Loading maps, before live frame capture.
+  Below one pixel per tile, individual tiles cannot all be observed. The panel
+  reports sampling resolution; map-center fallback and hidden crosshairs can
+  introduce additional position error. Agreement remains a sampled-terrain
+  percentage, excluding masked/unknown pixels, not a probability of correctness.
+
+- Displayed floor: Auto searches all atlas floors. A manual value restricts the
+
+  search; it must agree with the floor currently shown in the minimap.
+
+- Minimum match (%): default 50. Enter a number from 0 through 100, including
+  decimals. Disable prediction before editing, then enable it to apply. This
+  setting lasts for the current Coordinates window and resets to 50 on reopening.
+- Map-center mode: optional, off by default. This returns a map-center estimate
+
+  and labels it accordingly. It is not automatically the player's position.
+
+Ordinary mode searches for a unique isolated light/dark player-crosshair shape.
+
+If no unique crosshair is found (missing, clipped or ambiguous), matching
+automatically uses the minimap center and labels accepted results Map-center
+estimate. It returns to the player crosshair when a unique one is visible again.
+The explicit map-center option keeps using the center regardless of visibility. This visual shape check
+
+can still be confused by identical symbols and is not a game-state guarantee.
+
+The supplied Paulistinha screenshot is covered by an offline end-to-end test.
+
+Current results only
+
+Predictions older than 750 milliseconds from the local capture observation are
+
+cleared. Unknown matches, capture failures, size changes and Disable clear the
+
+coordinate. Stop All also disables this monitor. Application close cancels its
+
+worker and closes the isolated capture process. A late result cannot repopulate
+
+the display after Disable. Only one worker and one latest frame are retained.
+
+Reference loading, index construction, capture and matching run off the Tk UI
+
+thread. No game executable is started by this module. Screenshot age is local
+
+capture age: a frozen OBS projector can still yield fresh local captures.
+
+Matching and cache
+
+The live lane uses the benchmarked palette-pattern index and candidate agreement
+
+checks, searching all floors unless explicitly restricted. It does not use a
+
+previous coordinate as a local-search prior, so a stale floor/position cannot
+
+silently pin recovery after a floor change or teleport. Slow full-map template
+
+fallback is excluded from this live display lane; exact-score ties display one coordinate tagged Ambiguous.
+
+Captured colours are snapped to the colours actually present in the atlas.
+Far-off colours, the outer two sampled rows/columns and the crosshair region
+are excluded. Actual dark pixels (all RGB channels <= 30) are kept separately
+from these masks. Remaining marker pixels can count as mismatches.
+Acceptance defaults to at least 50% normalized terrain agreement. The highest
+scoring candidate is shown without a minimum lead over the runner-up. Only an
+exact full-precision score tie between different X/Y/Z locations is labelled
+Ambiguous; one tied coordinate and its map marker remain visible. Ties choose
+the lowest X, then Y, then Z deterministically. Duplicate zoom hypotheses for
+the same coordinate do not count as competing places. The score is not a probability.
+Terrain tiles count equally; water contributes at most 20% of the score. At
+least 48 non-water samples and two non-water colours with eight samples each
+are required. These checks prevent a large water background from dominating.
+When a crosshair is visible in map-center mode, it aligns sampling to the tile
+grid, then the accepted coordinate is translated to the viewport center and
+rounded to the nearest tile. Without it, the viewport center is sampled directly;
+fractional zoom can still cause rejection when that center is between tiles.
+
+Cache identities include the reference manifest and all source floor images.
+
+The existing sibling minimap-localization/cache directory is reused when present;
+
+otherwise the cache is created under .cache/minimap-localization in this project.
+
+The first build can take a few minutes and use several hundred MB of disk/memory.
+
+Reference files are not changed. Enable/Disable is not persisted as auto-start.
+
+Validation
+
+Tests use recorded or generated Frames and injected capture providers. They cover
+
+opt-in startup, coordinates, stale/unknown presentation, missing/ambiguous player
+
+markers, cancellation during loading and matching, capture failure and resize,
+
+cleanup failure, UI enable/disable, and launcher integration. These tests do not
+
+establish live-game coordinate accuracy or support for every client skin.
+
+Run from the project root:
+
+  .\.venv\Scripts\python.exe -m pytest tests/test_coordinate_palette.py tests/test_coordinate_monitor.py tests/test_minimap_localization.py tests/test_resource_monitor.py tests/test_startup.py
+
+World map viewer
+
+The Coordinates window includes the full reference atlas on the right. A red
+crosshair marks a fresh accepted prediction on its predicted floor. The label
+distinguishes the predicted player from a map-center estimate. Unknown, stale,
+disabled and failed predictions hide the marker while retaining the map.
+
+Follow keeps the predicted position centered as it moves. Drag to pan (which
+turns Follow off); click Follow to return to the position. Use the mouse wheel
+or +/- to zoom. Fit world shows the whole floor. The floor changes automatically
+with the prediction. Moving the pointer over the map shows world coordinates.
+The pane divider can be dragged to resize the map. Rendering uses nearest-neighbor
+pixels, and only the visible viewport is rendered at high zoom. Images load in
+a background worker; this viewer does not move the character or send game input.
+
+Viewer checks: tests/test_coordinate_map.py.
+
+Sparse minimaps
+
+When at least 10% of a normalized native-stride view is observed black, the
+live matcher also searches 3x3 room/corridor boundary patterns. These allow real
+black pixels as geometric context; they do not require the old fully coloured
+7x7 neighbourhood. Unsupported colours, crop borders and the crosshair mask
+cannot supply fake black boundaries. Up to 64 boundary candidates supplement
+the ordinary candidates, which are verified together on their visible terrain.
+
+Masked pixels are excluded from BOTH the numerator and denominator. Visible
+black is different: on candidate floors other than 7 it must agree with black
+in the reference. The score is the lower of colored-terrain agreement and
+agreement including observed black. Thus a black-versus-colored mismatch lowers
+the score, but matching a huge black background cannot inflate weak terrain
+agreement. Uninformative/black-only views still cannot locate.
+
+With Displayed floor = Auto, if at least 25% of unmasked samples are black,
+this same rule also constrains floor-7 candidates; guessing ground level must
+not bypass a mostly black view's geometry. Otherwise floor-7 black remains
+ignored. Explicit Displayed floor = 7 preserves unexplored-ground masking.
+This is a visual heuristic, not a guaranteed floor or exploration detector.
+
+RGB black does not distinguish empty space, uncharted pixels and missing atlas
+tiles. The color PNG has no per-player visited flag. Paired waypoint cost 254
+indicates unknown cached pathfinding; 255 indicates cached blocked. These are
+additional evidence, not proof of visitation or live walkability. Preloaded or
+stale waypoint data can disagree with the current client. The matcher does not
+silently equate waypoint availability with explored colored terrain. The configurable minimum
+agreement and minimum distinctive terrain checks still apply. Exact ties are labelled.
+Boundary indexes are built during Loading maps and cached with the atlas's
+existing content fingerprint. An uninformative room remains Unknown; exact ties show one labelled coordinate.
+
+Sparse regression checks: tests/test_sparse_minimap.py.
+
+Viewing other floors
+
+The World map panel has a Floor / Z selector: Auto follows fresh coordinate
+predictions; 0 through 15 pin the viewer to a chosen floor. Up decreases Z and
+Down increases Z, stopping at 0 and 15. Manual floor changes preserve the map's
+world position and zoom so the same area can be compared across levels.
+
+Floor browsing also works while prediction is disabled or unknown. The player
+marker is visible only on its predicted floor; the caption identifies when a
+different floor is being viewed. Selecting Auto resumes following the predicted
+floor. These controls affect only the viewer, independently of the detector's
+Displayed floor setting. Missing atlas floors show a Map unavailable message.
