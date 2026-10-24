@@ -21,6 +21,7 @@ from tibia_client.adaptive import FIELDS
 from tibia_client.models import Marker, Quality, Reading, Target
 from tibia_client.freshness import DEFAULT_STALE_MS, get_stale_ms, validate_stale_ms
 from tibia_client.retained_tracker import RetainedResourceTracker, create_reader
+from tibia_client.capture import TransientCaptureError
 
 FIELD_NAMES = dict(zip(FIELDS, ("HP (Skills)", "Mana (Skills)", "Soul points", "Capacity")))
 BUDGET_MS = 100.0
@@ -393,8 +394,16 @@ class ResourceMonitor:
                 begun = self._clock()
                 try:
                     frame = capture.capture(token=token)
-                except CaptureError as exc:
+                    if not isinstance(frame, Frame):
+                        raise CaptureError("Capture did not return an immutable frame")
+                    if expected_size is not None and frame.size != expected_size:
+                        raise CaptureError("Capture size changed. Stop and restart for the new size.")
+                    if not frame.pixels.any():
+                        raise TransientCaptureError("Capture is all black; waiting for a readable frame")
+                except TransientCaptureError as exc:
                     token.checkpoint()
+                    with self._lock:
+                        self._layout_epoch += 1  # Reject decoders finishing pre-outage frames.
                     self._publish(token, phase="Waiting for capture", sample=None, visual=None, preview=None,
                                   detail=str(exc), recovery="")
                     capture.close()
@@ -404,13 +413,7 @@ class ResourceMonitor:
                     continue
                 captured = self._clock()
                 token.checkpoint()
-                if not isinstance(frame, Frame):
-                    raise CaptureError("Capture did not return an immutable frame")
-                if expected_size is not None and frame.size != expected_size:
-                    raise CaptureError("Capture size changed. Stop and restart for the new size.")
                 expected_size = frame.size
-                if not frame.pixels.any():
-                    raise CaptureError("Capture is all black; readings are unavailable")
                 observed_at = getattr(capture, "last_observed_at", None)
                 if observed_at is None:
                     observed_at = begun

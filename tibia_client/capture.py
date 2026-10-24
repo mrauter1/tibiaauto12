@@ -25,6 +25,17 @@ class TransientCaptureError(CaptureError, TransientObservationError):
     """A stopped capture worker can be restarted on the next observation."""
 
 
+def _retryable_capture_error(error):
+    """Preserve an explicit native-capture classification through wrappers."""
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        if isinstance(error, TransientCaptureError) or getattr(error, 'capture_retryable', None) is True:
+            return True
+        error = error.__cause__
+    return False
+
+
 DEFAULT_MAX_PIXEL_BYTES = 64 * 1024 * 1024
 _POLL_INTERVAL = 0.02
 _MAX_ERROR_TEXT = 2_048
@@ -137,7 +148,8 @@ def _worker(
                         seen.add(id(cause))
                         diagnostic = getattr(cause, "client_availability", None)
                         cause = cause.__cause__
-                    connection.send(("error", request_id, detail, _bounded_diagnostic(diagnostic)))
+                    connection.send(("error", request_id, detail, _bounded_diagnostic(diagnostic),
+                                     _retryable_capture_error(exc)))
                 except (BrokenPipeError, EOFError, OSError):
                     return
     finally:
@@ -385,9 +397,12 @@ class CaptureProcess:
             raise CaptureError(
                 f"capture worker returned response {response_id!r} for request {request_id}"
             )
-        if kind == "error" and len(response) in (3, 4):
-            failure = CaptureError(f"capture provider failed: {response[2]}")
-            if len(response) == 4 and response[3] is not None:
+        if kind == "error" and len(response) in (3, 4, 5):
+            if len(response) == 5 and type(response[4]) is not bool:
+                raise CaptureError("capture worker returned an invalid recovery flag")
+            error_type = TransientCaptureError if len(response) == 5 and response[4] else CaptureError
+            failure = error_type(f"capture provider failed: {response[2]}")
+            if len(response) >= 4 and response[3] is not None:
                 failure.client_availability = response[3]
             raise failure
         if kind != "frame" or len(response) != 7:
@@ -514,9 +529,11 @@ class CaptureProcess:
                         ) from None
                     raise TransientCaptureError(f"capture timed out after {limit:g} seconds") from None
                 except CaptureError:
-                    # A valid error response or malformed child data fails
-                    # closed.  Do not repeatedly spawn on unavailable input.
+                    # Reap this attempt. Explicit transient errors reach the
+                    # scheduler's paced retry; malformed data stays terminal.
                     self._reap()
+                    if self._terminal_error is not None:
+                        raise CaptureError(self._terminal_error) from None
                     raise
                 except (BrokenPipeError, ConnectionError, EOFError, OSError) as exc:
                     last_failure = str(exc) or type(exc).__name__

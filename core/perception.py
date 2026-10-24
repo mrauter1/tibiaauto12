@@ -628,10 +628,13 @@ def _capture_windows(hwnd: int) -> Image.Image:
         info = bitmap.GetInfo()
         bits = bitmap.GetBitmapBits(True)
         return Image.frombuffer("RGB", (info["bmWidth"], info["bmHeight"]), bits, "raw", "BGRX", 0, 1).copy()
-    except CaptureError:
+    except CaptureError as exc:
+        exc.capture_retryable = True
         raise
     except Exception as exc:
-        raise CaptureError(f"Windows capture failed for hwnd {hwnd}: {exc}") from exc
+        failure = CaptureError(f"Windows capture failed for hwnd {hwnd}: {exc}")
+        failure.capture_retryable = True
+        raise failure from exc
     finally:
         # Delete the compatible DC first so its bitmap is no longer selected.
         # DeleteObject fails for an object that remains selected into a DC.

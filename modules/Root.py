@@ -162,6 +162,21 @@ def OpenResourceMonitor():
     return window
 
 
+def OpenCoordinateMonitor():
+    from modules.CoordinateMonitor import CoordinateMonitorWindow
+
+    existing = getattr(_active_root, "coordinate_monitor", None)
+    if existing is not None and (
+        not existing._closed or (existing.monitor is not None and existing.monitor.busy)
+    ):
+        existing.window.deiconify()
+        existing.window.lift()
+        return existing
+    window = CoordinateMonitorWindow(_active_root.windowID, box=tuple(MapPositions))
+    _active_root.coordinate_monitor = window
+    return window
+
+
 def OpenHuntWorkflow():
     from modules.HuntWorkflow import HuntWorkflow
     from tibia_client.hunt_workflow import HuntWorkflowController
@@ -212,7 +227,6 @@ class root:
             ("Auto Login", [245, 135]),
             ("Creature Info", [147, 188]),
             ("Monsters", [245, 188]),
-            ("Show Map", [147, 290]),
             ("Python Scripts", [245, 392]),
         )
         for text, position in unavailable:
@@ -228,6 +242,7 @@ class root:
         self.root.addButton("Auto Ring", OpenAutoRing, [92, 23], [245, 108])
         self.root.addButton("Timed Spells", OpenTimedSpells, [92, 23], [147, 135])
         self.root.addButton("Cave Bot", OpenCaveBot, [92, 23], [245, 290])
+        self.root.addButton("Coordinates", OpenCoordinateMonitor, [92, 23], [147, 290])
         self.root.addButton("Test client", OpenCompatibility, [92, 23], [147, 340])
         self.root.addButton("Trace viewer", OpenTraceViewer, [92, 23], [245, 340])
         self.root.addButton("Hunt Console", OpenHuntConsole, [213, 23], [134, 426])
@@ -264,6 +279,9 @@ class root:
         def stop_all():
             if self._stopping or self._closing:
                 return
+            coordinate_monitor = getattr(_active_root, "coordinate_monitor", None)
+            if coordinate_monitor is not None and not coordinate_monitor._closed:
+                coordinate_monitor.stop()
             self._stopping = True
             self.control_status.set("Stopping all automation…")
             def done(_value, error):
@@ -296,6 +314,11 @@ class root:
                 if monitor is not None:
                     monitor.close()
                     monitor.monitor.wait()
+                coordinate_monitor = getattr(_active_root, "coordinate_monitor", None)
+                if coordinate_monitor is not None:
+                    coordinate_monitor.close()
+                    if coordinate_monitor.monitor is not None:
+                        coordinate_monitor.monitor.wait()
                 close_client()
             finally:
                 shutdown()
