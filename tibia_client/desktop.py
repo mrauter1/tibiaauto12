@@ -90,8 +90,9 @@ class DesktopAdapter:
         self.mouse_mode = int(mouse_mode)
         self.ui_scale = float(ui_scale)
         from tibia_client.battle_text import BattleTextReader
+        from tibia_client.follow_controls import FollowControls
         self._battle_text = BattleTextReader()
-        self._follow_matches = {}
+        self._follow_matches = {'controls': FollowControls()}
         from tibia_client.visual_readings import MarkerReader
         self._markers = MarkerReader()
         native_hotkey = hotkey is None
@@ -121,6 +122,7 @@ class DesktopAdapter:
             raise TypeError("capture_provider must be callable or expose capture()")
         self._closed = False
         self._close_complete = False
+        self._readers_lock = threading.Lock()
         configured_size = getattr(self.capture_provider, "capture_size", None)
         self._capture_size: tuple[int, int] | None = (
             tuple(configured_size) if configured_size is not None else None
@@ -312,9 +314,10 @@ class DesktopAdapter:
         return read_marker(frame, region, sensor.name, scale)
 
     @staticmethod
-    def _follow(sensor: Sensor, frame: Frame, scale: float = 1.0, matches=None) -> Reading:
+    def _follow(sensor: Sensor, frame: Frame, scale: float = 1.0, matches=None,
+                *, observation_cycle=None) -> Reading:
         from tibia_client.follow_controls import follow_action
-        return follow_action(sensor, frame, scale, matches)
+        return follow_action(sensor, frame, scale, matches, observation_cycle=observation_cycle)
 
     def _validate_sensor(self, sensor: Sensor, frame: Frame) -> None:
         """Validate every requested geometry before any detector executes."""
@@ -368,7 +371,8 @@ class DesktopAdapter:
             return
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
 
-    def _read(self, sensor: Sensor, frame: Frame, *, follow_matches=None) -> Reading:
+    def _read(self, sensor: Sensor, frame: Frame, *, follow_matches=None,
+              observation_cycle=None) -> Reading:
         if sensor.kind is SensorKind.FRAME_VALID:
             return Reading(True)
         if sensor.kind in (SensorKind.HEALTH, SensorKind.MANA):
@@ -386,7 +390,8 @@ class DesktopAdapter:
         if sensor.kind is SensorKind.MARKER:
             return self._marker(sensor, frame, self.ui_scale, self._markers)
         if sensor.kind is SensorKind.FOLLOW:
-            return self._follow(sensor, frame, self.ui_scale, follow_matches)
+            return self._follow(sensor, frame, self.ui_scale, follow_matches,
+                                observation_cycle=observation_cycle)
         if sensor.kind is SensorKind.VISUAL:
             return self._visual_profile.read(sensor, frame)
         raise ValueError(f"unsupported sensor kind {sensor.kind!r}")
@@ -426,27 +431,72 @@ class DesktopAdapter:
             raise DesktopAdapterError('desktop adapter is closed')
         self._readings_reset.set()
 
-    def _inspect_readings(self, frame, resolve, cache, checkpoint):
+    def _readings_resource(self, attribute, factory, *, dispose=None):
+        """Publish lazy readers only while open; never block close on construction."""
+        with self._readers_lock:
+            if self._closed:
+                raise DesktopAdapterError('desktop adapter is closed')
+            resource = getattr(self, attribute)
+        if resource is not None:
+            return resource
+        created = factory()
+        with self._readers_lock:
+            resource = getattr(self, attribute)
+            if not self._closed and resource is None:
+                setattr(self, attribute, created)
+                return created
+            closed = self._closed
+        # A constructor can outlive the session's bounded shutdown wait. Its
+        # unpublished result belongs to this caller, even after close completed.
+        if dispose is None:
+            created.close()
+        else:
+            dispose(created)
+        if closed:
+            raise DesktopAdapterError('desktop adapter is closed')
+        return resource
+
+    @staticmethod
+    def _close_readings_detectors(detectors):
+        for reader in detectors.values():
+            reader.close()
+
+    @staticmethod
+    def _create_readings_detectors():
+        from tibia_client.follow_controls import FollowControls
+        from tibia_client.visual_readings import BattleTextReader, MarkerReader
+        detectors = {}
+        try:
+            for name, factory in (('battle', BattleTextReader), ('follow', FollowControls),
+                                  ('markers', MarkerReader)):
+                detectors[name] = factory()
+        except BaseException:
+            DesktopAdapter._close_readings_detectors(detectors)
+            raise
+        return detectors
+
+    def _inspect_readings(self, frame, resolve, cache, checkpoint, *, observation_cycle=None):
         if self._readings_reset.is_set():
             self._readings_reset.clear()
-            if self._readings_inspector is not None:
-                self._readings_inspector.close()
-                self._readings_inspector = None
-            if self._readings_tracker is not None:
-                self._readings_tracker.reset()
+            with self._readers_lock:
+                inspector, self._readings_inspector = self._readings_inspector, None
+                tracker = self._readings_tracker
+            if inspector is not None:
+                inspector.close()
+            if tracker is not None:
+                tracker.reset()
         result = {}
         visual_started = float(self.clock.monotonic())
         try:
             if self._readings_inspector is None:
-                from tibia_client.follow_controls import FollowControls
-                from tibia_client.visual_readings import BattleTextReader, MarkerReader, VisualReadings
-                if self._readings_detectors is None:
-                    # Recalibration replaces settings, not active worker lanes.
-                    # These private detectors never share learned contexts with
-                    # automation and remain bounded across repeated UI resets.
-                    self._readings_detectors = dict(
-                        battle=BattleTextReader(), follow=FollowControls(), markers=MarkerReader())
-                self._readings_inspector = VisualReadings(**self._readings_detectors)
+                from tibia_client.visual_readings import VisualReadings
+                # Recalibration replaces settings, not active worker lanes.
+                detectors = self._readings_resource(
+                    '_readings_detectors', self._create_readings_detectors,
+                    dispose=self._close_readings_detectors)
+                self._readings_resource(
+                    '_readings_inspector', lambda: VisualReadings(**detectors))
+            checkpoint()
 
             def battle_for(region, scale):
                 if scale == self.ui_scale and any(
@@ -459,7 +509,8 @@ class DesktopAdapter:
                     kind is SensorKind.FOLLOW for kind, _, _ in cache):
                 follow = self._follow_matches.get('controls')
             result.update(self._readings_inspector.read(
-                frame, resolve=resolve, battle_for=battle_for, follow=follow))
+                frame, resolve=resolve, battle_for=battle_for, follow=follow,
+                observation_cycle=observation_cycle))
         except Exception as exc:
             result['visual_error'] = Reading(None, Quality.ERROR,
                 f'visual readings failed: {type(exc).__name__}: {exc}',
@@ -469,7 +520,8 @@ class DesktopAdapter:
         try:
             if self._readings_tracker is None:
                 from tibia_client.retained_tracker import RetainedResourceTracker
-                self._readings_tracker = RetainedResourceTracker()
+                self._readings_resource('_readings_tracker', RetainedResourceTracker)
+            checkpoint()
             result.update(self._readings_tracker.read(frame))
         except Exception as exc:
             from tibia_client.adaptive import FIELDS
@@ -489,6 +541,7 @@ class DesktopAdapter:
         if self._closed:
             raise DesktopAdapterError("desktop adapter is closed")
         token.checkpoint()
+        observation_cycle = object()
         self.last_error_diagnostic = None
         observed_at = float(self.clock.monotonic())
         capture_requested_at = observed_at
@@ -594,7 +647,9 @@ class DesktopAdapter:
                     adaptive_requests[sensor] = adaptive
                     continue
                 try:
-                    reading = self._input_reading(self._read(sensor, frame, follow_matches=follow_matches))
+                    reading = self._input_reading(self._read(
+                        sensor, frame, follow_matches=follow_matches,
+                        observation_cycle=observation_cycle))
                 except Exception as exc:
                     if _cancelled(token):
                         raise
@@ -646,7 +701,8 @@ class DesktopAdapter:
                 return cache[key] if key in cache else fallback()
             token.checkpoint()
             try:
-                composite = self._inspect_readings(frame, resolve, cache, token.checkpoint)
+                composite = self._inspect_readings(
+                    frame, resolve, cache, token.checkpoint, observation_cycle=observation_cycle)
             except Exception as exc:
                 if _cancelled(token):
                     raise
@@ -820,27 +876,32 @@ class DesktopAdapter:
             raise failure from exc
 
     def close(self) -> None:
-        if self._close_complete:
-            return
-        self._closed = True
-        if self._readings_inspector is not None:
-            self._readings_inspector.close()
-        if self._readings_tracker is not None:
-            self._readings_tracker.close()
-        if self._readings_detectors is not None:
-            for reader in self._readings_detectors.values():
-                reader.close()
+        with self._readers_lock:
+            if self._close_complete:
+                return
+            self._closed = True
+            inspector = self._readings_inspector
+            tracker = self._readings_tracker
+            detectors = self._readings_detectors
+        if inspector is not None:
+            inspector.close()
+        if tracker is not None:
+            tracker.close()
+        if detectors is not None:
+            self._close_readings_detectors(detectors)
         self._battle_text.close()
         self._markers.close()
         controls = self._follow_matches.get("controls")
         if controls is not None:
             controls.close()
-        self._follow_matches.clear()
+        # Retain the closed handle so an interrupted observation cannot lazily
+        # replace it through follow_action's standalone cache path.
         self._adaptive_tracker.close()
         close = getattr(self.capture_provider, "close", None)
         if callable(close):
             close()
-        self._close_complete = True
+        with self._readers_lock:
+            self._close_complete = True
 
 
 class KeyboardDesktopAdapter(DesktopAdapter):

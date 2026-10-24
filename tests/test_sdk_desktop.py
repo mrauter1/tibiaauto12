@@ -459,7 +459,7 @@ def test_observe_uses_one_frame_for_union_and_returns_domain_values(monkeypatch)
         assert region == (20, 40, 60, 80) and name == "Flag"
         return Reading(Marker((40, 60), True))
 
-    def follow(sensor, frame, scale=1.0, matches=None):
+    def follow(sensor, frame, scale=1.0, matches=None, *, observation_cycle=None):
         seen_frames.append(frame)
         return Reading((8, 8))
 

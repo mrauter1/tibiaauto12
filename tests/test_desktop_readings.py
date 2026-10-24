@@ -10,6 +10,7 @@ from tibia_client import desktop, visual_readings
 from tibia_client.adaptive import FIELDS
 from tibia_client.desktop import DesktopAdapter, DesktopAdapterError
 from tibia_client.models import Marker, Quality, Reading, Sensor, SensorKind, Target
+from tibia_client.retained_tracker import RetainedResourceTracker as RealRetainedResourceTracker
 from tibia_client.visual_readings import MarkerReader as RealMarkerReader
 
 
@@ -44,11 +45,10 @@ class Markers(Handle):
 
 
 class Controls(Handle):
-    def read(self, frame, scale):
-        # FollowControls itself caches the observation for identical Frame objects.
-        if getattr(self, 'frame', None) is not frame:
+    def read(self, frame, scale, *, observation_cycle=None):
+        if observation_cycle is None or getattr(self, 'cycle', None) is not observation_cycle:
             self.calls['decode'] += 1
-            self.frame = frame
+            self.cycle = observation_cycle
         return Reading(False, diagnostics={'follow_position': (7, 8), 'stand_position': (7, 4),
                                           'follow_visible': True})
 
@@ -228,18 +228,20 @@ def test_composite_reports_shared_timing_without_restamping_capture(setup, monke
     assert diagnostics['recovery'] == 'retained layout'
 
 
-def test_follow_discovery_candidate_cannot_change_existing_frame_observation(monkeypatch):
+def test_follow_discovery_candidate_cannot_change_existing_cycle_observation(monkeypatch):
     from tibia_client.follow_controls import FollowControls
     controls = FollowControls()
     frame = Frame(np.full((30, 30, 3), 72, np.uint8))
     original = Reading(False)
     controls._frame, controls._reading = frame, original
+    cycle = object()
+    controls._observation_cycle, controls._configured_scale = cycle, 1.0
     controls._candidate = (frame.size, 1., (0, 0, 20, 20), {})
     changed = Reading(True, diagnostics={'stand_visible': False, 'follow_visible': True})
     monkeypatch.setattr(controls, '_locate', lambda *args: changed)
-    assert controls.read(frame) is original
+    assert controls.read(frame, observation_cycle=cycle) is original
     assert controls._candidate is not None
-    assert controls.read(Frame(frame.pixels)) is changed
+    assert controls.read(frame, observation_cycle=object()) is changed
     assert controls._candidate is None
     controls.close()
 
@@ -345,7 +347,7 @@ def test_inspector_private_follow_scale_and_battle_region_do_not_reuse_wrong_con
     adapter, _, profile, battle, _, controls, _ = setup
 
     class ScaledControls(Controls):
-        def read(self, frame, scale):
+        def read(self, frame, scale, *, observation_cycle=None):
             self.calls['read'] += 1
             return Reading(scale == 1.5)
     monkeypatch.setattr('tibia_client.follow_controls.FollowControls', ScaledControls)
@@ -483,3 +485,163 @@ def test_actual_desktop_cleanup_failure_remains_retryable_through_session(setup)
         assert provider.closes == 2 and adapter._close_complete
     finally:
         session.close()
+
+
+@pytest.mark.parametrize('constructor', [
+    'tibia_client.retained_tracker.RetainedResourceTracker',
+    'tibia_client.visual_readings.VisualReadings',
+    'tibia_client.visual_readings.BattleTextReader',
+    'tibia_client.follow_controls.FollowControls',
+    'tibia_client.visual_readings.MarkerReader',
+])
+def test_close_disposes_late_inspection_constructors_without_using_them(setup, monkeypatch, constructor):
+    import importlib
+
+    adapter, *_ = setup
+    module_name, name = constructor.rsplit('.', 1)
+    module = importlib.import_module(module_name)
+    factory = getattr(module, name)
+    entered, release, closed = threading.Event(), threading.Event(), threading.Event()
+    calls = Counter()
+    errors = []
+
+    def construct(*args, **kwargs):
+        entered.set()
+        assert release.wait(5)
+        resource = factory(*args, **kwargs)
+        close = resource.close
+
+        def dispose():
+            calls['close'] += 1
+            close()
+
+        def read(*args, **kwargs):
+            calls['read'] += 1
+            raise AssertionError('late reader must never be used')
+
+        resource.close = dispose
+        for method in ('read', 'read_all'):
+            if hasattr(resource, method):
+                setattr(resource, method, read)
+        return resource
+
+    monkeypatch.setattr(module, name, construct)
+
+    def observe():
+        try:
+            adapter.observe([Sensor(SensorKind.READINGS)], Token())
+        except BaseException as exc:
+            errors.append(exc)
+
+    def close():
+        try:
+            adapter.close()
+        except BaseException as exc:
+            errors.append(exc)
+        finally:
+            closed.set()
+
+    observer = threading.Thread(target=observe, daemon=True)
+    closer = threading.Thread(target=close, daemon=True)
+    observer.start()
+    try:
+        assert entered.wait(2)
+        closer.start()
+        assert closed.wait(2), 'shutdown must not wait for a blocked constructor'
+        assert adapter._close_complete
+    finally:
+        release.set()
+        observer.join(2)
+        if closer.ident is not None:
+            closer.join(2)
+    assert not observer.is_alive() and not closer.is_alive()
+    assert not errors and calls == {'close': 1}
+    if name == 'RetainedResourceTracker':
+        assert adapter._readings_tracker is None
+    else:
+        assert adapter._readings_inspector is None
+    adapter.close()
+    assert calls == {'close': 1}
+
+
+def test_partial_inspection_detector_construction_closes_created_handles(setup, monkeypatch):
+    adapter, *_ = setup
+    battle, controls = Battle(), Controls()
+    monkeypatch.setattr(visual_readings, 'BattleTextReader', lambda: battle)
+    monkeypatch.setattr('tibia_client.follow_controls.FollowControls', lambda: controls)
+
+    def fail():
+        raise ValueError('marker construction failed')
+
+    monkeypatch.setattr(visual_readings, 'MarkerReader', fail)
+    request = Sensor(SensorKind.READINGS)
+    result = adapter.observe([request], Token()).readings[request].value
+    assert result['visual_error'].quality is Quality.ERROR
+    assert all(result[name].quality is Quality.KNOWN for name in FIELDS)
+    assert battle.closed == controls.closed == 1
+    assert adapter._readings_detectors is None
+
+
+def test_session_close_during_real_tracker_cache_load_does_not_launch_discovery(setup, monkeypatch):
+    from tibia_client import retained_resources, retained_tracker
+    from tibia_client.session import ClientSession
+
+    adapter, *_ = setup
+    entered, release, returned = threading.Event(), threading.Event(), threading.Event()
+    trackers, readers = [], []
+
+    def load_layout(path):
+        entered.set()
+        assert release.wait(5)
+        return None
+
+    def create_tracker():
+        tracker = RealRetainedResourceTracker(reader_factory=lambda: readers.append(object()))
+        trackers.append(tracker)
+        return tracker
+
+    monkeypatch.setattr(retained_resources, 'load_layout', load_layout)
+    monkeypatch.setattr(retained_tracker, 'RetainedResourceTracker', create_tracker)
+    inspect = adapter._inspect_readings
+
+    def inspect_and_signal(*args, **kwargs):
+        try:
+            return inspect(*args, **kwargs)
+        finally:
+            returned.set()
+
+    monkeypatch.setattr(adapter, '_inspect_readings', inspect_and_signal)
+    session = ClientSession(adapter)
+    try:
+        session.subscribe_observations((Sensor(SensorKind.READINGS),))
+        assert entered.wait(2)
+        session.close()
+        assert session.closed and adapter._close_complete
+        assert adapter._readings_tracker is None
+        release.set()
+        assert returned.wait(2)
+        assert len(trackers) == 1 and trackers[0]._closed
+        assert trackers[0]._worker is None and readers == []
+        assert adapter._readings_tracker is None
+        session.close()
+    finally:
+        release.set()
+        session.close()
+
+
+def test_closed_adapter_follow_handle_cannot_be_recreated(monkeypatch):
+    frame = Frame(np.full((30, 30, 3), 72, np.uint8))
+    adapter = DesktopAdapter(0, hotkey=object(), capture_provider=lambda: frame)
+    controls = adapter._follow_matches['controls']
+    adapter.close()
+
+    def unexpected_constructor():
+        raise AssertionError('closed adapter must retain its follow handle')
+
+    monkeypatch.setattr('tibia_client.follow_controls.FollowControls', unexpected_constructor)
+    # An observation that already captured its local cache can resume after close.
+    reading = adapter._follow(Sensor(SensorKind.FOLLOW), frame,
+                              matches=adapter._follow_matches, observation_cycle=object())
+    assert adapter._follow_matches['controls'] is controls
+    assert reading.quality is Quality.UNKNOWN and controls._closed
+    assert controls._worker is None
